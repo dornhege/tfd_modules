@@ -1,0 +1,138 @@
+cmake_minimum_required(VERSION 2.4.6)
+include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+
+# Set the build type.  Options are:
+#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
+#  Debug          : w/ debug symbols, w/o optimization
+#  Release        : w/o debug symbols, w/ optimization
+#  RelWithDebInfo : w/ debug symbols, w/ optimization
+#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
+#set(ROS_BUILD_TYPE RelWithDebInfo)
+
+rosbuild_init()
+
+#set the default path for built executables to the "bin" directory
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+#set the default path for built libraries to the "lib" directory
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+
+include_directories(include module_api)
+
+set(module_api_SOURCES
+   module_api/moduleLoader.cpp
+   module_api/moduleLoaderDLL.cpp
+   module_api/moduleLoaderLDL.cpp
+   module_api/pddlModuleLoader.cpp
+   module_api/pddlModuleLoaderDLL.cpp
+   module_api/pddlModuleLoaderLDL.cpp
+   module_api/printTypes.cpp)
+
+set(module_api_HEADERS
+   module_api/moduleLoaderDLL.h
+   module_api/moduleLoader.h
+   module_api/moduleLoaderLDL.h
+   module_api/pddlModuleLoaderDLL.h
+   module_api/pddlModuleLoader.h
+   module_api/pddlModuleLoaderLDL.h
+   module_api/printTypes.h)
+ 
+set(preprocess_HEADERS
+   downward/preprocess/axiom.h
+   downward/preprocess/causal_graph.h
+   downward/preprocess/domain_transition_graph_func.h
+   downward/preprocess/domain_transition_graph.h
+   downward/preprocess/domain_transition_graph_subterm.h
+   downward/preprocess/domain_transition_graph_symb.h
+   downward/preprocess/helper_functions.h
+   downward/preprocess/max_dag.h
+   downward/preprocess/module.h
+   downward/preprocess/operator.h
+   downward/preprocess/scc.h
+   downward/preprocess/state.h
+   downward/preprocess/successor_generator.h
+   downward/preprocess/variable.h)
+
+set(preprocess_SOURCES
+   downward/preprocess/axiom.cpp
+   downward/preprocess/causal_graph.cpp
+   downward/preprocess/domain_transition_graph.cpp
+   downward/preprocess/domain_transition_graph_func.cpp
+   downward/preprocess/domain_transition_graph_subterm.cpp
+   downward/preprocess/domain_transition_graph_symb.cpp
+   downward/preprocess/helper_functions.cpp
+   downward/preprocess/max_dag.cpp
+   downward/preprocess/module.cpp
+   downward/preprocess/operator.cpp
+   downward/preprocess/planner.cpp
+   downward/preprocess/scc.cpp
+   downward/preprocess/state.cpp
+   downward/preprocess/successor_generator.cpp
+   downward/preprocess/variable.cpp)
+
+set(search_HEADERS
+   downward/search/axioms.h
+   downward/search/best_first_search.h
+   downward/search/cache.h
+   downward/search/causal_graph.h
+   downward/search/closed_list.h
+   downward/search/cyclic_cg_heuristic.h
+   downward/search/domain_transition_graph.h
+   downward/search/globals.h
+   downward/search/plannerParameters.h
+   downward/search/heuristic.h
+   downward/search/module.h
+   downward/search/monitoring.h
+   downward/search/mre_heuristic.h
+   downward/search/no_heuristic.h
+   downward/search/operator.h
+   downward/search/partial_order_lifter.h
+   downward/search/scheduler.h
+   downward/search/search_engine.h
+   downward/search/state.h
+   downward/search/successor_generator.h)
+   
+set(search_SOURCES
+   downward/search/axioms.cpp
+   downward/search/best_first_search.cpp
+   downward/search/cache.cpp
+   downward/search/causal_graph.cpp
+   downward/search/closed_list.cpp
+   downward/search/cyclic_cg_heuristic.cpp
+   downward/search/domain_transition_graph.cpp
+   downward/search/globals.cpp
+   downward/search/plannerParameters.cpp
+   downward/search/heuristic.cpp
+   downward/search/module.cpp
+   downward/search/monitoring.cpp
+   downward/search/mre_heuristic.cpp
+   downward/search/no_heuristic.cpp
+   downward/search/operator.cpp
+   downward/search/partial_order_lifter.cpp
+   downward/search/planner.cpp
+   downward/search/scheduler.cpp
+   downward/search/search_engine.cpp
+   downward/search/state.cpp
+   downward/search/successor_generator.cpp)
+
+#uncomment if you have defined messages
+#rosbuild_genmsg()
+#uncomment if you have defined services
+#rosbuild_gensrv()
+
+#common commands for building c++ executables and libraries
+rosbuild_add_library(tfd_module_api ${module_api_SOURCES})
+#target_link_libraries(${PROJECT_NAME} another_library)
+#rosbuild_add_boost_directories()
+#rosbuild_link_boost(${PROJECT_NAME} thread)
+rosbuild_add_executable(tfd_preprocess ${preprocess_SOURCES})
+rosbuild_add_executable(tfd_search ${search_SOURCES})
+target_link_libraries(tfd_search tfd_module_api dl)
+
+rosbuild_add_compile_flags(tfd_preprocess "-Wno-sign-compare -ansi -pedantic")
+rosbuild_add_compile_flags(tfd_search "-Wno-sign-compare -ansi ")
+
+IF(${ROS_BUILD_TYPE} MATCHES Rel)
+   rosbuild_add_compile_flags(tfd_preprocess "-O3")
+   rosbuild_add_compile_flags(tfd_search "-O3")
+ENDIF(${ROS_BUILD_TYPE} MATCHES Rel)
+
