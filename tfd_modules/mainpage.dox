@@ -1,0 +1,32 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b 
+<p>
+      This package contains the TFD/M symbolic planner developed by Christian Dornhege, Patrick Eyerich and Thomas Keller.<br>
+      TFD/M is based on Temporal Fast Downward (TFD), developed by Gabriele Roeger, Patrick Eyerich and Robert Mattmueller.<br>
+      TFD in turn is based on Fast Downward, developed by Malte Helmert.
+</p>
+
+<!--
+Here usage, e.g. 3 stages + stanard calls/scripts.
+Also note how ROS conn can be switched off (when its done).
+
+Also PDDL links, specs, def
+Link to papers for refs.
+-->
+\section codeapi Code API
+
+<!--
+Provide links to specific auto-generated API documentation within your
+package that is of particular interest to a reader. Doxygen will
+document pretty much every part of your code, so do your best here to
+point the reader to the actual API.
+
+If your codebase is fairly large or has different sets of APIs, you
+should use the doxygen 'group' tag to keep these APIs together. For
+example, the roscpp documentation has 'libros' group.
+-->
+
+*/

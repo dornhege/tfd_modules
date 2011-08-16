@@ -1,0 +1,17 @@
+<package>
+  <description brief="tfd_modules">
+      This package contains the TFD/M symbolic planner with a modular interface.
+  </description>
+  <author>Maintained by Christian Dornhege (see AUTHORS file).</author>
+  <license>GPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/tfd_modules</url>
+
+  <depend package="roscpp" />
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl" />
+  </export>
+
+</package>
+

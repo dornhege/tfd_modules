@@ -1,0 +1,8 @@
+<stack>
+  <description brief="symbolic_planning">symbolic_planning</description>
+  <author>Maintained by Christian Dornhege</author>
+  <license>GPL</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/symbolic_planning</url>
+  <depend stack="ros" />
+</stack>
