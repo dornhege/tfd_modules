@@ -1,0 +1,10 @@
+<package>
+  <description brief="domains">
+      A collection of PDDL, PDDL/M domains and problems mainly from the IPC.
+  </description>
+  <author></author>
+  <license></license>
+  <review status="unreviewed" notes=""/>
+  <url></url>
+</package>
+

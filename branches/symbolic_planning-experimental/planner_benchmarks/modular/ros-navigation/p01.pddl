@@ -1,0 +1,18 @@
+(define (problem p01)
+  (:domain ros-navigation)
+;  (:moduleoptions (initializeGridMap@libgridmap-exploration_Module.so -m "/home/nickel/workspace/Desktop/current_map.pgm"))
+  (:objects l0 - location t1 t2 t3 - target)
+  (:init 
+      (at l0)
+      (= (x l0) 0.0)
+      (= (y l0) 0.0)
+      (= (x t1) 0.1)
+      (= (y t1) 0.15)
+      (= (x t2) -0.1)
+      (= (y t2) 0.3)
+      (= (x t3) -0.3)
+      (= (y t3) -0.3)
+  )
+  (:goal (and (explored t1) (explored t2) (explored t3)))
+)
+
