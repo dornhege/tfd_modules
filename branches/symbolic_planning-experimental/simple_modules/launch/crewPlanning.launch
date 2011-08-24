@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="tfd_modules" type="tfd_plan" name="tfdplan" output="screen" args="$(find planner_benchmarks)/temporal/crewplanning-strips/domain.pddl $(find planner_benchmarks)/temporal/crewplanning-strips/p01.pddl" required="true">
+    <rosparam command="load" file="$(find tfd_modules)/config/tfd_modules_params_no_anytime.yaml" />
+  </node>
+</launch>
