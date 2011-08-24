@@ -15,7 +15,7 @@ Module::Module(istream &in)
 
 void Module::generate_cpp_input(ostream &outfile) const
 {
-    outfile << name << " " << lib << " " << params.size();
+    outfile << name << " " << lib << " " << params.size() << " ";
     for (int i = 0; i < params.size(); ++i) {
         outfile << " " << params[i].name << " " << params[i].type << " "
                 << params[i].obj << " ";

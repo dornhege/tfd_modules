@@ -91,6 +91,14 @@ int main(int argc, char **argv)
     g_module_loader = new PDDLModuleLoaderLDL();
 #endif
     read_everything(cin);
+
+    /*
+    for(map<int, ConditionModule*>::iterator it =  g_condition_modules.begin(); it != g_condition_modules.end(); it++)
+       it->second->dump();
+    for(vector<EffectModule *>::iterator it =  g_effect_modules.begin(); it != g_effect_modules.end(); it++)
+       (*it)->dump();
+*/
+
     g_let_time_pass = new Operator(false);
     g_wait_operator = new Operator(true);
 
