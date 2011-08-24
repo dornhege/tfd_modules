@@ -29,6 +29,8 @@ class Module
         {
         }
         virtual ~Module();
+
+        virtual void dump();
 };
 
 class ConditionModule: public Module
@@ -39,6 +41,8 @@ class ConditionModule: public Module
         conditionCheckerType checkCondition;
 
         ConditionModule(istream &in);
+        
+        virtual void dump();
 };
 
 class EffectModule: public Module
@@ -50,6 +54,8 @@ class EffectModule: public Module
         applyEffectType applyEffect;
 
         EffectModule(istream &in);
+        
+        virtual void dump();
 };
 
 class CostModule: public Module
