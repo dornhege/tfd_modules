@@ -1,0 +1,20 @@
+<launch>
+  <!-- start up world -->
+  <include file="$(find gazebo_worlds)/launch/office_world.launch"/>
+
+  <!-- start up robot -->
+  <include file="$(find pr2_gazebo)/pr2.launch"/>
+
+  <!-- load map -->
+  <node pkg="map_server" type="map_server" args="$(find planner_modules_pr2)/launch/simple_office.yaml" respawn="true" name="map1" />
+
+  <!-- Tuck Arms For Navigation -->
+  <node pkg="pr2_tuckarm" type="tuck_arms.py" args="b" output="screen" name="tuck_arms"/>
+
+  <!-- nav-stack -->
+  <include file="$(find pr2_2dnav_gazebo)/2dnav-stack-amcl.launch" />
+
+  <!-- for visualization -->
+  <include file="$(find pr2_navigation_global)/rviz/rviz_move_base.launch"/>
+
+</launch>
