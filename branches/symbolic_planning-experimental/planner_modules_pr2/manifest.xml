@@ -1,0 +1,18 @@
+<package>
+  <description brief="planner_modules_pr2">
+
+     planner_modules_pr2
+
+  </description>
+  <author>dornhege</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planner_modules_pr2</url>
+  <depend package="tfd_modules"/>
+  <depend package="nav_msgs"/>
+  <depend package="tf"/>
+  <depend package="planner_benchmarks"/>
+
+</package>
+
+
