@@ -42,7 +42,7 @@ void ConditionModule::dump()
    Module::dump();
    std::cout << "Variable: " << var << std::endl;
 
-   std::cout << "checkCondition call is: " << (int)checkCondition << std::endl;
+   std::cout << "checkCondition call is: " << (long)(checkCondition) << std::endl;
 }
 
 EffectModule::EffectModule(istream &in) :
@@ -74,7 +74,7 @@ void EffectModule::dump()
       std::cout << *it << " ";
    std::cout << std::endl;
 
-   std::cout << "ApplyEffect call is: " << (int)applyEffect << std::endl;
+   std::cout << "ApplyEffect call is: " << (long)(applyEffect) << std::endl;
 }
 
 CostModule::CostModule(istream &in) :
