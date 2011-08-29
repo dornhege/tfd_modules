@@ -450,7 +450,7 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
         //    char *syscall2 = (char*)malloc(len * sizeof(char));
         //    sprintf(syscall2, "rm %s", temp_filename);
 
-        //    printf("FILENAME: %s\n", temp_filename);
+        //printf("FILENAME: %s\n", filename);
         file = fopen(filename, "w");
         best_file = fopen(best_filename, "w");
 
