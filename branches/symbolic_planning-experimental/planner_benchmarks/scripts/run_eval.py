@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import os
 import subprocess
+import shutil
 
 class Configuration(object):
     def __init__(self, configfile):
@@ -43,6 +44,9 @@ class Problem(object):
 
         # set the tfd_modules/plan param for output
         cmd = "rosparam set /tfd_modules/plan_name %s" % (os.path.join(outdir, self.path, "plan." + self.problem))
+        code = os.system(cmd)
+        assert(code == 0)
+        cmd = "rosparam set /tfd_modules/time_debug_file %s" % (os.path.join(outdir, self.path, "times." + self.problem))
         code = os.system(cmd)
         assert(code == 0)
 
@@ -92,6 +96,14 @@ def main():
     else:
         os.mkdir(outdir)
 
+    # save the config
+    shutil.copy(config.config, outdir)
+    # save the run script
+    pipe = subprocess.Popen(["rospack", "find", "tfd_modules"], stdout=subprocess.PIPE)
+    tfd_path = pipe.communicate()[0].strip()
+    shutil.copy(os.path.join(tfd_path, "scripts/tfd_plan"), outdir)
+
+    # run all problems
     for num, i in enumerate(problems):
         print "Running: %s: %s - %s (%.1f %%)" % (i.path, i.domain, i.problem, 100.0*num/len(problems))
         i.run(outdir)

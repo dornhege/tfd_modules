@@ -191,6 +191,7 @@ bool PlannerParameters::readROSParameters()
    nhPriv.param("use_tss_known", use_tss_known, use_tss_known);
 
    nhPriv.param("plan_name", plan_name, plan_name);
+   nhPriv.param("time_debug_file", time_debug_file, time_debug_file);
       
    // Don't get planMonitorFileName from param server as that is an input
 
