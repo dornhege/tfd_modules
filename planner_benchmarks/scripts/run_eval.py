@@ -5,6 +5,8 @@ import os
 import subprocess
 import shutil
 
+# Perform an evaluation run
+
 class Configuration(object):
     def __init__(self, configfile):
         assert(len(configfile) > 0)
