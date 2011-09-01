@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Run evaluation and compute absolute results, i.e. makespans, runtimes...
+# Evaluate results from a run and compute tables, e.g. makespans, runtimes...
 
 from __future__ import with_statement
 
@@ -179,19 +179,28 @@ def writeTex(evaldict, filename):
     # First build the name -> {identifier -> entries} dict.
     nameEntriesDict = {}
     buildNameIdentifierDict(evaldict, nameEntriesDict, "")
+    #print nameEntriesDict
 
     f = open(filename, "w")
     print >> f, '\\documentclass{article}'
     print >> f, "\\usepackage{caption}"
     print >> f, '\\begin{document}'
 
-    #print nameEntriesDict
+    writeTexTable(nameEntriesDict, f, "makespan", "<")
+    writeTexTable(nameEntriesDict, f, "runtime", "<")
+
+    print >> f, '\\end{document}'
+    f.flush()
+    f.close()
+
+def writeTexTable(nameEntriesDict, f, target, better):
     for key, val in nameEntriesDict.iteritems():
         print "Domain: ", key
         print >> f, '\\begin{table}'
         print >> f, '  \\centering'
         print >> f, '  \\begin{tabular}{|l|c|c|}'
         print >> f, '  \\hline'
+        # Write table header
         print >> f, '  Problem & ',
         for num, (ident, probs) in enumerate(val.iteritems()):  # is the num ordering somewhat guaranteed?
             print >> f, num,
@@ -212,9 +221,22 @@ def writeTex(evaldict, filename):
         print "PROB SET ", problems
         probList = list(problems)
         probList.sort(key=str.lower)
+        # write table lines
         for i in probList:
             print "Problem: ", i
             print >> f, i, "    &",
+            best = None
+            # best
+            for num, (ident, probs) in enumerate(val.iteritems()):
+                myProb = [j for j in probs if repr(j) == i]
+                if myProb:
+                    assert len(myProb) == 1
+                    if not best:
+                        best = eval("myProb[0]." + target)
+                    else:
+                        if eval("myProb[0]." + target + " " + better + " best"):
+                            best = eval("myProb[0]." + target)
+
             for num, (ident, probs) in enumerate(val.iteritems()):
                 print "NUM", num
                 print "RunIdnet: ", ident
@@ -222,7 +244,11 @@ def writeTex(evaldict, filename):
                 myProb = [j for j in probs if repr(j) == i]
                 if myProb:
                     assert len(myProb) == 1
-                    print >> f, myProb[0].makespan,
+                    if best and best == eval("myProb[0]." + target):
+                        print >> f, "\\textbf{",
+                    print >> f, eval("myProb[0]." + target),
+                    if best and best == eval("myProb[0]." + target):
+                        print >> f, "}",
                 else:
                     print >> f, "- ",
                 if num < len(val) - 1:
@@ -233,7 +259,7 @@ def writeTex(evaldict, filename):
 
         print >> f, '  \\hline'
         print >> f, '  \\end{tabular}'
-        print >> f, '  \\caption{Domain:', key, #Date: %s, ' % datetime.datetime.now()
+        print >> f, '  \\caption{\\textbf{', target, '} Domain: \\textbf{', key, '}',
         print >> f, "\\\\"
         for num, (ident, probs) in enumerate(val.iteritems()):
             print >> f, str(num) + ": ", ident.replace("_", "\\_") + ",",
@@ -242,9 +268,6 @@ def writeTex(evaldict, filename):
         print >> f, '\\end{table}'
         print >> f, ''
 
-    print >> f, '\\end{document}'
-    f.flush()
-    f.close()
 
 def main():
     parser = OptionParser("usage: %prog PROBLEMS")
@@ -258,7 +281,7 @@ def main():
     # write eval data
     writeEvalData(evalDict, ".")
 
-    # create gnuplots/latex tables, etc. - all grouped by domain-name divided by settings/algos
+    # create latex tables, all grouped by domain-name divided by settings/algos
     writeTex(evalDict, "output.tex")
 
 if __name__ == "__main__":
