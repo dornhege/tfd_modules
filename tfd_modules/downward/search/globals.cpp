@@ -26,20 +26,20 @@ static const bool s_OutputPredMappings = false;
 void PlanStep::dump() const
 {
     cout << start_time << ": " << op->get_name() << "[" << duration << "]"
-            << endl;
+        << endl;
 }
 
 bool compareContext(modules::plannerContextPtr p1,
         modules::plannerContextPtr p2)
 {
     if(p1 == NULL || p2 == NULL) {
-       cerr << __func__ << " WARNING: Received invalid plannerContextPtr for comparison!" << endl;
-       return true;
+        cerr << __func__ << " WARNING: Received invalid plannerContextPtr for comparison!" << endl;
+        return true;
     }
     pair<const TimeStampedState*, const Operator*>* pair1 = static_cast<pair<
-            const TimeStampedState*, const Operator*> *> (p1);
+        const TimeStampedState*, const Operator*> *> (p1);
     pair<const TimeStampedState*, const Operator*>* pair2 = static_cast<pair<
-            const TimeStampedState*, const Operator*> *> (p2);
+        const TimeStampedState*, const Operator*> *> (p2);
     if (pair1->first == NULL || pair2->first == NULL)
         return true;
     if (pair1->second == NULL || pair2->second == NULL)
@@ -221,8 +221,8 @@ bool getFuncs(NumericalFluentList* & fluentList)
             }
             if (!funcFound) {
                 cout
-                        << "Error! Could not find entry in func mapping with key: "
-                        << key;
+                    << "Error! Could not find entry in func mapping with key: "
+                    << key;
                 exit(1);
             }
         } else {
@@ -312,17 +312,17 @@ void read_pddl_translation(istream &in)
     }
     check_magic(in, "end_pddl_translation");
     if(s_OutputPredMappings) {
-       cout << "DEBUG: g_pred_mapping contains:" << endl;
-       PredicateMapping::iterator it;
-       for (it = g_pred_mapping.begin(); it != g_pred_mapping.end(); ++it) {
-          cout << "key: " << it->first << ", var: " << it->second.first
-             << ", val: " << it->second.second << endl;
-       }
-       cout << "DEBUG: g_func_mapping contains:" << endl;
-       FunctionMapping::iterator it2;
-       for (it2 = g_func_mapping.begin(); it2 != g_func_mapping.end(); ++it2) {
-          cout << "key: " << it2->first << ", var: " << it2->second << endl;
-       }
+        cout << "DEBUG: g_pred_mapping contains:" << endl;
+        PredicateMapping::iterator it;
+        for (it = g_pred_mapping.begin(); it != g_pred_mapping.end(); ++it) {
+            cout << "key: " << it->first << ", var: " << it->second.first
+                << ", val: " << it->second.second << endl;
+        }
+        cout << "DEBUG: g_func_mapping contains:" << endl;
+        FunctionMapping::iterator it2;
+        for (it2 = g_func_mapping.begin(); it2 != g_func_mapping.end(); ++it2) {
+            cout << "key: " << it2->first << ", var: " << it2->second << endl;
+        }
     }
 }
 
@@ -341,9 +341,9 @@ void read_modules(istream &in)
         string lib1, lib2, lib3;
         in >> gen >> lib1 >> output >> lib2 >> exec >> lib3;
         g_subplan_modules.push_back(tr1::make_tuple(new Module(
-                gen.append("@").append(lib1)), new Module(
-                output.append("@").append(lib2)), new Module(
-                exec.append("@").append(lib3))));
+                        gen.append("@").append(lib1)), new Module(
+                        output.append("@").append(lib2)), new Module(
+                        exec.append("@").append(lib3))));
     }
 
     in >> count;
@@ -384,7 +384,7 @@ void dump_goal()
     cout << "Goal Conditions:" << endl;
     for (int i = 0; i < g_goal.size(); i++)
         cout << "  " << g_variable_name[g_goal[i].first] << ": "
-                << g_goal[i].second << endl;
+            << g_goal[i].second << endl;
 }
 
 void read_operators(istream &in)
@@ -496,7 +496,7 @@ void dump_everything()
     cout << "Variables (" << g_variable_name.size() << "):" << endl;
     for (int i = 0; i < g_variable_name.size(); i++)
         cout << "  " << g_variable_name[i] << " (range "
-                << g_variable_domain[i] << ")" << endl;
+            << g_variable_domain[i] << ")" << endl;
     cout << "Initial State:" << endl;
     g_initial_state->dump();
     dump_goal();
@@ -573,7 +573,7 @@ istream& operator>>(istream &is, assignment_op &aop)
         aop = scale_down;
     else {
         cout << "SEVERE ERROR: expected assignment operator, read in "
-                << strVal << endl;
+            << strVal << endl;
         assert(false);
     }
     return is;

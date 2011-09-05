@@ -38,19 +38,19 @@ void InstantPlanStep::dump()
     cout << "     preconditions:" << endl;
     for (int i = 0; i < preconditions.size(); ++i) {
         cout << "      " << preconditions[i].var << ": "
-                << preconditions[i].prev << endl;
+            << preconditions[i].prev << endl;
     }
     cout << "     overall conds:" << endl;
     for (int i = 0; i < overall_conds.size(); ++i) {
         cout << "      " << overall_conds[i].var << ": "
-                << overall_conds[i].prev << endl;
+            << overall_conds[i].prev << endl;
     }
     if (endAction != -1) {
         cout << "     endAction: " << endAction << endl;
     }
     if (actionFinishingImmeadatlyAfterThis) {
         cout << "     actionFinishingImmeadatlyAfterThis: "
-                << actionFinishingImmeadatlyAfterThis << endl;
+            << actionFinishingImmeadatlyAfterThis << endl;
     }
 }
 
@@ -137,7 +137,7 @@ Plan PartialOrderLifter::createAndSolveSTN()
         if (instant_plan[happenings[i].second].type == start_action) {
             assert(instant_plan[happenings[i].second].correspondingPlanStep < instant_plan.size());
             plan[instant_plan[happenings[i].second].correspondingPlanStep].start_time
-                    = happenings[i].first;
+                = happenings[i].first;
         }
     }
 
@@ -197,7 +197,7 @@ void PartialOrderLifter::buildPartialOrder()
                         if (step.preconditions[j].var
                                 == temp_step.effects[l].var
                                 && step.preconditions[j].prev
-                                        == temp_step.effects[l].post && step.op
+                                == temp_step.effects[l].post && step.op
                                 != temp_step.op) {
                             // achiever found!
                             //                            cout << "   achiever found: ";
@@ -223,7 +223,7 @@ void PartialOrderLifter::buildPartialOrder()
                 for (int l = 0; l < temp_step.preconditions.size(); ++l) {
                     if (temp_step.preconditions[l].var == step.effects[j].var
                             && temp_step.preconditions[l].prev
-                                    != step.effects[j].post && step.op
+                            != step.effects[j].post && step.op
                             != temp_step.op) {
                         //                        step.print_name();
                         //                        cout << " threatens ";
@@ -242,7 +242,7 @@ void PartialOrderLifter::buildPartialOrder()
                 for (int l = 0; l < temp_step.effects.size(); ++l) {
                     if (temp_step.effects[l].var == step.effects[j].var
                             && temp_step.effects[l].post
-                                    != step.effects[j].post && step.op
+                            != step.effects[j].post && step.op
                             != temp_step.op) {
                         partial_order.insert(make_pair(k, i));
                     }
@@ -257,7 +257,7 @@ void PartialOrderLifter::buildPartialOrder()
                 for (int l = 0; l < temp_step.effects.size(); ++l) {
                     if (temp_step.effects[l].var == primary_add[i][j].var
                             && temp_step.effects[l].post
-                                    != primary_add[i][j].prev && step.op
+                            != primary_add[i][j].prev && step.op
                             != temp_step.op) {
                         //                        step.print_name();
                         //                        cout << " threatens primary add of ";
@@ -276,7 +276,7 @@ void PartialOrderLifter::buildPartialOrder()
                 for (int l = 0; l < temp_step.effects.size(); ++l) {
                     if (temp_step.effects[l].var == step.overall_conds[j].var
                             /*&& temp_step.effects[l].post != step.overall_conds[j].prev*/&& step.op
-                                    != temp_step.op) {
+                            != temp_step.op) {
                         if (step.timepoint >= temp_step.timepoint && step.type
                                 == start_action) {
                             //                            temp_step.print_name();
@@ -334,7 +334,7 @@ void PartialOrderLifter::findTriggeringEffects(
     assert(stateAfterHappening->state.size() == stateBeforeHappening->state.size());
     for (int i = 0; i < stateAfterHappening->state.size(); ++i) {
         if (!(double_equals(stateBeforeHappening->state[i],
-                stateAfterHappening->state[i]))) {
+                        stateAfterHappening->state[i]))) {
             effects.push_back(PrePost(i, stateAfterHappening->state[i]));
         }
     }
@@ -390,7 +390,7 @@ void PartialOrderLifter::findPreconditions(const ScheduledOperator& new_op,
     for (int i = 0; i < pre_posts->size(); ++i) {
         if ((*pre_posts)[i].pre != -1) {
             preconditions.push_back(Prevail((*pre_posts)[i].var,
-                    (*pre_posts)[i].pre));
+                        (*pre_posts)[i].pre));
         }
     }
 }
@@ -413,9 +413,9 @@ void PartialOrderLifter::buildInstantPlan()
     const TimeStampedState* stateBeforeHappening;
     const TimeStampedState* stateAfterHappening;
     map<double, vector<const ScheduledOperator*> , doubleEquComp>
-            actionsEndingAtGivenTime;
+        actionsEndingAtGivenTime;
     map<double, list<InstantPlanStep*> , doubleEquComp>
-            instantActionsStartingAtGivenTime;
+        instantActionsStartingAtGivenTime;
     list<InstantPlanStep*>::iterator it;
     //    instant_plan.push_back(InstantPlanStep(dummy_start_action, 0.0, NULL));
     //    instant_plan.push_back(InstantPlanStep(dummy_end_action, trace.back()->timestamp, NULL));
@@ -438,13 +438,13 @@ void PartialOrderLifter::buildInstantPlan()
             startPoints++;
             assert(stateBeforeHappening->operators.size() + 1 == stateAfterHappening->operators.size());
             if (!(double_equals(stateBeforeHappening->timestamp,
-                    stateAfterHappening->timestamp))) {
+                            stateAfterHappening->timestamp))) {
                 cout << stateBeforeHappening->timestamp << ", "
-                        << stateAfterHappening->timestamp << endl;
+                    << stateAfterHappening->timestamp << endl;
                 assert(false);
             }
             const ScheduledOperator& new_op =
-                    stateAfterHappening->operators.back();
+                stateAfterHappening->operators.back();
             double startTime = currentTimeStamp;
             double time_increment = new_op.time_increment;
             double endTime = startTime + time_increment;
@@ -456,7 +456,7 @@ void PartialOrderLifter::buildInstantPlan()
 
             double duration = new_op.origin->get_duration(stateBeforeHappening);
             instant_plan.push_back(InstantPlanStep(start_action, startTime,
-                    duration, &new_op));
+                        duration, &new_op));
             instant_plan.back().effects = effects;
             instant_plan.back().effect_cond_vars = effect_cond_vars;
             instant_plan.back().preconditions = preconditions;
@@ -480,7 +480,7 @@ void PartialOrderLifter::buildInstantPlan()
             for (int j = 0; j < actionsEndingAtGivenTime[endTime].size(); ++j) {
                 endPoints++;
                 instant_plan.push_back(InstantPlanStep(end_action, endTime, -1,
-                        actionsEndingAtGivenTime[endTime][j]));
+                            actionsEndingAtGivenTime[endTime][j]));
                 vector<Prevail> preconditions;
                 findPreconditions((*actionsEndingAtGivenTime[endTime][j]),
                         preconditions, end_action);
@@ -491,9 +491,9 @@ void PartialOrderLifter::buildInstantPlan()
                 instant_plan.back().effect_cond_vars = effect_cond_vars;
                 instant_plan.back().preconditions = preconditions;
                 instant_plan.back().overall_conds
-                        = (*actionsEndingAtGivenTime[endTime][j]).get_prevail_overall();
+                    = (*actionsEndingAtGivenTime[endTime][j]).get_prevail_overall();
                 double time_increment =
-                        actionsEndingAtGivenTime[endTime][j]->time_increment;
+                    actionsEndingAtGivenTime[endTime][j]->time_increment;
                 double startingTime = endTime - time_increment;
                 bool bad = true;
                 for (it
@@ -518,14 +518,14 @@ void PartialOrderLifter::buildInstantPlan()
                     //                    partial_order.push_back(make_pair(lastEndingAction,
                     //                            &instant_plan.back()));
                     lastEndingAction->actionFinishingImmeadatlyAfterThis
-                            = instant_plan.size() - 1;
+                        = instant_plan.size() - 1;
                 }
                 lastEndingAction = &instant_plan.back();
             }
             actionsEndingAtGivenTime[endTime].clear();
         } else {
             continue;
-//            assert(false);
+            //            assert(false);
         }
         cout << "startPoints: " << startPoints << ", endPoints: " << endPoints << endl;
     }

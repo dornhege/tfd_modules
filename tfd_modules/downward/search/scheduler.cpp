@@ -122,7 +122,7 @@ bool SimpleTemporalProblem::solveWithP3C()
                     matrix[iNode][kNode] = triangleLength;
                 }
                 triangleLength
-                        = add(matrix[kNode][iNode], matrix[iNode][jNode]);
+                    = add(matrix[kNode][iNode], matrix[iNode][jNode]);
                 originalLength = matrix[kNode][jNode];
                 if (triangleLength < originalLength) {
                     matrix[kNode][jNode] = triangleLength;
@@ -184,9 +184,9 @@ void SimpleTemporalProblem::makeGraphChordal()
         }
 
         m_orderingIndexIsNode[m_orderingIndexIsNode.size() - currentNode - 1]
-                = nextPositionInOrdering;
+            = nextPositionInOrdering;
         m_orderingIndexIsOrder[m_orderingIndexIsOrder.size()
-                - nextPositionInOrdering - 1] = currentNode;
+            - nextPositionInOrdering - 1] = currentNode;
         nextPositionInOrdering++;
 
         currentChildren.clear();
@@ -282,7 +282,7 @@ void SimpleTemporalProblem::collectChildren(int currentNode,
 {
     for (int i = 0; i < number_of_nodes; ++i) {
         if (arcExists(currentNode, i) && (!ignoreNodesInOrdering
-                || !isNodeAlreadyInOrdering(i))) {
+                    || !isNodeAlreadyInOrdering(i))) {
             currentChildren.push_back(i);
         }
     }
@@ -340,7 +340,7 @@ double SimpleTemporalProblem::getMaximalTimePointInTightestSchedule(bool useP3C)
     double min = 0.0;
     for (size_t i = 0; i < number_of_nodes - 1; i++) {
         double time = useP3C ? m_minimalDistances[i]
-                : matrix[i][number_of_nodes - 1];
+            : matrix[i][number_of_nodes - 1];
         if (time < min)
             min = time;
     }
@@ -428,7 +428,7 @@ std::vector<Happening> SimpleTemporalProblem::getHappenings(bool useP3C)
     std::vector<Happening> happenings;
     for (size_t i = 0; i < number_of_nodes - 1; i++) {
         double time = useP3C ? -m_minimalDistances[i]
-                : -matrix[i][number_of_nodes - 1];
+            : -matrix[i][number_of_nodes - 1];
         happenings.push_back(std::make_pair(time, i));
     }
 

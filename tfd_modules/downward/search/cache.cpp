@@ -45,7 +45,7 @@ Cache::Cache()
         }
         sort(depends_on[var].begin(), depends_on[var].end());
         depends_on[var].erase(unique(depends_on[var].begin(),
-                depends_on[var].end()), depends_on[var].end());
+                    depends_on[var].end()), depends_on[var].end());
     }
 
     const int MAX_CACHE_SIZE = 1000000;
@@ -55,10 +55,10 @@ Cache::Cache()
 
     for (int var = 0; var < var_count; var++) {
         int required_cache_size = g_variable_domain[var]
-                * (g_variable_domain[var] - 1);
+            * (g_variable_domain[var] - 1);
 
         cout << "g_variable_domain[" << var << "] = " << g_variable_domain[var]
-                << endl;
+            << endl;
 
         if (required_cache_size <= MAX_CACHE_SIZE) {
             for (int i = 0; i < depends_on[var].size(); i++) {

@@ -10,7 +10,7 @@ using namespace std;
 LocalProblem::LocalProblem(CyclicCGHeuristic* _owner, int the_var_no,
         int the_start_value) :
     owner(_owner), base_priority(-1.0), var_no(the_var_no),
-            causal_graph_parents(NULL), start_value(the_start_value)
+    causal_graph_parents(NULL), start_value(the_start_value)
 {
 }
 
@@ -22,7 +22,7 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
         if (label->duration_variable == -2) {
             assert(false);
             ScheduledOperator *s_op =
-                    dynamic_cast<ScheduledOperator*> (label->op);
+                dynamic_cast<ScheduledOperator*> (label->op);
             assert(s_op);
             g_HACK()->waiting_time = max(g_HACK()->waiting_time,
                     s_op->time_increment);
@@ -39,8 +39,8 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
                     1, pc, pcct, tookContext);
             //printf("Duration from module: %f\n", ret);
             /*if (!tookContext) {
-                delete pcPtr;
-            }*/
+              delete pcPtr;
+              }*/
             return ret;
         } else {
             LocalProblemNode *source = get_source();
@@ -140,11 +140,11 @@ void LocalTransitionDiscrete::try_to_fire()
 void LocalTransitionDiscrete::print_description()
 {
     cout << "<" << source->owner->var_no << "|" << source->value << ","
-            << target->value << "> (" << this << "), prevails: ";
+        << target->value << "> (" << this << "), prevails: ";
     for (int i = 0; i < label->precond.size(); i++) {
         cout
-                << (*source->owner->causal_graph_parents)[label->precond[i].local_var]
-                << ": " << label->precond[i].value << " ";
+            << (*source->owner->causal_graph_parents)[label->precond[i].local_var]
+            << ": " << label->precond[i].value << " ";
     }
 }
 
@@ -170,11 +170,11 @@ void LocalProblemNodeDiscrete::on_expand(const TimeStampedState &state)
             children_state[prevail[i].local_var] = prevail[i].value;
         }
         const vector<LocalAssignment> &cyclic_effects =
-                reached_by->label->effect;
+            reached_by->label->effect;
         for (int i = 0; i < cyclic_effects.size(); i++) {
             if (g_variable_types[cyclic_effects[i].prev_dtg->var] == logical) {
                 children_state[cyclic_effects[i].local_var]
-                        = cyclic_effects[i].value;
+                    = cyclic_effects[i].value;
             } else {
                 assert(g_variable_types[cyclic_effects[i].prev_dtg->var] == primitive_functional);
                 const LocalAssignment &la = cyclic_effects[i];
@@ -211,7 +211,7 @@ bool LocalProblemNode::all_conds_satiesfied(const ValueTransitionLabel *label,
     for (int i = 0; i < label->precond.size(); ++i) {
         int var = label->precond[i].prev_dtg->var;
         if (g_variable_types[var] != module && !double_equals(
-                label->precond[i].value, state[var])) {
+                    label->precond[i].value, state[var])) {
             //			cout << "at least the cond " << label->precond[i].prev_dtg->var << ":" << label->precond[i].value << " is not sat." << " for " << label->op->get_name() << endl;
             return false;
         }
@@ -231,13 +231,13 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
         int duration_variable = reached_by->label->duration_variable;
         if (reached_by->label->duration_variable == -2) {
             ScheduledOperator *s_op =
-                    dynamic_cast<ScheduledOperator*> (reached_by->label->op);
+                dynamic_cast<ScheduledOperator*> (reached_by->label->op);
             assert(s_op);
             duration = s_op->time_increment;
         } else if (!(duration_variable == -1)) {
             if (g_variable_types[duration_variable] == costmodule) {
                 duration
-                        = reached_by->get_source()->children_state[reached_by->duration_var_local];
+                    = reached_by->get_source()->children_state[reached_by->duration_var_local];
                 // FIXME: is it possible to get good cachble entries here?
                 plannerContextPtr pc = NULL;
                 plannerContextCompareType pcct = compareContext;
@@ -250,11 +250,11 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                         pc, pcct, tookContext);
                 //printf("Duration from module: %f\n", duration);
                 /*if (!tookContext) {
-                    delete pcPtr;
-                }*/
+                  delete pcPtr;
+                  }*/
             } else {
                 duration
-                        = reached_by->get_source()->children_state[reached_by->duration_var_local];
+                    = reached_by->get_source()->children_state[reached_by->duration_var_local];
             }
         }
         if (double_equals(reached_by->target_cost, duration)) {
@@ -263,7 +263,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             // an axiom. Do not add this axiom (or rather a NULL pointer) to the set of
             // preferred operators.
             if (reached_by->label->op && all_conds_satiesfied(
-                    reached_by->label, state)) {
+                        reached_by->label, state)) {
                 const Operator *op = reached_by->label->op;
                 g_HACK()->set_preferred(op);
             }
@@ -271,7 +271,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             // Recursively compute helpful transitions for prevailed variables.
             if (!g_HACK()->is_running(reached_by, state)) {
                 const vector<LocalAssignment> &prevail =
-                        reached_by->label->precond;
+                    reached_by->label->precond;
                 for (int i = 0; i < prevail.size(); i++) {
                     int prev_var_no = prevail[i].prev_dtg->var;
 
@@ -290,7 +290,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                     assert(child_node);
                     if (child_node->cost < LocalProblem::QUITE_A_LOT
                             && double_equals(child_node->reached_by_wait_for,
-                                    -1.0)) {
+                                -1.0)) {
                         child_node->mark_helpful_transitions(state);
                     }
                 }
@@ -339,8 +339,8 @@ void LocalProblemNodeDiscrete::dump()
 void LocalProblemNodeDiscrete::print_name()
 {
     cout << "Local Problem [" << owner->var_no << ","
-            << (dynamic_cast<LocalProblemDiscrete*> (owner))->start_value
-            << "], node " << value << " (" << this << ")" << endl;
+        << (dynamic_cast<LocalProblemDiscrete*> (owner))->start_value
+        << "], node " << value << " (" << this << ")" << endl;
 }
 
 void LocalProblemDiscrete::compile_DTG_arcs_to_LTD_objects(
@@ -388,7 +388,7 @@ void LocalProblemDiscrete::build_nodes_for_variable(int var_no)
     }
     DomainTransitionGraph *dtg = g_transition_graphs[var_no];
     DomainTransitionGraphSymb *dtgs =
-            dynamic_cast<DomainTransitionGraphSymb *> (dtg);
+        dynamic_cast<DomainTransitionGraphSymb *> (dtg);
     assert(dtgs);
     causal_graph_parents = &dtg->ccg_parents;
     global_to_local_parents = &dtg->global_to_local_ccg_parents;
@@ -474,20 +474,20 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
         if (seffect.var == var_no) {
             //        	cout << "Scheduled effect: " << seffect.var << ": " << seffect.post << endl;
             nodes[static_cast<int> (seffect.post)].cost
-                    = seffect.time_increment;
+                = seffect.time_increment;
             //        	nodes[static_cast<int>(seffect.post)].cost = 0.0;
             //        	g_HACK->add_to_queue(&nodes[static_cast<int>(seffect.post)]);
             assert(seffect.time_increment > 0);
             assert(seffect.time_increment < LocalProblem::QUITE_A_LOT);
             nodes[static_cast<int> (seffect.post)].reached_by_wait_for
-                    = seffect.time_increment;
+                = seffect.time_increment;
             //        	cout << "Node:" << endl;
             //        	nodes[static_cast<int>(seffect.post)].dump();
             //        	cout << "xxxxxxxxxxxxx" << endl;
             for (int i = 0; i < parents_num; i++) {
                 int var = (*causal_graph_parents)[i];
                 nodes[static_cast<int> (seffect.post)].children_state[i]
-                        = state[var];
+                    = state[var];
             }
             nodes[static_cast<int> (seffect.post)].on_expand(state);
         }
@@ -502,7 +502,7 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
     vector<LocalTransition*> path;
     LocalProblemNode* helpNode = goalNode;
     while (helpNode != startNode && helpNode->pred && !owner->is_running(
-            helpNode->pred, state)) {
+                helpNode->pred, state)) {
         path.push_back(helpNode->pred);
         helpNode = helpNode->pred->get_source();
     }
@@ -526,10 +526,10 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
                 transIsOp = true;
                 for (int l = 0; l < returnOps.size(); ++l) {
                     if (tr1::get<0>(neededOps[indexOfMainTrans])->isDisabledBy(
-                            tr1::get<0>(returnOps[l]))) {
+                                tr1::get<0>(returnOps[l]))) {
                         //zwischen kante und allen kanten und deren cond-kanten, die im gleichen graph danach kommen
                         constraints.insert(make_pair(indexOfMainTrans,
-                                tr1::get<2>(returnOps[l])));
+                                    tr1::get<2>(returnOps[l])));
                     }
                 }
             } else {
@@ -541,15 +541,15 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
             for (int j = 0; j < preconds.size(); ++j) {
                 vector<TimedOp> newOps = vector<TimedOp> ();
                 double
-                        actual_value =
-                                trans->get_source()->children_state[preconds[j].local_var];
+                    actual_value =
+                    trans->get_source()->children_state[preconds[j].local_var];
                 if (!(double_equals(actual_value, preconds[j].value))) {
                     int var = preconds[j].prev_dtg->var;
                     LocalProblem* sub_problem = owner->get_local_problem(var,
                             static_cast<int> (actual_value));
                     newOps = sub_problem->extract_subplan(
                             (sub_problem->get_node(
-                                    static_cast<int> (preconds[j].value))),
+                                                   static_cast<int> (preconds[j].value))),
                             constraints, neededOps, state, labels);
                     if (transIsOp) {
                         //                        cout << "TRANS: " << trans->label->op->get_name() << endl;
@@ -557,16 +557,16 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
                             //    cout << " NEWOP: " << tr1::get<0>(newOps[k])->get_name() << endl;
                             //zwischen kante und allen aktionen der conditions
                             constraints.insert(make_pair(indexOfMainTrans + 1
-                                    + k, indexOfMainTrans));
+                                        + k, indexOfMainTrans));
                             for (int l = 0; l < returnOps.size(); ++l) {
                                 //    cout << "  RETOP: " << tr1::get<0>(returnOps[l])->get_name() << endl;
                                 if (tr1::get<0>(newOps[k])->isDisabledBy(
-                                        tr1::get<0>(returnOps[l]))) {
+                                            tr1::get<0>(returnOps[l]))) {
                                     //    cout << "   yes: " << tr1::get<2>(newOps[k]) << " << " << tr1::get<2>(returnOps[l]) << endl;
                                     //zwischen cond-kanten der einen und cond-kanten aller nachfolgenden
                                     constraints.insert(make_pair(tr1::get<2>(
-                                            newOps[k]), tr1::get<2>(
-                                            returnOps[l])));
+                                                    newOps[k]), tr1::get<2>(
+                                                        returnOps[l])));
                                 } else {
                                     //cout << "   no" << endl;
                                 }
@@ -581,7 +581,7 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
 
             if (transIsOp) {
                 returnOps.push_back(tr1::make_tuple(trans->label->op,
-                        trans->get_direct_cost(state), indexOfMainTrans));
+                            trans->get_direct_cost(state), indexOfMainTrans));
             }
             for (int k = 0; k < subplans.size(); ++k) {
                 returnOps.insert(returnOps.end(), subplans[k].begin(),
@@ -592,171 +592,6 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
             //                cout << v << ":" << subplans[v].size() << endl;
             //            }
 
-
-            /*
-
-
-             //            cout << "vor Robert" << endl;
-
-             // Permute subplans in subplans in such a way that adding precedence constraints from subplans with lower index to
-             // subplans with higher index (if an action in the subplan with higher index disables one in the subplan with lower
-             // index) are likely to lead to relatively short scheduled plans.
-
-             // step (a): for each pair (p1,p2) of subplans in subplans, estimate the length of combined plans if p1 is ordered
-             // before p2 and vice versa. Call these lengths estimatedTime(p1,p2) and estimatedTime(p2,p1), respectively. The
-             // basically computes the lengths of critcal paths assuming that the actions in the subplans are purely sequential.
-
-             // step (b): find a permutation pi of subplans such that sum_{i=1,...,n-1} estimatedTime(pi(i),pi(i+1)) is minimized.
-             // we use two approximations here. First, minimizing sum_{i=1,...,n-1} estimatedTime(pi(i),pi(i+1)) is in itself an
-             // approximation, since further reaching dependencies between pi(i) and pi(j), j >= i+1, are ignored. Second, we do
-             // actually compute that sum, but build up the permutation greedily, first selecting a subplan p that minimizes
-             // min_{p' in subplans-{p}} estimatedTime(p,p'), putting it at position 0, and recursively doing the same for
-             // subplans-{p}.
-
-
-             // initialize estimated times matrix
-             vector<vector<double> > estimatedTime;
-             for(int p1 = 0; p1 < subplans.size(); p1++) {
-             vector<double> row = vector<double>(subplans.size());
-             estimatedTime.push_back(row);
-             }
-
-             //            cout << "1" << endl;
-
-             // initialize vectors of subplan prefix and suffix lengths
-             vector<double> full_subplan_lengths;
-             vector<vector<double> > subplan_prefix_lengths;
-             vector<vector<double> > subplan_suffix_lengths;
-             for(int p = 0; p < subplans.size(); p++) {
-             vector<double> prefix_lengths;
-             vector<double> suffix_lengths;
-
-             double prefix_length = 0;
-             prefix_lengths.push_back(0.0);
-             for(int i = 0; i < subplans[p].size(); i++) {
-             TimedOp& a = subplans[p][i];
-             double length = tr1::get<1>(a);
-             prefix_length += length;
-             prefix_lengths.push_back((double)prefix_length);
-             }
-             double subplan_length = prefix_lengths[subplans[p].size()];
-             full_subplan_lengths.push_back(subplan_length);
-
-             for(int i = subplans[p].size(); i >= 0; i--) {
-             suffix_lengths.push_back(subplan_length-prefix_lengths[subplans.size()-i]);
-             }
-
-             subplan_prefix_lengths.push_back(prefix_lengths);
-             subplan_suffix_lengths.push_back(suffix_lengths);
-             }
-
-             //            cout << "2" << endl;
-
-             // compute estimated pairwise scheduled times (critical path lengths)
-             // and fill in the matrix
-             for(int p1 = 0; p1 < subplans.size(); p1++) {
-             //                cout << "p1: " << p1 << endl;
-             for(int p2 = 0; p2 < subplans.size(); p2++) {
-             //                    cout << "p2:" << p2 << endl;
-             if(p1 == p2) {
-             estimatedTime[p1][p2] = 0;
-             } else {
-             double maxEstimatedTime = 0;
-
-             // cout << "subplans[p1].size() = " << subplans[p1].size() << endl;
-
-             for(int i = 0; i < subplans[p1].size(); i++) {
-
-             if(i == subplans[p1].size()-1) break;
-
-             //                            cout << "i:" << i << endl;
-
-             TimedOp& a1 = subplans[p1][i];
-             int latestDisabledByA1 = -1;
-             if(subplans[p2].size() > 0) {
-             for(int j = subplans[p2].size() - 1; j >= 0; j--) {
-             TimedOp& a2 = subplans[p2][j];
-             if(tr1::get<0>(a2)->isDisabledBy(tr1::get<0>(a1))) {
-             latestDisabledByA1 = j;
-             break;
-             }
-             }
-             }
-             double estTime;
-             if(latestDisabledByA1 != -1) {
-             // length of plan1 suffix starting at start of a1 (idx i) + length of plan2 prefix until end of a2 (idx j)
-             estTime = subplan_suffix_lengths[p1][i] + subplan_prefix_lengths[p2][latestDisabledByA1+1];
-             } else {
-             // max(length of plan1, length of plan2)
-             double len_p1 = full_subplan_lengths[p1];
-             double len_p2 = full_subplan_lengths[p2];
-             estTime = len_p1 > len_p2 ? len_p1 : len_p2;
-             }
-             if(estTime > maxEstimatedTime) {
-             maxEstimatedTime = estTime;
-             }
-             }
-             estimatedTime[p1][p2] = maxEstimatedTime;
-             }
-             }
-             }
-
-             //            cout << "3" << endl;
-
-             // permute subplans
-             vector<vector<TimedOp> > subplansReordered;
-             vector<bool> subPlansUsed = vector<bool>(subplans.size());
-             for(int p = 0; p < subplans.size(); p++) {
-             subPlansUsed[p] = false;
-             }
-
-             //            cout << "4" << endl;
-
-             //            cout << "subplans.size(): " << subplans.size() << endl;
-             for(int round = 0; round < subplans.size(); round++) {
-             //                cout << "round:" << round << endl;
-             double min_minT = 1000000000;
-             int min_p = -1;
-             for(int p1 = 0; p1 < subplans.size(); p1++) {
-             if(!subPlansUsed[p1]) {
-             if(min_p == -1) min_p = p1;
-             double minT = 1000000000;
-             for(int p2 = 0; p2 < subplans.size(); p2++) {
-             if(!subPlansUsed[p2]) {
-             if(p2 != p1) {
-             double t = estimatedTime[p1][p2];
-             //                                    cout << "t: " << t << endl;
-             if(t < minT) minT = t;
-             }
-             }
-             }
-             if(minT < min_minT || round == subplans.size()-1) {
-             min_minT = minT;
-             min_p = p1;
-             }
-             }
-             }
-             //                cout << "5" << endl;
-             //                cout << "min_p:" << min_p << endl;
-             assert(min_p >= 0);
-             subplansReordered.push_back(subplans[min_p]);
-             subPlansUsed[min_p] = true;
-             //                cout << "nach 5" << endl;
-             }
-
-
-             subplans = subplansReordered;
-
-             //            cout << "nach Robert" << endl;
-
-
-
-
-
-
-
-             */
-
             for (int k = 0; k < subplans.size() - 1; ++k) {
                 if (subplans.size() == 0)
                     break;
@@ -766,11 +601,11 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
                         for (int m = 0; m < subplans[s].size(); ++m) {
                             TimedOp& secondAction = subplans[s][m];
                             if (tr1::get<0>(firstAction)->isDisabledBy(
-                                    tr1::get<0>(secondAction))) {
+                                        tr1::get<0>(secondAction))) {
                                 //zwischen allen aktionen der teilpläne
                                 constraints.insert(
                                         make_pair(tr1::get<2>(firstAction),
-                                                tr1::get<2>(secondAction)));
+                                            tr1::get<2>(secondAction)));
                             }
                         }
                     }
@@ -790,14 +625,14 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
 void LocalTransitionComp::print_description()
 {
     const FuncTransitionLabel *label_func =
-            dynamic_cast<const FuncTransitionLabel*> (label);
+        dynamic_cast<const FuncTransitionLabel*> (label);
     assert(label_func);
     cout << "<" << source->owner->var_no << "|" << source->value << "> ("
-            << this << "), prevails: ";
+        << this << "), prevails: ";
     for (int i = 0; i < label->precond.size(); i++) {
         cout
-                << (*source->owner->causal_graph_parents)[label->precond[i].local_var]
-                << ": " << label->precond[i].value << " ";
+            << (*source->owner->causal_graph_parents)[label->precond[i].local_var]
+            << ": " << label->precond[i].value << " ";
     }
     cout << ";   affecting variable: " << label_func->starting_variable << " ";
 }
@@ -900,7 +735,7 @@ bool LocalProblemNodeComp::check_progress_of_transition(
     double &old_value = children_state[0];
     double &new_value = temp_children_state[0];
     LocalProblemNodeComp *node =
-            dynamic_cast<LocalProblemNodeComp*> (trans->get_source());
+        dynamic_cast<LocalProblemNodeComp*> (trans->get_source());
     assert(node);
     binary_op comp_op = node->op;
     switch (comp_op) {
@@ -948,7 +783,7 @@ bool CyclicCGHeuristic::is_running(LocalTransition* trans,
         return false;
     for (int i = 0; i < state.operators.size(); ++i) {
         if (!(state.operators[i].get_name().compare(
-                trans->label->op->get_name()))) {
+                        trans->label->op->get_name()))) {
             //			cout << "Running operator: " << state.operators[i].get_name() << endl;
             waiting_time = max(waiting_time, state.operators[i].time_increment
                     - EPS_TIME);
@@ -999,7 +834,7 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
             trans->conds_satiesfied[i] = true;
         } else {
             nodes_where_this_subscribe[trans_index].push_back(make_pair(
-                    cond_node, i));
+                        cond_node, i));
             //the cost of this prevail has not been determined so far...
             ret = false;
         }
@@ -1030,7 +865,7 @@ void LocalProblemNodeComp::updateNumericVariables(LocalTransitionComp &trans,
         vector<double> &temp_children_state)
 {
     const FuncTransitionLabel* label_func =
-            dynamic_cast<const FuncTransitionLabel*> (trans.label);
+        dynamic_cast<const FuncTransitionLabel*> (trans.label);
     assert(label_func);
     int primitive_var_local = label_func->starting_variable;
     assert(g_variable_types[(*owner->causal_graph_parents)[primitive_var_local]]
@@ -1088,8 +923,8 @@ void LocalProblemNode::updateNumericVariablesRec(int local_var,
             continue;
         }
         binary_op
-                bop =
-                        static_cast<binary_op> (owner->children_in_cg[var_to_update][2]);
+            bop =
+            static_cast<binary_op> (owner->children_in_cg[var_to_update][2]);
         int left_var = owner->children_in_cg[var_to_update][0];
         int right_var = owner->children_in_cg[var_to_update][1];
         if (g_variable_types[(*(owner->causal_graph_parents))[var_to_update]]
@@ -1229,8 +1064,8 @@ void LocalProblemNodeComp::dump()
 void LocalProblemNodeComp::print_name()
 {
     cout << "Local Problem [" << owner->var_no << ","
-            << (dynamic_cast<LocalProblemComp*> (owner))->start_value
-            << "], node " << value << " (" << this << ")" << endl;
+        << (dynamic_cast<LocalProblemComp*> (owner))->start_value
+        << "], node " << value << " (" << this << ")" << endl;
 }
 
 void LocalProblem::buildDependingVars(int parents_num)
@@ -1238,12 +1073,12 @@ void LocalProblem::buildDependingVars(int parents_num)
     for (int i = 0; i < parents_num; i++) {
         int context_variable = (*causal_graph_parents)[i];
         const vector<int>& current_depending_vars =
-                g_causal_graph->get_successors(context_variable);
+            g_causal_graph->get_successors(context_variable);
         for (int j = 0; j < current_depending_vars.size(); j++) {
             int current_depending_var = current_depending_vars[j];
             if (g_variable_types[current_depending_var] == comparison
                     || g_variable_types[current_depending_var]
-                            == subterm_functional) {
+                    == subterm_functional) {
                 int idx = getLocalIndexOfGlobalVariable(current_depending_var);
                 if (idx != -1)
                     depending_vars[i].push_back(idx);
@@ -1252,7 +1087,7 @@ void LocalProblem::buildDependingVars(int parents_num)
         if (g_variable_types[context_variable] == subterm_functional) {
             DomainTransitionGraph *dtg = g_transition_graphs[context_variable];
             DomainTransitionGraphSubterm *dtgs =
-                    dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
+                dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
             assert(dtgs);
             int left_var = getLocalIndexOfGlobalVariable(dtgs->left_var);
             int right_var = getLocalIndexOfGlobalVariable(dtgs->right_var);
@@ -1265,7 +1100,7 @@ void LocalProblem::buildDependingVars(int parents_num)
         } else if (g_variable_types[context_variable] == comparison) {
             DomainTransitionGraph *dtg = g_transition_graphs[context_variable];
             DomainTransitionGraphComp *dtgc =
-                    dynamic_cast<DomainTransitionGraphComp*> (dtg);
+                dynamic_cast<DomainTransitionGraphComp*> (dtg);
             assert(dtgc);
             int left_var = getLocalIndexOfGlobalVariable(
                     dtgc->nodes.first.left_var);
@@ -1304,7 +1139,7 @@ void LocalProblemComp::build_nodes_for_variable(int var_no, int the_start_value)
     }
     DomainTransitionGraph *dtg = g_transition_graphs[var_no];
     DomainTransitionGraphComp *dtgc =
-            dynamic_cast<DomainTransitionGraphComp *> (dtg);
+        dynamic_cast<DomainTransitionGraphComp *> (dtg);
     assert(dtgc);
 
     causal_graph_parents = &dtgc->ccg_parents;
@@ -1316,9 +1151,9 @@ void LocalProblemComp::build_nodes_for_variable(int var_no, int the_start_value)
     // There are 3 values for a comp variable: false, true and undefined. In the heuristic we only have
     // to deal with the first both of them.
     nodes.push_back(LocalProblemNodeComp(this, num_parents, 0,
-            dtgc->nodes.second.op));
+                dtgc->nodes.second.op));
     nodes.push_back(LocalProblemNodeComp(this, num_parents, 1,
-            dtgc->nodes.first.op));
+                dtgc->nodes.first.op));
 
     // Compile the DTG arcs into LocalTransition objects.
     for (int i = 0; i < dtgc->transitions.size(); i++) {
@@ -1451,7 +1286,7 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
         vector<TimedOp> needed_ops;
         for (int i = 0; i < state.operators.size(); ++i) {
             needed_ops.push_back(tr1::make_tuple(&state.operators[i],
-                    state.operators[i].time_increment, i));
+                        state.operators[i].time_increment, i));
         }
         set<const Operator*> labels;
         goal_problem->extract_subplan(goal_node, constraints, needed_ops,
@@ -1461,36 +1296,14 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
         for (int i = 0; i < state.operators.size(); ++i) {
             for (int j = state.operators.size(); j < needed_ops.size(); ++j) {
                 if (tr1::get<0>(needed_ops[i])->isDisabledBy(tr1::get<0>(
-                        needed_ops[j])) || tr1::get<0>(needed_ops[i])->enables(
-                        tr1::get<0>(needed_ops[j]))) {
+                                needed_ops[j])) || tr1::get<0>(needed_ops[i])->enables(
+                                tr1::get<0>(needed_ops[j]))) {
                     //                    cout << "new constraint: " << tr1::get<0>(needed_ops[i])->get_name() << ", " << tr1::get<0>(needed_ops[j])->get_name() << endl;
                     constraints.insert(make_pair(i, j));
                 }
             }
         }
 
-        //                    constraints.insert(make_pair(i,j));
-        //                }
-        //            }
-        //        }
-
-        //        cout << "Constraints:" << endl;
-        //        set<CausalConstraint>::iterator it;
-        //        for(it = constraints.begin(); it != constraints.end(); ++it) {
-        //            cout << it->first << " <<< " << it->second << endl;
-        //        }
-        //        for(int i = 0; i < needed_ops.size(); ++i) {
-        //            for(int j = i+1; j < needed_ops.size(); ++j) {
-        //                if(tr1::get<0>(needed_ops[i])->interfersWith(tr1::get<0>(needed_ops[j]))) {
-        //                    constraints.insert(make_pair(i, j));
-        //                }
-        //            }
-        //        }
-        //        cout << "Constraints:" << endl;
-        ////        set<CausalConstraint>::iterator it;
-        //        for(it = constraints.begin(); it != constraints.end(); ++it) {
-        //            cout << it->first << " <<< " << it->second << endl;
-        //        }
         // build and solve STN...
         vector<string> variable_names;//(needed_ops.size()*2);
         for (int i = 0; i < needed_ops.size(); ++i) {
@@ -1521,7 +1334,7 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
             // assert that differences between start and end time points are exactly
             // the durations of the actions
             stn.setSingletonInterval(i, i + needed_ops.size(), tr1::get<1>(
-                    needed_ops[i]));
+                        needed_ops[i]));
         }
 
         // assert that causal relationships are preserved
@@ -1552,7 +1365,7 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
             cout << "Ops:" << endl;
             for (int i = 0; i < needed_ops.size(); ++i) {
                 cout << i << ": " << tr1::get<0>(needed_ops[i])->get_name()
-                        << ", duration: " << tr1::get<1>(needed_ops[i]) << endl;
+                    << ", duration: " << tr1::get<1>(needed_ops[i]) << endl;
             }
             cout << "Constraints:" << endl;
             set<CausalConstraint>::iterator it;
@@ -1568,8 +1381,8 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
         for (int i = 0; i < happenings.size(); ++i) {
             if (happenings[i].second < needed_ops.size()) {
                 plan.push_back(PlanStep(happenings[i].first, tr1::get<1>(
-                        needed_ops[happenings[i].second]), tr1::get<0>(
-                        needed_ops[happenings[i].second]), &state));
+                                needed_ops[happenings[i].second]), tr1::get<0>(
+                                    needed_ops[happenings[i].second]), &state));
                 if (double_equals(happenings[i].first, 0.0)) {
                     //                    set_preferred(tr1::get<0>(needed_ops[happenings[i].second]));
                 }

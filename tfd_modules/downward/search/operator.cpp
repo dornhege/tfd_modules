@@ -23,7 +23,7 @@ bool Prevail::is_applicable(const TimeStampedState &state, const Operator * op,
             exit(1);
         }
         pair<const TimeStampedState*, const Operator*> * pcPtr = new pair<
-                const TimeStampedState*, const Operator*> (&state, op);
+            const TimeStampedState*, const Operator*> (&state, op);
         plannerContextPtr pc = pcPtr;
         plannerContextCompareType pcct = compareContext;
         g_modulecallback_state = &state;
@@ -192,7 +192,7 @@ void Prevail::dump() const
 void PrePost::dump() const
 {
     cout << "var: " << g_variable_name[var] << ", pre: " << pre
-            << " , var_post: " << var_post << ", post: " << post << endl;
+        << " , var_post: " << var_post << ", post: " << post << endl;
 }
 
 void Operator::dump() const
@@ -231,7 +231,7 @@ bool Operator::is_applicable(ClosedListInfo* closedListInfo,
     //FIXME: query duration now (wasted call) just to check applicability: use caching?
     double duration = get_duration(&state);
     if(duration <= 0 || duration >= INFINITE_COST)
-       return false;
+        return false;
 
     for (int i = 0; i < pre_post_start.size(); i++)
         if (!pre_post_start[i].is_applicable(state))
@@ -327,7 +327,7 @@ bool Operator::achievesPrecond(const vector<PrePost>& effects, const vector<
     for (int i = 0; i < effects.size(); ++i) {
         for (int j = 0; j < conds.size(); ++j) {
             if (effects[i].var == conds[j].var && double_equals(
-                    effects[i].post, conds[j].prev)) {
+                        effects[i].post, conds[j].prev)) {
                 return true;
             }
         }
@@ -341,7 +341,7 @@ bool Operator::achievesPrecond(const vector<PrePost>& effs1, const vector<
     for (int i = 0; i < effs1.size(); ++i) {
         for (int j = 0; j < effs2.size(); ++j) {
             if (effs1[i].var == effs2[j].var && double_equals(effs1[i].post,
-                    effs2[j].pre)) {
+                        effs2[j].pre)) {
                 return true;
             }
         }
@@ -356,7 +356,7 @@ bool Operator::deletesPrecond(const vector<Prevail>& conds, const vector<
     for (int i = 0; i < conds.size(); ++i) {
         for (int j = 0; j < effects.size(); ++j) {
             if (conds[i].var == effects[j].var && !double_equals(conds[i].prev,
-                    effects[j].post)) {
+                        effects[j].post)) {
                 return true;
             }
         }
@@ -370,10 +370,10 @@ bool Operator::deletesPrecond(const vector<PrePost>& effs1, const vector<
     for (int i = 0; i < effs1.size(); ++i) {
         for (int j = 0; j < effs2.size(); ++j) {
             if (effs1[i].var == effs2[j].var && !double_equals(effs1[i].pre,
-                    effs2[j].post)) {
+                        effs2[j].post)) {
                 //	  if(effs1[i].var == effs2[j].var &&
                 //	     !double_equals(effs1[i].pre,effs2[j].post) &&
-                //	     !double_equals(effs1[i].pre,-1.0)) {
+                //	     !double_equals(effs1[i].pre,-1.0)) 
                 return true;
             }
         }
@@ -396,31 +396,31 @@ bool Operator::writesOnSameVar(const vector<PrePost>& effs1, const vector<
 
 double Operator::get_duration(const TimeStampedState* state, int relaxed) const
 {
-   assert(duration_var >= 0);
-   assert(state != NULL);
+    assert(duration_var >= 0);
+    assert(state != NULL);
 
-   if(g_variable_types[duration_var] == costmodule) {
-      pair<const TimeStampedState*, const Operator*> * pcPtr = 
-         new pair<const TimeStampedState*, const Operator*> (state, this);
-      plannerContextPtr pc = pcPtr;
-      plannerContextCompareType pcct = compareContext;
-      bool tookContext = true;
-      g_modulecallback_state = state;
-      predicateCallbackType pct = getPreds;
-      numericalFluentCallbackType nct = getFuncs;
-      double duration = g_cost_modules[duration_var]->checkCost(
-            g_cost_modules[duration_var]->params, pct, nct, relaxed,
-            pc, pcct, tookContext);
-      //printf("Duration from module: %f\n", duration);
-      if (!tookContext) {
-         delete pcPtr;
-      }
+    if(g_variable_types[duration_var] == costmodule) {
+        pair<const TimeStampedState*, const Operator*> * pcPtr = 
+            new pair<const TimeStampedState*, const Operator*> (state, this);
+        plannerContextPtr pc = pcPtr;
+        plannerContextCompareType pcct = compareContext;
+        bool tookContext = true;
+        g_modulecallback_state = state;
+        predicateCallbackType pct = getPreds;
+        numericalFluentCallbackType nct = getFuncs;
+        double duration = g_cost_modules[duration_var]->checkCost(
+                g_cost_modules[duration_var]->params, pct, nct, relaxed,
+                pc, pcct, tookContext);
+        //printf("Duration from module: %f\n", duration);
+        if (!tookContext) {
+            delete pcPtr;
+        }
 
-      return duration;
-   }
-   
-   // default behaviour: duration is defined by duration_var
-   return (*state)[duration_var];
+        return duration;
+    }
+
+    // default behaviour: duration is defined by duration_var
+    return (*state)[duration_var];
 }
 
 bool Operator::is_applicable2(ClosedListInfo* closedListInfo,
@@ -433,7 +433,7 @@ bool Operator::is_applicable2(ClosedListInfo* closedListInfo,
     //: query duration now (wasted call) just to check applicability: caching?
     double duration = get_duration(&state);
     if(duration <= 0 || duration >= INFINITE_COST)
-       return false;
+        return false;
 
     for (int i = 0; i < pre_post_start.size(); i++)
         if (!pre_post_start[i].is_applicable(state))

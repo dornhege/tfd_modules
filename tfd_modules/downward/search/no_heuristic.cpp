@@ -17,8 +17,8 @@ double NoHeuristic::compute_heuristic(const TimeStampedState &state)
         return 0.0;
 
     /*cout << "compute_heuristic for " << endl;
-     state.dump();
-     */
+      state.dump();
+      */
     double maxT = 0.00001;
     // hack:
     for (int i = 0; i < state.operators.size(); i++) {

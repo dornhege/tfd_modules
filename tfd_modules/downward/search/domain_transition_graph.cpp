@@ -1,14 +1,14 @@
 #ifndef NDEBUG
-    #ifndef _WIN32
-        #include <ext/algorithm>
-    #endif
+#ifndef _WIN32
+#include <ext/algorithm>
+#endif
 #endif
 #include <iostream>
 #include <map>
 #include <cassert>
 using namespace std;
 #ifndef _WIN32
-    using namespace __gnu_cxx;
+using namespace __gnu_cxx;
 #endif
 
 #include "domain_transition_graph.h"
@@ -23,38 +23,43 @@ void DomainTransitionGraph::read_all(istream &in)
     for (int var = 0; var < var_count; var++) {
         switch (g_variable_types[var]) {
             case module:
-            case costmodule: {
-                DomainTransitionGraphModule *dtg =
+            case costmodule: 
+                {
+                    DomainTransitionGraphModule *dtg =
                         new DomainTransitionGraphModule(var);
-                g_transition_graphs.push_back(dtg);
-                break;
-            }
-            case logical: {
-                int range = g_variable_domain[var];
-                assert(range> 0);
-                DomainTransitionGraphSymb *dtg = new DomainTransitionGraphSymb(
-                        var, range);
-                g_transition_graphs.push_back(dtg);
-                break;
-            }
-            case primitive_functional: {
-                DomainTransitionGraphFunc *dtg = new DomainTransitionGraphFunc(
-                        var);
-                g_transition_graphs.push_back(dtg);
-                break;
-            }
-            case subterm_functional: {
-                DomainTransitionGraphSubterm *dtg =
+                    g_transition_graphs.push_back(dtg);
+                    break;
+                }
+            case logical: 
+                {
+                    int range = g_variable_domain[var];
+                    assert(range> 0);
+                    DomainTransitionGraphSymb *dtg = new DomainTransitionGraphSymb(
+                            var, range);
+                    g_transition_graphs.push_back(dtg);
+                    break;
+                }
+            case primitive_functional: 
+                {
+                    DomainTransitionGraphFunc *dtg = new DomainTransitionGraphFunc(
+                            var);
+                    g_transition_graphs.push_back(dtg);
+                    break;
+                }
+            case subterm_functional: 
+                {
+                    DomainTransitionGraphSubterm *dtg =
                         new DomainTransitionGraphSubterm(var);
-                g_transition_graphs.push_back(dtg);
-                break;
-            }
-            case comparison: {
-                DomainTransitionGraphComp *dtg = new DomainTransitionGraphComp(
-                        var);
-                g_transition_graphs.push_back(dtg);
-                break;
-            }
+                    g_transition_graphs.push_back(dtg);
+                    break;
+                }
+            case comparison: 
+                {
+                    DomainTransitionGraphComp *dtg = new DomainTransitionGraphComp(
+                            var);
+                    g_transition_graphs.push_back(dtg);
+                    break;
+                }
             default:
                 assert(false);
                 break;
@@ -86,7 +91,7 @@ void DomainTransitionGraph::compute_causal_graph_parents_comp(int var, map<int,
 {
     DomainTransitionGraph *dtg = g_transition_graphs[var];
     DomainTransitionGraphComp *cdtg =
-            dynamic_cast<DomainTransitionGraphComp*> (dtg);
+        dynamic_cast<DomainTransitionGraphComp*> (dtg);
     assert(cdtg);
     cdtg->compute_recursively_parents(cdtg->nodes.first.left_var,
             global_to_ccg_parent);
@@ -99,7 +104,7 @@ void DomainTransitionGraph::collect_func_transitions(int var,
 {
     DomainTransitionGraph *dtg = g_transition_graphs[var];
     DomainTransitionGraphComp *cdtg =
-            dynamic_cast<DomainTransitionGraphComp*> (dtg);
+        dynamic_cast<DomainTransitionGraphComp*> (dtg);
     assert(cdtg);
     cdtg->collect_recursively_func_transitions(cdtg->nodes.first.left_var,
             global_to_ccg_parent);
@@ -143,16 +148,16 @@ void DomainTransitionGraphSymb::read_data(istream &in)
             if (!transition_index.count(arc)) {
                 transition_index[arc] = nodes[origin].transitions.size();
                 nodes[origin].transitions.push_back(ValueTransition(
-                        &nodes[target]));
+                            &nodes[target]));
                 //if assertions fails, range is to small.
                 assert(double_equals(
-                                target,
-                                nodes[origin].transitions[transition_index[arc]].target->value));
+                            target,
+                            nodes[origin].transitions[transition_index[arc]].target->value));
             }
 
             assert(transition_index.count(arc));
             ValueTransition *transition =
-                    &nodes[origin].transitions[transition_index[arc]];
+                &nodes[origin].transitions[transition_index[arc]];
 
             binary_op op;
             int duration_variable;
@@ -169,10 +174,10 @@ void DomainTransitionGraphSymb::read_data(istream &in)
                 if (!global_to_ccg_parent.count(duration_variable)) {
                     int duration_variable_local = ccg_parents.size();
                     global_to_ccg_parent[duration_variable]
-                            = ccg_parents.size();
+                        = ccg_parents.size();
                     ccg_parents.push_back(duration_variable);
                     global_to_local_ccg_parents.insert(ValuePair(
-                            duration_variable, duration_variable_local));
+                                duration_variable, duration_variable_local));
                 }
             }
 
@@ -198,9 +203,9 @@ void DomainTransitionGraphSymb::read_data(istream &in)
                 translate_global_to_local(global_to_ccg_parent, global_var);
                 int ccg_parent = global_to_ccg_parent[global_var];
                 DomainTransitionGraph *prev_dtg =
-                        g_transition_graphs[global_var];
+                    g_transition_graphs[global_var];
                 all_prevails.push_back(LocalAssignment(prev_dtg, ccg_parent,
-                        val, cond_type));
+                            val, cond_type));
             }
             Operator *the_operator = NULL;
 
@@ -231,14 +236,14 @@ void DomainTransitionGraphSymb::read_data(istream &in)
                     int var_no = pre_post[j].var;
                     if (var_no != var) {
                         bool already_contained_in_global =
-                                global_to_ccg_parent.count(var_no);
+                            global_to_ccg_parent.count(var_no);
                         bool var_influences_important_comp_var = false;
                         if (!already_contained_in_global
                                 && g_variable_types[var_no]
-                                        == primitive_functional) {
+                                == primitive_functional) {
                             var_influences_important_comp_var
-                                    = add_relevant_functional_vars_to_context(
-                                            var_no, global_to_ccg_parent);
+                                = add_relevant_functional_vars_to_context(
+                                        var_no, global_to_ccg_parent);
                         }
                         if (already_contained_in_global
                                 || var_influences_important_comp_var) {
@@ -250,8 +255,8 @@ void DomainTransitionGraphSymb::read_data(istream &in)
             }
 
             transition->ccg_labels.push_back(new ValueTransitionLabel(
-                    duration_variable, all_prevails, tt, cyclic_effect,
-                    the_operator));
+                        duration_variable, all_prevails, tt, cyclic_effect,
+                        the_operator));
         }
     }
     check_magic(in, "end_DTG");
@@ -281,12 +286,12 @@ void DomainTransitionGraphSymb::extend_cyclic_effect(const PrePost& pre_post,
     }
     for (int k = 0; k < cond.size(); k++)
         triggercond_pairs.push_back(make_pair(cond[k].var,
-                static_cast<int> (cond[k].prev)));
+                    static_cast<int> (cond[k].prev)));
     sort(triggercond_pairs.begin(), triggercond_pairs.end());
     //    assert(is_sorted(precond_pairs.begin(), precond_pairs.end()));
 
     if (includes(precond_pairs.begin(), precond_pairs.end(),
-            triggercond_pairs.begin(), triggercond_pairs.end())) {
+                triggercond_pairs.begin(), triggercond_pairs.end())) {
         // if each condition (of the conditional effect) is implied by
         // an operator condition, we can safely add the effects to
         // the cyclic effects
@@ -298,15 +303,15 @@ void DomainTransitionGraphSymb::extend_cyclic_effect(const PrePost& pre_post,
                 // condition_type is nonsense at this point (will not be needed later!)
                 cyclic_effect.push_back(
                         LocalAssignment(g_transition_graphs[var_no],
-                                ccg_parent, post, end_cond));
+                            ccg_parent, post, end_cond));
             }
         } else {
             assert(g_variable_types[var_no] == primitive_functional);
             translate_global_to_local(global_to_ccg_parent, var_post);
             // condition_type is nonsense at this point (will not be needed later!)
             cyclic_effect.push_back(LocalAssignment(
-                    g_transition_graphs[var_no], ccg_parent,
-                    global_to_ccg_parent[var_post], fop, end_cond));
+                        g_transition_graphs[var_no], ccg_parent,
+                        global_to_ccg_parent[var_post], fop, end_cond));
         }
     }
 }
@@ -375,7 +380,7 @@ void DomainTransitionGraphSymb::dump() const
                 vector<LocalAssignment> prevail = labels[k]->precond;
                 for (int l = 0; l < prevail.size(); l++) {
                     cout << "   " << prevail[l].local_var << ":"
-                            << prevail[l].value << endl;
+                        << prevail[l].value << endl;
                 }
             }
         }
@@ -458,7 +463,7 @@ void DomainTransitionGraphFunc::read_data(istream &in)
             prevails.push_back(prev_cond);
         }
         transitions.push_back(FuncTransitionLabel(var, prevails, effects, a_op,
-                influencing_variable, duration_variable, tt, op));
+                    influencing_variable, duration_variable, tt, op));
     }
 
     check_magic(in, "end_DTG");
@@ -489,7 +494,7 @@ void DomainTransitionGraphFunc::dump() const
         cout << endl;
         cout << " effect: ";
         cout << transitions[i].a_op << " "
-                << transitions[i].influencing_variable << endl;
+            << transitions[i].influencing_variable << endl;
     }
 }
 
@@ -522,7 +527,7 @@ void DomainTransitionGraphComp::compute_recursively_parents(int var, map<int,
         translate_global_to_local(global_to_ccg_parent, var);
         DomainTransitionGraph* dtg = g_transition_graphs[var];
         DomainTransitionGraphSubterm* sdtg =
-                dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
+            dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
         assert(sdtg);
         compute_recursively_parents(sdtg->left_var, global_to_ccg_parent);
         compute_recursively_parents(sdtg->right_var, global_to_ccg_parent);
@@ -552,7 +557,7 @@ void DomainTransitionGraphComp::collect_recursively_func_transitions(int var,
     DomainTransitionGraph* dtg = g_transition_graphs[var];
     if (g_variable_types[var] == primitive_functional) {
         DomainTransitionGraphFunc* fdtg =
-                dynamic_cast<DomainTransitionGraphFunc*> (dtg);
+            dynamic_cast<DomainTransitionGraphFunc*> (dtg);
         assert(fdtg);
         for (int i = 0; i < fdtg->transitions.size(); i++) {
             transitions.push_back(fdtg->transitions[i]);
@@ -585,7 +590,7 @@ void DomainTransitionGraphComp::collect_recursively_func_transitions(int var,
     }
     if (g_variable_types[var] == subterm_functional) {
         DomainTransitionGraphSubterm* sdtg =
-                dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
+            dynamic_cast<DomainTransitionGraphSubterm*> (dtg);
         assert(sdtg);
         collect_recursively_func_transitions(sdtg->left_var,
                 global_to_ccg_parent);
@@ -599,9 +604,9 @@ void DomainTransitionGraphComp::dump() const
 {
     cout << " (comparison)" << endl;
     cout << "1: " << nodes.first.left_var << " " << nodes.first.op << " "
-            << nodes.first.right_var << endl;
+        << nodes.first.right_var << endl;
     cout << "0: " << nodes.second.left_var << " " << nodes.second.op << " "
-            << nodes.second.right_var << endl;
+        << nodes.second.right_var << endl;
     cout << "transitions: " << endl;
     for (int i = 0; i < transitions.size(); i++) {
         cout << " duration variable: ";
@@ -615,7 +620,7 @@ void DomainTransitionGraphComp::dump() const
         cout << endl;
         cout << " effect: ";
         cout << transitions[i].a_op << " "
-                << transitions[i].influencing_variable << endl;
+            << transitions[i].influencing_variable << endl;
     }
     cout << "Context: ";
     for (int i = 0; i < ccg_parents.size(); i++) {
