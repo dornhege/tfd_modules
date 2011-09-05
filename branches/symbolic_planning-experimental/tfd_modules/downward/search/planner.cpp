@@ -22,9 +22,9 @@
 #include <ros/ros.h>
 
 #ifdef _WIN32
-   #include "pddlModuleLoaderDLL.h"
+#include "pddlModuleLoaderDLL.h"
 #else
-   #include <pddlModuleLoaderLDL.h>
+#include <pddlModuleLoaderLDL.h>
 #endif
 
 using namespace std;
@@ -42,11 +42,11 @@ void save_time(string &plan_name, double search_time, double time);
 
 double getCurrentTime()
 {
-   const double USEC_PER_SEC = 1000000;
+    const double USEC_PER_SEC = 1000000;
 
-   struct timeval tv; 
-   gettimeofday(&tv,0);
-   return(tv.tv_sec + (double)tv.tv_usec / USEC_PER_SEC);
+    struct timeval tv; 
+    gettimeofday(&tv,0);
+    return(tv.tv_sec + (double)tv.tv_usec / USEC_PER_SEC);
 }
 
 int main(int argc, char **argv)
@@ -72,8 +72,8 @@ int main(int argc, char **argv)
     bool poly_time_method = false;
 
     if(!g_parameters.readParameters(argc, argv)) {
-       cerr << "Error in reading parameters.\n";
-       return 2;
+        cerr << "Error in reading parameters.\n";
+        return 2;
     }
     g_parameters.dump();
 
@@ -93,11 +93,11 @@ int main(int argc, char **argv)
     read_everything(cin);
 
     /*
-    for(map<int, ConditionModule*>::iterator it =  g_condition_modules.begin(); it != g_condition_modules.end(); it++)
+       for(map<int, ConditionModule*>::iterator it =  g_condition_modules.begin(); it != g_condition_modules.end(); it++)
        it->second->dump();
-    for(vector<EffectModule *>::iterator it =  g_effect_modules.begin(); it != g_effect_modules.end(); it++)
+       for(vector<EffectModule *>::iterator it =  g_effect_modules.begin(); it != g_effect_modules.end(); it++)
        (*it)->dump();
-*/
+       */
 
     g_let_time_pass = new Operator(false);
     g_wait_operator = new Operator(true);
@@ -110,13 +110,13 @@ int main(int argc, char **argv)
 
     FILE* timeDebugFile = NULL;
     if(!g_parameters.time_debug_file.empty()) {
-       timeDebugFile = fopen(g_parameters.time_debug_file.c_str(), "w");
-       if(!timeDebugFile) {
-          cout << "WARNING: Could not open time debug file at: " << g_parameters.time_debug_file << endl;
-       } else {
-          fprintf(timeDebugFile, "# makespan search_time(s)\n");
-          fflush(timeDebugFile);
-       }
+        timeDebugFile = fopen(g_parameters.time_debug_file.c_str(), "w");
+        if(!timeDebugFile) {
+            cout << "WARNING: Could not open time debug file at: " << g_parameters.time_debug_file << endl;
+        } else {
+            fprintf(timeDebugFile, "# makespan search_time(s)\n");
+            fflush(timeDebugFile);
+        }
     }
 
 
@@ -135,14 +135,14 @@ int main(int argc, char **argv)
         bool ret = validatePlan(plan);
         ROS_INFO_STREAM("Monitoring: Plan is valid: " << ret);
         if(ret)
-           exit(0);
+            exit(0);
         exit(1);
     }
 
     g_engine = new BestFirstSearchEngine(g_parameters.queueManagementMode);
     if (g_parameters.makespan_heuristic || g_parameters.makespan_heuristic_preferred_operators)
         g_engine->add_heuristic(new CyclicCGHeuristic(
-                CyclicCGHeuristic::SUFFIX_MAKESPAN), g_parameters.makespan_heuristic,
+                    CyclicCGHeuristic::SUFFIX_MAKESPAN), g_parameters.makespan_heuristic,
                 g_parameters.makespan_heuristic_preferred_operators);
     if (g_parameters.cyclic_cg_heuristic || g_parameters.cyclic_cg_preferred_operators)
         g_engine->add_heuristic(new CyclicCGHeuristic(CyclicCGHeuristic::CEA),
@@ -168,14 +168,14 @@ int main(int argc, char **argv)
 #endif
         if (g_engine->found_solution()) {
             best_makespan
-                    = save_plan(g_engine->get_plan(), g_engine->get_path(),
-                            best_makespan, plan_number, g_parameters.plan_name);
+                = save_plan(g_engine->get_plan(), g_engine->get_path(),
+                        best_makespan, plan_number, g_parameters.plan_name);
             // write plan length and search time to file
             if(timeDebugFile) {
-               int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
-               double search_time = 0.001 * (double)search_ms;
-               fprintf(timeDebugFile, "%f %f\n", best_makespan.second, search_time);
-               fflush(timeDebugFile);
+                int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
+                double search_time = 0.001 * (double)search_ms;
+                fprintf(timeDebugFile, "%f %f\n", best_makespan.second, search_time);
+                fflush(timeDebugFile);
             }
             g_engine->bestMakespan = best_makespan.second;
             if (g_parameters.anytime_search) {
@@ -189,32 +189,32 @@ int main(int argc, char **argv)
             break;
         }
         /*if(g_engine->found_solution()) {
-         best_makespan = save_plan(g_engine->get_plan(),best_makespan,plan_number,g_parameters.plan_name);
+          best_makespan = save_plan(g_engine->get_plan(),best_makespan,plan_number,g_parameters.plan_name);
 
-         cerr << "Plan found!" << endl;
-         MonitorEngine* mon = MonitorEngine::getInstance();
-         bool monitor = mon->validatePlan(g_engine->get_plan());
-         cerr << "Plan validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
-         vector<string> plan;
+          cerr << "Plan found!" << endl;
+          MonitorEngine* mon = MonitorEngine::getInstance();
+          bool monitor = mon->validatePlan(g_engine->get_plan());
+          cerr << "Plan validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
+          vector<string> plan;
 
-         for(unsigned int i = 0; i < g_engine->get_plan().size(); i++)
-         {
-         stringstream tmp;
-         tmp << g_engine->get_plan()[i].start_time << ": " << "(" << g_engine->get_plan()[i].op->get_name() << ") [" << g_engine->get_plan()[i].duration << "]\n";
-         plan.push_back(tmp.str());
-         }
-         monitor = mon->validatePlan(plan);
-         cerr << "Plan (string) validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
-         break;
-         }
-         else {
-         break;
-         }*/
+          for(unsigned int i = 0; i < g_engine->get_plan().size(); i++)
+          {
+          stringstream tmp;
+          tmp << g_engine->get_plan()[i].start_time << ": " << "(" << g_engine->get_plan()[i].op->get_name() << ") [" << g_engine->get_plan()[i].duration << "]\n";
+          plan.push_back(tmp.str());
+          }
+          monitor = mon->validatePlan(plan);
+          cerr << "Plan (string) validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
+          break;
+          }
+          else {
+          break;
+          }*/
     }
     //   g_engine->statistics();
 
     if(timeDebugFile)
-       fclose(timeDebugFile);
+        fclose(timeDebugFile);
 
 #ifndef _WIN32
     double search_time_wall = search_end_walltime - search_start_walltime;
@@ -222,10 +222,10 @@ int main(int argc, char **argv)
 
     int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
     cout << "Search time: " << search_ms / 1000.0 << " seconds - Walltime: "
-      << search_time_wall << " seconds" << endl;
+        << search_time_wall << " seconds" << endl;
     int total_ms = (search_end.tms_utime - start.tms_utime) * 10;
     cout << "Total time: " << total_ms / 1000.0 << " seconds - Walltime: " 
-       << total_time_wall << " seconds" << endl;
+        << total_time_wall << " seconds" << endl;
     save_time(g_parameters.plan_name, search_ms, total_ms);
 #endif
 
@@ -239,16 +239,16 @@ void readPlanFromFile(const string& filename, vector<string>& plan)
     while (fin.good()) {
         getline(fin, buffer, '\n');
         if(!buffer.empty())
-           plan.push_back(buffer);
+            plan.push_back(buffer);
     }
     fin.close();
 }
 
 bool validatePlan(vector<string> & plan)
 {
-   MonitorEngine* mon = MonitorEngine::getInstance();
-   bool monitor = mon->validatePlan(plan);
-   return monitor;
+    MonitorEngine* mon = MonitorEngine::getInstance();
+    bool monitor = mon->validatePlan(plan);
+    return monitor;
 }
 
 void save_time(string&plan_name, double search_time, double time)
@@ -264,9 +264,9 @@ void save_time(string&plan_name, double search_time, double time)
         sprintf(time_filename, "%s.time", plan_name.c_str());
     FILE *file = fopen(time_filename, "w");
     if(file == NULL) {
-       fprintf(stderr, "%s:\n  Could not open file %s.\n", __PRETTY_FUNCTION__, time_filename);
-       free(time_filename);
-       return;
+        fprintf(stderr, "%s:\n  Could not open file %s.\n", __PRETTY_FUNCTION__, time_filename);
+        free(time_filename);
+        return;
     }
     fprintf(file, "%.8f %.8f\n", search_time, time);
     fclose(file);
@@ -308,23 +308,23 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
         int &plan_number, string &plan_name)
 {
     /*for(int i = 0; i < path.size(); ++i) {
-     path[i]->dump();
-     }*/
+      path[i]->dump();
+      }*/
     const bool RESCHEDULE = false;
 
     PartialOrderLifter partialOrderLifter(plan, path);
 
     /*    for(int i = 0; i < plan.size(); ++i) {
-     plan[i].dump();
-     }
+          plan[i].dump();
+          }
 
-     cout << "-------------------------------------" << endl;
-     for(int i = 0; i < path.size(); ++i) {
-     cout << "PATH STEP: " << i << endl;
-     path[i]->dump();
-     cout << "-------------------------------------" << endl;
-     }
-     */
+          cout << "-------------------------------------" << endl;
+          for(int i = 0; i < path.size(); ++i) {
+          cout << "PATH STEP: " << i << endl;
+          path[i]->dump();
+          cout << "-------------------------------------" << endl;
+          }
+          */
 
     Plan new_plan = plan;
     if (RESCHEDULE)
@@ -358,7 +358,7 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
             // Just pass bogus as this should have been cached! warn somehow, pass "warn param"?
             subplanType spt = genFn("blubb", pl, NULL, NULL, 0, new std::pair<
                     const TimeStampedState*, const Operator*>(step.pred,
-                    step.op), compareContext);
+                        step.op), compareContext);
             ss << outputFn(spt) << endl << endl;
             subplan.push_back(spt);
         }
@@ -393,8 +393,8 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
         //        cout << "Sum of goals: " << sumOfSubgoals << endl;
         if (sumOfSubgoals < g_engine->bestSumOfGoals) {
             cout
-                    << "Found plan of equal makespan but with faster solved subgoals."
-                    << endl;
+                << "Found plan of equal makespan but with faster solved subgoals."
+                << endl;
             cout << "Sum of subgoals = " << sumOfSubgoals << endl;
             g_engine->bestSumOfGoals = sumOfSubgoals;
         } else {
@@ -419,13 +419,13 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
                 step.op->get_name().c_str(), step.duration);
     }
     cout << "Solution with original makespan " << original_makespan
-            << " found (ignoring no-moving-targets-rule)." << endl;
+        << " found (ignoring no-moving-targets-rule)." << endl;
     if (RESCHEDULE)
         cout << "Solution was epsilonized and rescheduled to a makespan of "
-                << makespan << "." << endl;
+            << makespan << "." << endl;
     else
         cout << "Solution was epsilonized to a makespan of " << makespan << "."
-                << endl;
+            << endl;
 
     FILE *file = 0;
     FILE *best_file = 0;
@@ -455,8 +455,8 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
         best_file = fopen(best_filename, "w");
 
         if(file == NULL) {
-           fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, filename);
-           return make_pair(original_makespan, makespan);
+            fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, filename);
+            return make_pair(original_makespan, makespan);
         }
     } else {
         file = stdout;

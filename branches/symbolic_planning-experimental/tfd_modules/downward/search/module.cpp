@@ -20,8 +20,8 @@ Module::Module(istream &in)
 
 void Module::dump()
 {
-   std::cout << "LibCall: " << libCall.c_str() << std::endl; 
-   std::cout << "Params: " << params << std::endl;
+    std::cout << "LibCall: " << libCall.c_str() << std::endl; 
+    std::cout << "Params: " << params << std::endl;
 }
 
 ConditionModule::ConditionModule(istream &in) :
@@ -38,11 +38,11 @@ ConditionModule::ConditionModule(istream &in) :
 
 void ConditionModule::dump()
 {
-   std::cout << "ConditionModule" << std::endl;
-   Module::dump();
-   std::cout << "Variable: " << var << std::endl;
+    std::cout << "ConditionModule" << std::endl;
+    Module::dump();
+    std::cout << "Variable: " << var << std::endl;
 
-   std::cout << "checkCondition call is: " << (long)(checkCondition) << std::endl;
+    std::cout << "checkCondition call is: " << (long)(checkCondition) << std::endl;
 }
 
 EffectModule::EffectModule(istream &in) :
@@ -66,15 +66,15 @@ EffectModule::EffectModule(istream &in) :
 
 void EffectModule::dump()
 {
-   std::cout << "EffectModule" << std::endl;
-   Module::dump();
-   std::cout << "Internal name: " << internal_name << std::endl;
-   std::cout << "Written vars: ";
-   for(vector<int>::iterator it = writtenVars.begin(); it != writtenVars.end(); it++)
-      std::cout << *it << " ";
-   std::cout << std::endl;
+    std::cout << "EffectModule" << std::endl;
+    Module::dump();
+    std::cout << "Internal name: " << internal_name << std::endl;
+    std::cout << "Written vars: ";
+    for(vector<int>::iterator it = writtenVars.begin(); it != writtenVars.end(); it++)
+        std::cout << *it << " ";
+    std::cout << std::endl;
 
-   std::cout << "ApplyEffect call is: " << (long)(applyEffect) << std::endl;
+    std::cout << "ApplyEffect call is: " << (long)(applyEffect) << std::endl;
 }
 
 CostModule::CostModule(istream &in) :

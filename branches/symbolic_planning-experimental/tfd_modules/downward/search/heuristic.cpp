@@ -18,7 +18,7 @@ void Heuristic::set_preferred(const Operator *op)
 {
     if (op->get_name().compare("wait") == 0) {
         const ScheduledOperator *s_op =
-                dynamic_cast<const ScheduledOperator*> (op);
+            dynamic_cast<const ScheduledOperator*> (op);
         assert(op);
         waiting_time = min(waiting_time, s_op->time_increment);
         return;

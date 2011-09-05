@@ -78,24 +78,24 @@ void BestFirstSearchEngine::statistics(time_t & current_time) const
     cout << "Generated Nodes: " << generated_states << " state(s)." << endl;
     cout << "Children with same g as parent: " << childsWithSameG << endl;
     cout << "Children with different g as parent: " << childsWithDifferentG
-            << endl;
+        << endl;
     cout << "Children with same f as parent: " << childsWithSameF << endl;
     cout << "Children with different f as parent: " << childsWithDifferentF
-            << endl;
+        << endl;
     cout << "Parents with 2 or more children: " << parentsWithTwoOrMoreChilds
-            << endl;
+        << endl;
     cout << "Parents with at most 1 children: " << parentsWithAtMostOneChild
-            << endl;
+        << endl;
     cout << "Parents with 2 or more children with same g: "
-            << parentsWithTwoOrMoreChildsWithSameG << endl;
+        << parentsWithTwoOrMoreChildsWithSameG << endl;
     cout << "Parents with at most 1 children with same g: "
-            << parentsWithAtMostOneChildWithSameG << endl;
+        << parentsWithAtMostOneChildWithSameG << endl;
     cout << "Average branching factor: " << (generated_states
             / (double) closed_list.size()) << endl;
     cout << "Average branching factor on zero cost edges: " << (childsWithSameG
             / (double) closed_list.size()) << endl;
     cout << "Best heuristic value: " << best_heuristic_values[0] << endl
-            << endl;
+        << endl;
     //    cout << "Best state:" << endl;
     //    const TimeStampedState &state = *best_states[0];
     //    if(&state) {
@@ -221,26 +221,26 @@ SearchEngine::status BestFirstSearchEngine::step()
     //    cout << "---------------------------------------" << endl << endl << endl;
 
     time_t current_time = time(NULL);
-    
+
     static time_t last_stat_time = current_time;
     if(current_time - last_stat_time > 10.0) {
-       statistics(current_time);
-       last_stat_time = current_time;
+        statistics(current_time);
+        last_stat_time = current_time;
     }
 
     // use different timeouts depending if we found a plan or not.
     if(g_engine->found_solution()) {
-       if (g_parameters.timeout_if_plan_found > 0 
-             && current_time - start_time > g_parameters.timeout_if_plan_found) {
-          statistics(current_time);
-          exit(137);
-       }
+        if (g_parameters.timeout_if_plan_found > 0 
+                && current_time - start_time > g_parameters.timeout_if_plan_found) {
+            statistics(current_time);
+            exit(137);
+        }
     } else {
-       if (g_parameters.timeout_while_no_plan_found > 0 
-             && current_time - start_time > g_parameters.timeout_while_no_plan_found) {
-          statistics(current_time);
-          exit(137);
-       }
+        if (g_parameters.timeout_while_no_plan_found > 0 
+                && current_time - start_time > g_parameters.timeout_while_no_plan_found) {
+            statistics(current_time);
+            exit(137);
+        }
     }
 
     return fetch_next_state();
@@ -273,7 +273,7 @@ bool BestFirstSearchEngine::check_goal()
         }
 
         if(!current_state.satisfies(g_goal)) {  // will assert...
-           dump_everything();
+            dump_everything();
         }
         assert(current_state.operators.empty() && current_state.satisfies(g_goal));
 
@@ -310,7 +310,7 @@ void BestFirstSearchEngine::dump_plan_prefix_for__state(
     for (int i = 0; i < plan.size(); i++) {
         const PlanStep& step = plan[i];
         cout << step.start_time << ": " << "(" << step.op->get_name() << ")"
-                << " [" << step.duration << "]" << endl;
+            << " [" << step.duration << "]" << endl;
     }
 }
 
@@ -383,7 +383,7 @@ double BestFirstSearchEngine::getGm(const TimeStampedState *state)
         const ScheduledOperator* op = &state->operators[i];
         double duration = 0.0;
         if (op && op != g_let_time_pass) {
-           duration = op->origin->get_duration(state);  // FIXME use origin
+            duration = op->origin->get_duration(state);  // FIXME use origin
         }
         if (duration > longestActionDuration) {
             longestActionDuration = duration;
@@ -465,7 +465,7 @@ bool tssKnown2(ThirdClosedList& scl,
             if (timedSymbolicStates[i].second + EPSILON < currentBestMakespan) {
                 ret = false;
                 scl[timedSymbolicStates[i].first]
-                        = timedSymbolicStates[i].second;
+                    = timedSymbolicStates[i].second;
             }
         } else {
             ret = false;
@@ -519,8 +519,8 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
         i = 1;
         double parentG = getGm(parent_ptr);
         vector<const Operator *> &ops =
-                open_lists[0].only_preferred_operators ? preferred_operators
-                        : all_operators;
+            open_lists[0].only_preferred_operators ? preferred_operators
+            : all_operators;
         for (int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
             TimeStampedState tss = TimeStampedState(current_state, *ops[j]);
@@ -554,20 +554,20 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
         return;
     }
     switch(g_parameters.g_values) {
-       case PlannerParameters::GTimestamp:
-          parentG = getGt(parent_ptr);
-          break;
-       case PlannerParameters::GCost:
-          parentG = getGc(parent_ptr);
-          break;
-       case PlannerParameters::GMakespan:
-          parentG = getGm(parent_ptr);
-          break;
-       case PlannerParameters::GWeighted:
-          parentG = g_parameters.g_weight * getGm(parent_ptr) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
-          break;
-       default:
-          assert(false);
+        case PlannerParameters::GTimestamp:
+            parentG = getGt(parent_ptr);
+            break;
+        case PlannerParameters::GCost:
+            parentG = getGc(parent_ptr);
+            break;
+        case PlannerParameters::GMakespan:
+            parentG = getGm(parent_ptr);
+            break;
+        case PlannerParameters::GWeighted:
+            parentG = g_parameters.g_weight * getGm(parent_ptr) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
+            break;
+        default:
+            assert(false);
     }
 
     parentF = parentG + parentH;
@@ -586,9 +586,9 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
             }
         }
         vector<const Operator *>
-                &ops =
-                        open_lists[index].only_preferred_operators ? preferred_operators
-                                : all_operators;
+            &ops =
+            open_lists[index].only_preferred_operators ? preferred_operators
+            : all_operators;
         for (int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
             double maxTimeIncrement = 0.0;
@@ -601,35 +601,35 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
             double makeSpan = maxTimeIncrement + current_state.timestamp;
             TimedSymbolicStates timedSymbolicStates;
             if (ops[j]->is_applicable2(closedListInfo, timedSymbolicStates, false) &&
-                makeSpan < bestMakespan &&
-                (!g_parameters.use_tss_known || !tssKnown2(tcl,timedSymbolicStates))   // use_tss_known => !tssKnow2
-                ) {
+                    makeSpan < bestMakespan &&
+                    (!g_parameters.use_tss_known || !tssKnown2(tcl,timedSymbolicStates))   // use_tss_known => !tssKnow2
+               ) {
                 TimeStampedState tss = TimeStampedState(current_state, *ops[j]);
                 if(g_parameters.lazy_evaluation) {
-                   childH = 42.0;   // set something != -1, this is NOT used below
+                    childH = 42.0;   // set something != -1, this is NOT used below
                 } else {
-                   childH = heur->evaluate(tss);
+                    childH = heur->evaluate(tss);
                 }
                 if (childH == -1) {
                     continue;
                 }
-                
+
                 switch(g_parameters.g_values) {
-                   case PlannerParameters::GTimestamp:
-                      childG = getGt(&tss);
-                      break;
-                   case PlannerParameters::GCost:
-                      childG = getGc(parent_ptr, ops[j]);
-                      break;
-                   case PlannerParameters::GMakespan:
-                      childG = getGm(&tss);
-                      break;
-                   case PlannerParameters::GWeighted:
-                      childG = g_parameters.g_weight * getGm(&tss) 
-                         + (1.0 - g_parameters.g_weight) * getGc(parent_ptr, ops[j]);
-                      break;
-                   default:
-                      assert(false);
+                    case PlannerParameters::GTimestamp:
+                        childG = getGt(&tss);
+                        break;
+                    case PlannerParameters::GCost:
+                        childG = getGc(parent_ptr, ops[j]);
+                        break;
+                    case PlannerParameters::GMakespan:
+                        childG = getGm(&tss);
+                        break;
+                    case PlannerParameters::GWeighted:
+                        childG = g_parameters.g_weight * getGm(&tss) 
+                            + (1.0 - g_parameters.g_weight) * getGc(parent_ptr, ops[j]);
+                        break;
+                    default:
+                        assert(false);
                 }
 
                 childF = childG + childH;
@@ -656,35 +656,35 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
                 //               cout << "inserting " << ops[j]->get_name() << " with val: " << parentF << endl;
                 double priority = g_parameters.lazy_evaluation ? parentF : childF;
                 open_lists[index].open.push(std::tr1::make_tuple(parent_ptr,
-                        ops[j], priority));
+                            ops[j], priority));
                 generated_states++;
             }
         }
         TimeStampedState tss = current_state.let_time_pass(false);
         if(g_parameters.lazy_evaluation) {
-           childH = 42.0;   // set something != -1, this is NOT used below
+            childH = 42.0;   // set something != -1, this is NOT used below
         } else {
-           childH = heur->evaluate(tss);
+            childH = heur->evaluate(tss);
         }
         if (childH == -1) {
             return;
         }
 
         switch(g_parameters.g_values) {
-           case PlannerParameters::GTimestamp:
-              childG = getGt(&tss);
-              break;
-           case PlannerParameters::GCost:
-              childG = getGc(parent_ptr);
-              break;
-           case PlannerParameters::GMakespan:
-              childG = getGm(&tss);
-              break;
-           case PlannerParameters::GWeighted:
-              childG = g_parameters.g_weight * getGm(&tss) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
-              break;
-           default:
-              assert(false);
+            case PlannerParameters::GTimestamp:
+                childG = getGt(&tss);
+                break;
+            case PlannerParameters::GCost:
+                childG = getGc(parent_ptr);
+                break;
+            case PlannerParameters::GMakespan:
+                childG = getGm(&tss);
+                break;
+            case PlannerParameters::GWeighted:
+                childG = g_parameters.g_weight * getGm(&tss) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
+                break;
+            default:
+                assert(false);
         }
 
         childF = childH + childG;
@@ -713,7 +713,7 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
         }
         double priority = g_parameters.lazy_evaluation ? parentF : childF;
         open_lists[i].open.push(std::tr1::make_tuple(parent_ptr,
-                g_let_time_pass, priority));
+                    g_let_time_pass, priority));
         generated_states++;
     }
 }
@@ -722,18 +722,18 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 {
     OpenListInfo *open_info = select_open_queue();
     if (!open_info) {
-       if(found_at_least_one_solution()) {
-          cout << "Completely explored state space -- best plan found!" << endl;
-       } else {
-          time_t current_time = time(NULL);
-          statistics(current_time);
-          cout << "Completely explored state space -- no solution!" << endl;
-       }
+        if(found_at_least_one_solution()) {
+            cout << "Completely explored state space -- best plan found!" << endl;
+        } else {
+            time_t current_time = time(NULL);
+            statistics(current_time);
+            cout << "Completely explored state space -- no solution!" << endl;
+        }
         return FAILED;
     }
 
     std::tr1::tuple<const TimeStampedState *, const Operator *, double> next =
-            open_info->open.top();
+        open_info->open.top();
     open_info->open.pop();
 
     const TimeStampedState* state = std::tr1::get<0>(next);
@@ -742,7 +742,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 
     IntermediateStates intermediateStates;
     if (op != g_let_time_pass && !op->is_applicable(&closed_info,
-            intermediateStates)) {
+                intermediateStates)) {
         return fetch_next_state();
     }
     open_info->priority++;
@@ -781,7 +781,7 @@ OpenListInfo *BestFirstSearchEngine::select_open_queue()
     if (mode == PRIORITY_BASED) {
         for (int i = 0; i < open_lists.size(); i++) {
             if (!open_lists[i].open.empty() && (best == 0
-                    || open_lists[i].priority < best->priority))
+                        || open_lists[i].priority < best->priority))
                 best = &open_lists[i];
         }
     } else if (mode == ROUND_ROBIN) {

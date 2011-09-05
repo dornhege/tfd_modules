@@ -30,7 +30,6 @@ NumericAxiom::NumericAxiom(istream &in)
 
 AxiomEvaluator::AxiomEvaluator()
 {
-
     // Handle axioms in the following order:
     // 1) Arithmetic axioms (layers 0 through k-1)
     // 2) Comparison axioms (layer k)
@@ -54,7 +53,7 @@ AxiomEvaluator::AxiomEvaluator()
         } else if (g_variable_types[i] == comparison) {
             assert(g_comparison_axiom_layer == -1 || g_comparison_axiom_layer == layer);
             g_comparison_axiom_layer = layer;
-        } else { //if(is_functional(i)) {
+        } else { //if(is_functional(i))
             g_last_arithmetic_axiom_layer = max(g_last_arithmetic_axiom_layer,
                     layer);
         }
@@ -70,9 +69,9 @@ AxiomEvaluator::AxiomEvaluator()
     assert(g_first_logic_axiom_layer > -1 || g_last_logic_axiom_layer == -1);
     assert(g_first_logic_axiom_layer == -1 || g_last_logic_axiom_layer > -1);
     cerr << "Arithm: " << g_last_arithmetic_axiom_layer << " Comparison: "
-            << g_comparison_axiom_layer << " 1st logic: "
-            << g_first_logic_axiom_layer << " last logic: "
-            << g_last_logic_axiom_layer << endl;
+        << g_comparison_axiom_layer << " 1st logic: "
+        << g_first_logic_axiom_layer << " last logic: "
+        << g_last_logic_axiom_layer << endl;
     // Initialize axioms by layer
     axioms_by_layer.resize(g_last_logic_axiom_layer + 2);
     for (int i = 0; i < max_axiom_layer + 2; i++)
@@ -86,7 +85,7 @@ AxiomEvaluator::AxiomEvaluator()
     // Initialize literals
     for (int i = 0; i < g_variable_domain.size(); i++)
         axiom_literals.push_back(vector<LogicAxiomLiteral> (max(
-                g_variable_domain[i], 0)));
+                        g_variable_domain[i], 0)));
 
     // Initialize rules
     if (g_first_logic_axiom_layer != -1) {
@@ -94,14 +93,14 @@ AxiomEvaluator::AxiomEvaluator()
                 <= g_last_logic_axiom_layer; layer++) {
             for (int i = 0; i < axioms_by_layer[layer].size(); i++) {
                 LogicAxiom *axiom =
-                        static_cast<LogicAxiom*> (axioms_by_layer[layer][i]);
+                    static_cast<LogicAxiom*> (axioms_by_layer[layer][i]);
                 int cond_count = axiom->prevail.size();
                 int eff_var = axiom->affected_variable;
                 int eff_val = static_cast<int> (axiom->new_value);
                 LogicAxiomLiteral *eff_literal =
-                        &axiom_literals[eff_var][eff_val];
+                    &axiom_literals[eff_var][eff_val];
                 rules.push_back(LogicAxiomRule(cond_count, eff_var, eff_val,
-                        eff_literal));
+                            eff_literal));
             }
         }
 
@@ -111,7 +110,7 @@ AxiomEvaluator::AxiomEvaluator()
                 <= g_last_logic_axiom_layer; layer++) {
             for (int i = 0; i < axioms_by_layer[layer].size(); i++, sum_of_indices++) {
                 LogicAxiom *axiom =
-                        static_cast<LogicAxiom*> (axioms_by_layer[layer][i]);
+                    static_cast<LogicAxiom*> (axioms_by_layer[layer][i]);
                 const vector<Prevail> &conditions = axiom->prevail;
                 for (int j = 0; j < conditions.size(); j++) {
                     const Prevail &cond = conditions[j];
@@ -151,7 +150,7 @@ void AxiomEvaluator::evaluate_arithmetic_axioms(TimeStampedState &state)
     for (int layer_no = 0; layer_no <= g_last_arithmetic_axiom_layer; layer_no++) {
         for (int i = 0; i < axioms_by_layer[layer_no].size(); i++) {
             NumericAxiom* ax =
-                    static_cast<NumericAxiom*> (axioms_by_layer[layer_no][i]);
+                static_cast<NumericAxiom*> (axioms_by_layer[layer_no][i]);
 
             int var = ax->affected_variable;
             int lhs = ax->var_lhs;
@@ -172,7 +171,7 @@ void AxiomEvaluator::evaluate_arithmetic_axioms(TimeStampedState &state)
                     break;
                 default:
                     cout << "Error: No comparison operators are allowed here."
-                            << endl;
+                        << endl;
                     assert(false);
                     break;
             }
@@ -190,8 +189,8 @@ void AxiomEvaluator::evaluate_comparison_axioms(TimeStampedState &state)
         return;
     for (int i = 0; i < axioms_by_layer[g_comparison_axiom_layer].size(); i++) {
         NumericAxiom
-                * ax =
-                        static_cast<NumericAxiom*> (axioms_by_layer[g_comparison_axiom_layer][i]);
+            * ax =
+            static_cast<NumericAxiom*> (axioms_by_layer[g_comparison_axiom_layer][i]);
 
         // ax->dump();
 
@@ -220,7 +219,7 @@ void AxiomEvaluator::evaluate_comparison_axioms(TimeStampedState &state)
             default:
                 cout << "Error: ax->op is " << ax->op << "." << endl;
                 cout << "Error: No arithmetic operators are allowed here."
-                        << endl;
+                    << endl;
                 assert(false);
                 break;
         }
@@ -237,7 +236,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
             // non-derived variable
             const variable_type& vt = g_variable_types[i];
             if (!(vt == comparison) && (!vt == logical)) {
-                //	    if(is_functional(i) || (g_variable_types[i] == module) || (g_variable_types[i] == costmodule)) {
+                //	    if(is_functional(i) || (g_variable_types[i] == module) || (g_variable_types[i] == costmodule)) 
                 // variable is functional
                 // do nothing (should have been handled by
                 // arithmetic/comparison axioms)
@@ -258,8 +257,8 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
         } else {
             // cannot happen
             cout
-                    << "Error: Encountered a variable with an axiom layer exceeding "
-                    << "the maximal computed axiom layer." << endl;
+                << "Error: Encountered a variable with an axiom layer exceeding "
+                << "the maximal computed axiom layer." << endl;
             exit(1);
         }
     }
@@ -308,7 +307,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
 
             // Apply negation by failure rules.
             const vector<NegationByFailureInfo> &nbf_info =
-                    nbf_info_by_layer[layer_no];
+                nbf_info_by_layer[layer_no];
             for (int i = 0; i < nbf_info.size(); i++) {
                 int var_no = nbf_info[i].var_no;
                 if (double_equals(state[var_no], g_default_axiom_values[var_no]))

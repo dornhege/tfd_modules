@@ -11,20 +11,20 @@
 using namespace std;
 
 /*
- Map-based implementation of a closed list.
+   Map-based implementation of a closed list.
 
- The closed list has two purposes:
- 1. It stores which nodes have been expanded or scheduled to expand
- already to avoid duplicates (i.e., it is used like a set).
- These states "live" in the closed list -- in particular,
- permanently valid pointers to these states are obtained upon
- insertion.
- 2. It can trace back a path from the initial state to a given state
- in the list.
+   The closed list has two purposes:
+   1. It stores which nodes have been expanded or scheduled to expand
+   already to avoid duplicates (i.e., it is used like a set).
+   These states "live" in the closed list -- in particular,
+   permanently valid pointers to these states are obtained upon
+   insertion.
+   2. It can trace back a path from the initial state to a given state
+   in the list.
 
- The datatypes used for the closed list could easily be
- parameterized, but there is no such need presently.
- */
+   The datatypes used for the closed list could easily be
+   parameterized, but there is no such need presently.
+   */
 
 ClosedList::ClosedList()
 {
@@ -86,13 +86,13 @@ bool scheduledEffectEquals(const ScheduledEffect &eff1,
     if (eff1.cond_end.size() != eff2.cond_end.size())
         return false;
     if (!equal(eff1.cond_start.begin(), eff1.cond_start.end(),
-            eff2.cond_start.begin(), prevailEquals))
+                eff2.cond_start.begin(), prevailEquals))
         return false;
     if (!equal(eff1.cond_overall.begin(), eff1.cond_overall.end(),
-            eff2.cond_overall.begin(), prevailEquals))
+                eff2.cond_overall.begin(), prevailEquals))
         return false;
     if (!equal(eff1.cond_end.begin(), eff1.cond_end.end(),
-            eff2.cond_end.begin(), prevailEquals))
+                eff2.cond_end.begin(), prevailEquals))
         return false;
     return true;
 }
@@ -104,7 +104,7 @@ bool TssEquals::operator()(const TimeStampedState &tss1,
         return false;
     for (int i = 0; i < tss1.state.size(); ++i) {
         if (!(g_variable_types[i] == primitive_functional
-                || g_variable_types[i] == logical)) {
+                    || g_variable_types[i] == logical)) {
             continue;
         }
         if (!double_equals(tss1.state[i], tss2.state[i]))
@@ -117,13 +117,13 @@ bool TssEquals::operator()(const TimeStampedState &tss1,
     if (tss1.conds_at_end.size() != tss2.conds_at_end.size())
         return false;
     if (!equal(tss1.scheduled_effects.begin(), tss1.scheduled_effects.end(),
-            tss2.scheduled_effects.begin(), scheduledEffectEquals))
+                tss2.scheduled_effects.begin(), scheduledEffectEquals))
         return false;
     if (!equal(tss1.conds_over_all.begin(), tss1.conds_over_all.end(),
-            tss2.conds_over_all.begin(), scheduledConditionEquals))
+                tss2.conds_over_all.begin(), scheduledConditionEquals))
         return false;
     if (!equal(tss1.conds_at_end.begin(), tss1.conds_at_end.end(),
-            tss2.conds_at_end.begin(), scheduledConditionEquals))
+                tss2.conds_at_end.begin(), scheduledConditionEquals))
         return false;
     return true;
 }
@@ -184,7 +184,7 @@ pair<const TimeStampedState*, const Operator*>* ClosedList::insert(
         const Operator *annotation)
 {
     ClosedListMap::iterator ret = closed.insert(ValuePair(entry,
-            PredecessorInfo(predecessor, annotation)));
+                PredecessorInfo(predecessor, annotation)));
     //    assert(ret.second);
     return new pair<const TimeStampedState*, const Operator*> (&(ret->first),
             ret->second.annotation);
@@ -205,7 +205,7 @@ bool ClosedList::contains(const TimeStampedState &entry) const
 const TimeStampedState& ClosedList::get(const TimeStampedState &state) const
 {
     std::pair<ClosedListMap::const_iterator, ClosedListMap::const_iterator>
-            entries = closed.equal_range(state);
+        entries = closed.equal_range(state);
     const TimeStampedState *ret = &(closed.find(state)->first);
     ClosedListMap::const_iterator it = entries.first;
     for (; it != entries.second; ++it) {
@@ -220,7 +220,7 @@ double ClosedList::get_min_ts_of_key(const TimeStampedState &state) const
 {
     double ret = REALLYBIG;
     std::pair<ClosedListMap::const_iterator, ClosedListMap::const_iterator>
-            entries = closed.equal_range(state);
+        entries = closed.equal_range(state);
     ClosedListMap::const_iterator it = entries.first;
     for (; it != entries.second; ++it) {
         ret = min(ret, it->first.timestamp);
@@ -240,7 +240,7 @@ double ClosedList::getCostOfPath(const TimeStampedState &entry) const
     for (;;) {
         double min_timestamp = current_entry.timestamp;
         std::pair<ClosedListMap::const_iterator, ClosedListMap::const_iterator>
-                entries = closed.equal_range(current_entry);
+            entries = closed.equal_range(current_entry);
         ClosedListMap::const_iterator it = entries.first;
         const PredecessorInfo* info_helper = NULL;
         for (; it != entries.second; ++it) {
@@ -276,7 +276,7 @@ double ClosedList::trace_path(const TimeStampedState &entry,
         double min_timestamp = current_entry.timestamp;
         double timestamp = min_timestamp;
         std::pair<ClosedListMap::const_iterator, ClosedListMap::const_iterator>
-                entries = closed.equal_range(current_entry);
+            entries = closed.equal_range(current_entry);
         ClosedListMap::const_iterator it = entries.first;
         const PredecessorInfo* info_helper = NULL;
         for (; it != entries.second; ++it) {

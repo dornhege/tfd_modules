@@ -48,8 +48,8 @@ void TimeStampedState::apply_module_effect(string internal_name)
 TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         const Operator &op) :
     state(predecessor.state), scheduled_effects(predecessor.scheduled_effects),
-            conds_over_all(predecessor.conds_over_all), conds_at_end(
-                    predecessor.conds_at_end), operators(predecessor.operators)
+    conds_over_all(predecessor.conds_over_all), conds_at_end(
+            predecessor.conds_at_end), operators(predecessor.operators)
 {
 
     timestamp = predecessor.timestamp;
@@ -101,7 +101,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
         if (mod_eff.does_fire(predecessor, &op)) {
             scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
-                    mod_eff));
+                        mod_eff));
         }
     }
 
@@ -110,7 +110,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // state plus the over-all conditions of the newly added operator
     for (int i = 0; i < op.get_prevail_overall().size(); i++) {
         conds_over_all.push_back(ScheduledCondition(duration,
-                op.get_prevail_overall()[i]));
+                    op.get_prevail_overall()[i]));
     }
 
     // The persistent at-end conditions of the new state are
@@ -118,7 +118,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // state plus the at-end conditions of the newly added operator
     for (int i = 0; i < op.get_prevail_end().size(); i++) {
         conds_at_end.push_back(ScheduledCondition(duration,
-                op.get_prevail_end()[i]));
+                    op.get_prevail_end()[i]));
     }
 
     // The running operators of the new state are precisely
@@ -165,7 +165,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for (int i = 0; i < scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = scheduled_effects[i];
             if (double_equals(eff.time_increment, time_diff) && succ.satisfies(
-                    eff.cond_end)) {
+                        eff.cond_end)) {
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
@@ -192,7 +192,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for (int i = 0; i < succ.scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = succ.scheduled_effects[i];
             if (double_equals(eff.time_increment, 0) || !succ.satisfies(
-                    eff.cond_overall)) {
+                        eff.cond_overall)) {
                 succ.scheduled_effects.erase(succ.scheduled_effects.begin() + i);
                 i--;
             }
@@ -209,9 +209,9 @@ TimeStampedState TimeStampedState::let_time_pass(
     if (!go_to_intermediate_between_now_and_next_happening) {
         for (int i = 0; i < succ.scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff =
-                    succ.scheduled_module_effects[i];
+                succ.scheduled_module_effects[i];
             if (double_equals(mod_eff.time_increment, 0) || !succ.satisfies(
-                    mod_eff.cond_overall)) {
+                        mod_eff.cond_overall)) {
                 succ.scheduled_module_effects.erase(
                         succ.scheduled_module_effects.begin() + i);
                 i--;
@@ -341,22 +341,22 @@ void TimeStampedState::dump() const
     cout << " scheduled effects:" << endl;
     for (int i = 0; i < scheduled_effects.size(); i++) {
         cout << "  <" << (scheduled_effects[i].time_increment + timestamp)
-                << ",<";
+            << ",<";
         for (int j = 0; j < scheduled_effects[i].cond_overall.size(); j++) {
             cout << g_variable_name[scheduled_effects[i].cond_overall[j].var]
-                    << ": " << scheduled_effects[i].cond_overall[j].prev;
+                << ": " << scheduled_effects[i].cond_overall[j].prev;
         }
         cout << ">,<";
         for (int j = 0; j < scheduled_effects[i].cond_end.size(); i++) {
             cout << g_variable_name[scheduled_effects[i].cond_end[j].var]
-                    << ": " << scheduled_effects[i].cond_end[j].prev;
+                << ": " << scheduled_effects[i].cond_end[j].prev;
         }
         cout << ">,<";
         cout << g_variable_name[scheduled_effects[i].var] << " ";
         if (is_functional(scheduled_effects[i].var)) {
             cout << scheduled_effects[i].fop << " ";
             cout << g_variable_name[scheduled_effects[i].var_post] << ">>"
-                    << endl;
+                << endl;
         } else {
             cout << ":= ";
             cout << scheduled_effects[i].post << ">>" << endl;
@@ -366,13 +366,13 @@ void TimeStampedState::dump() const
     for (int i = 0; i < conds_over_all.size(); i++) {
         cout << "  <" << (conds_over_all[i].time_increment + timestamp) << ",<";
         cout << g_variable_name[conds_over_all[i].var] << ":"
-                << conds_over_all[i].prev << ">>" << endl;
+            << conds_over_all[i].prev << ">>" << endl;
     }
     cout << " persistent at-end conditions:" << endl;
     for (int i = 0; i < conds_at_end.size(); i++) {
         cout << "  <" << (conds_at_end[i].time_increment + timestamp) << ",<";
         cout << g_variable_name[conds_at_end[i].var] << ":"
-                << conds_at_end[i].prev << ">>" << endl;
+            << conds_at_end[i].prev << ">>" << endl;
     }
     cout << " running operators:" << endl;
     for (int i = 0; i < operators.size(); i++) {
@@ -388,10 +388,10 @@ bool TimeStampedState::operator<(const TimeStampedState &other) const
     if (timestamp > other.timestamp)
         return false;
     if (lexicographical_compare(state.begin(), state.end(),
-            other.state.begin(), other.state.end()))
+                other.state.begin(), other.state.end()))
         return true;
     if (lexicographical_compare(other.state.begin(), other.state.end(),
-            state.begin(), state.end()))
+                state.begin(), state.end()))
         return false;
     if (scheduled_effects.size() < other.scheduled_effects.size())
         return true;
@@ -406,25 +406,25 @@ bool TimeStampedState::operator<(const TimeStampedState &other) const
     if (conds_at_end.size() > other.conds_at_end.size())
         return false;
     if (lexicographical_compare(scheduled_effects.begin(),
-            scheduled_effects.end(), other.scheduled_effects.begin(),
-            other.scheduled_effects.end()))
+                scheduled_effects.end(), other.scheduled_effects.begin(),
+                other.scheduled_effects.end()))
         return true;
     if (lexicographical_compare(other.scheduled_effects.begin(),
-            other.scheduled_effects.end(), scheduled_effects.begin(),
-            scheduled_effects.end()))
+                other.scheduled_effects.end(), scheduled_effects.begin(),
+                scheduled_effects.end()))
         return false;
     if (lexicographical_compare(conds_over_all.begin(), conds_over_all.end(),
-            other.conds_over_all.begin(), other.conds_over_all.end()))
+                other.conds_over_all.begin(), other.conds_over_all.end()))
         return true;
     if (lexicographical_compare(other.conds_over_all.begin(),
-            other.conds_over_all.end(), conds_over_all.begin(),
-            conds_over_all.end()))
+                other.conds_over_all.end(), conds_over_all.begin(),
+                conds_over_all.end()))
         return false;
     if (lexicographical_compare(conds_at_end.begin(), conds_at_end.end(),
-            other.conds_at_end.begin(), other.conds_at_end.end()))
+                other.conds_at_end.begin(), other.conds_at_end.end()))
         return true;
     if (lexicographical_compare(other.conds_at_end.begin(),
-            other.conds_at_end.end(), conds_at_end.begin(), conds_at_end.end()))
+                other.conds_at_end.end(), conds_at_end.begin(), conds_at_end.end()))
         return false;
     return false;
 }
@@ -446,7 +446,7 @@ bool TimeStampedState::is_consistent_now() const
     // if their end time point is now
     for (int i = 0; i < conds_at_end.size(); i++)
         if (double_equals(conds_at_end[i].time_increment, 0) && !satisfies(
-                conds_at_end[i]))
+                    conds_at_end[i]))
             return false;
 
     // No further conditions (?)
@@ -508,7 +508,7 @@ bool TimeStampedState::is_consistent_when_progressed(
         current_time = current_progression.timestamp;
         if (!go_to_intermediate) {
             timedSymbolicStates.push_back(make_pair(vector<double> (),
-                    current_progression.timestamp));
+                        current_progression.timestamp));
             for (int i = 0; i < current_progression.state.size(); ++i) {
                 if (g_variable_types[i] == primitive_functional
                         || g_variable_types[i] == logical) {
