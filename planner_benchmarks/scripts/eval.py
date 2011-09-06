@@ -44,6 +44,10 @@ class Problem(object):
                 assert len(entries) == 2
                 yield (float)(entries[0])
                 yield (float)(entries[1])
+    def hasSamePlan(self, other):
+        """ Compare my plan with the plan of other """
+        retcode = subprocess.call(["diff", self.planfile, other.planfile], stdout=subprocess.PIPE)
+        return retcode == 0
 
 def evalDir(path, files):
     """ Evaluate the directory in path that contains a number of
@@ -286,30 +290,92 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
         print >> f, '\\end{table}'
         print >> f, ''
 
+def checkPlans(evaldict, refDict):
+    """ Check if plans in evaldict are equal to those in refDict
+        """
+    # First build the name -> {identifier -> entries} dict.
+    nameEntriesDict = {}
+    buildNameIdentifierDict(evaldict, nameEntriesDict, "")
+
+    refEntriesDict = {}
+    buildNameIdentifierDict(refDict, refEntriesDict, "")
+
+    for domain, val in nameEntriesDict.iteritems():    # domain -> {Run -> problems}
+        print "\nChecking Plans match ref data for domain:", domain
+        refVals = None
+        try:
+            refVals = refEntriesDict[domain]
+            # don't really care about the ident for ref data, so just go down
+            # in dict until we have the problem list
+            while data_tools.behaves_like_dict(refVals):
+                assert len(refVals) == 1        # there should only be one ref data per domain
+                for rkey, rval in refVals.iteritems():
+                    refVals = rval                        
+                    break
+            #print "REF vals for domain", domain, "is", refVals
+        except:
+            print "WARNING: No reference data for domain", domain, "- skipping domain!"
+            continue
+
+        # Runs contains:  Unique number, Descriptor Ident, Problem list
+        runs = [ (num, ident, probs) for num, (ident,probs) in enumerate(val.iteritems()) ]
+
+        # First collect all problems (some might not have entries)
+        problems = set()
+        for num, ident, probs in runs:
+            for i in probs:
+                problems.add(repr(i))
+        probList = list(problems)
+        probList.sort(key=str.lower)
+
+        probWithRefList = []
+        for i in probList:
+            refProbs = [p for p in refVals if repr(p) == i]
+            if not refProbs:
+                print "No Ref data for domain", domain, " problem:", repr(i), "- skipping"
+                continue
+            assert len(refProbs) == 1
+            probWithRefList.append(i)
+        probList = probWithRefList
+
+        # Now for each problem, compare plan to ref data
+        for i in probList:
+            for num, ident, probs in runs:
+                myProb = [j for j in probs if repr(j) == i]
+                refProb = [j for j in refVals if repr(j) == i]
+                samePlan = myProb[0].hasSamePlan(refProb[0])
+                if samePlan:
+                    print repr(myProb[0]), "OK"
+                else:
+                    print "Problem:", repr(myProb[0]), "for run", ident,
+                    print "plan does NOT MATCH ref data"
 
 def main():
     parser = OptionParser("usage: %prog PROBLEMS")
     parser.add_option("-e", "--eval-dir", dest="eval_dir", type="string", action="store")
     parser.add_option("-r", "--ref-data-dir", dest="ref_data_dir", type="string", action="store")
+    parser.add_option("-c", "--check-plans", action="store_true", dest="check_plans", default=False)
     opts, args = parser.parse_args()
     print "Eval results dir: %s" % opts.eval_dir
     print "Ref data dir: %s" % opts.ref_data_dir
+    print "Check plans against ref data: %s" % opts.check_plans
 
     evalDict = parseResults(opts.eval_dir)
-    print "FINAL EVAL DICT: ", evalDict[opts.eval_dir]
+    print "FINAL EVAL DICT: ", evalDict
 
     ref_data = None
     if opts.ref_data_dir:
         ref_data = parseResults(opts.ref_data_dir)
-        print "REF DATA DICT: ", ref_data[opts.ref_data_dir]
-
-    # TODO then create compare dict and start that mode (cleanup structures before)
+        print "REF DATA DICT: ", ref_data
 
     # write eval data
     writeEvalData(evalDict, ".")
 
     # create latex tables, all grouped by domain-name divided by settings/algos
     writeTex(evalDict, "output.tex", ref_data)
+    
+    if ref_data and opts.check_plans:
+        checkPlans(evalDict, ref_data)
 
 if __name__ == "__main__":
     main()
