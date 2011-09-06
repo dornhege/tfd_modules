@@ -175,7 +175,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                     for rkey, rval in refVals.iteritems():
                         refVals = rval
                         break
-                print "REF vals for domain", domain, "is", refVals
+                # print "REF vals for domain", domain, "is", refVals
             except:
                 print "WARNING: No reference data for domain", domain, "- skipping domain!"
                 continue
@@ -216,6 +216,9 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                 assert len(refProbs) == 1
                 probWithRefList.append(i)
             probList = probWithRefList
+
+        sums = dict( [ (num, 0) for num, ident, probs in runs ] )
+        ref_sum = len(probList) # every ref prob scores 1.0 quality
 
         # Now for each problem, write a table line
         for i in probList:
@@ -259,6 +262,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                         print >> f, "%.2f" % eval(refProbStr + " / " + targetStr),
                         if best and best == eval(refProbStr + " / " + targetStr):
                             print >> f, "}",
+                        sums[num] += eval(refProbStr + " / " + targetStr)
                     else:
                         print >> f, " - ",
                 else:
@@ -277,6 +281,16 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                 else:
                     print >> f, ""
             print >> f, "\\\\"
+
+        print >> f, '  \\hline'
+        print >> f, "Total &",
+        for num, ident, probs in runs:
+            print >> f, "%.2f" % sums[num], " / %.2f" % ref_sum,
+            if num < len(val) - 1:
+                print >> f, "&",
+            else:
+                print >> f, ""
+        print >> f, "\\\\"
 
         print >> f, '  \\hline'
         print >> f, '  \\end{tabular}'
@@ -361,12 +375,12 @@ def main():
     print "Check plans against ref data: %s" % opts.check_plans
 
     evalDict = parseResults(opts.eval_dir)
-    print "FINAL EVAL DICT: ", evalDict
+    # print "FINAL EVAL DICT: ", evalDict
 
     ref_data = None
     if opts.ref_data_dir:
         ref_data = parseResults(opts.ref_data_dir)
-        print "REF DATA DICT: ", ref_data
+        # print "REF DATA DICT: ", ref_data
 
     # write eval data
     writeEvalData(evalDict, ".")
