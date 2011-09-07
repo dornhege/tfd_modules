@@ -1,8 +1,12 @@
 <stack>
   <description brief="symbolic_planning">symbolic_planning</description>
   <author>Maintained by Christian Dornhege</author>
-  <license>GPL</license>  
+  <license>GPL,BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/symbolic_planning</url>
+  <depend stack="common_msgs" /> <!-- nav_msgs -->
+  <depend stack="geometry" /> <!-- tf -->
   <depend stack="ros" />
+  <depend stack="ros_comm" /> <!-- roscpp -->
+
 </stack>
