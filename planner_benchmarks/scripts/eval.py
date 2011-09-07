@@ -217,7 +217,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                 probWithRefList.append(i)
             probList = probWithRefList
 
-        sums = dict( [ (num, 0) for num, ident, probs in runs ] )
+        sums = dict( [ (num, 0) for num, ident, probs in runs ] )   # run# -> accumulated score
         ref_sum = len(probList) # every ref prob scores 1.0 quality
 
         # Now for each problem, write a table line
@@ -262,7 +262,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                         print >> f, "%.2f" % eval(refProbStr + " / " + targetStr),
                         if best and best == eval(refProbStr + " / " + targetStr):
                             print >> f, "}",
-                        sums[num] += eval(refProbStr + " / " + targetStr)
+                        sums[num] += eval(refProbStr + " / " + targetStr)   # count for score
                     else:
                         print >> f, " - ",
                 else:
@@ -282,15 +282,16 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                     print >> f, ""
             print >> f, "\\\\"
 
-        print >> f, '  \\hline'
-        print >> f, "Total &",
-        for num, ident, probs in runs:
-            print >> f, "%.2f" % sums[num], " / %.2f" % ref_sum,
-            if num < len(val) - 1:
-                print >> f, "&",
-            else:
-                print >> f, ""
-        print >> f, "\\\\"
+        if refVals:
+            print >> f, '  \\hline'
+            print >> f, "Total &",
+            for num, ident, probs in runs:
+                print >> f, "%.2f" % sums[num], " / %.2f" % ref_sum,
+                if num < len(val) - 1:
+                    print >> f, "&",
+                else:
+                    print >> f, ""
+            print >> f, "\\\\"
 
         print >> f, '  \\hline'
         print >> f, '  \\end{tabular}'

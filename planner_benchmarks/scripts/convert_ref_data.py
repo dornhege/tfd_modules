@@ -17,11 +17,12 @@ import datetime
 import re
 
 def parsePlan(file):
+    # Matches: start_time: (some action stuff) [duration]
     exp = "([0-9\\.]+) *: *\\(([a-zA-Z0-9\\-_ ]+)\\) *\\[([0-9\\.]+)\\]"
     with open(file, "r") as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith(";"):
+            if not line or line.startswith(";"):    # empty lines, comments start with ;
                 continue
             m = re.match(exp, line)
             if not m:
