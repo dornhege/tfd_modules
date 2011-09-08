@@ -1,6 +1,6 @@
 <package>
   <description brief="tfd_modules">
-      This package contains the TFD/M symbolic planner with a modular interface.
+      This package contains the TFD/M temporal symbolic planner with a modular interface.
   </description>
   <author>Maintained by Christian Dornhege (see AUTHORS file).</author>
   <license>GPL</license>
