@@ -1,14 +1,11 @@
 <package>
   <description brief="simple_modules">
-   Just some simple planner modules for testing.
+   This package contains some simple planner modules for testing.
   </description>
   <author>dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/test_modules</url>
+  <url>http://ros.org/wiki/simple_modules</url>
   <depend package="tfd_modules"/>
   <depend package="planner_benchmarks"/>
-
 </package>
-
-

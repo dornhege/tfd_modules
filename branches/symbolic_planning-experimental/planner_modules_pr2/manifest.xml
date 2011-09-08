@@ -1,8 +1,7 @@
 <package>
   <description brief="planner_modules_pr2">
-
-     planner_modules_pr2
-
+    This package contains planner modules for integrating robot
+    information, mainly for the PR2, from ROS into the planner.
   </description>
   <author>dornhege</author>
   <license>BSD</license>
