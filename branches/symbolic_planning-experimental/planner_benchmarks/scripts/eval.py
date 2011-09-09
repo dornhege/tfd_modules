@@ -46,7 +46,7 @@ class Problem(object):
                 yield (float)(entries[1])
     def hasSamePlan(self, other):
         """ Compare my plan with the plan of other """
-        retcode = subprocess.call(["diff", self.planfile, other.planfile], stdout=subprocess.PIPE)
+        retcode = subprocess.call(["diff", "-q", self.planfile, other.planfile], stdout=subprocess.PIPE)
         return retcode == 0
 
 def evalDir(path, files):
