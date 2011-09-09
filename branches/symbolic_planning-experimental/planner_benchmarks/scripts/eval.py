@@ -150,10 +150,104 @@ def writeTex(evaldict, filename, refDict):
         writeTexTable(nameEntriesDict, f, "runtime", "<", refEntriesDict)
     else:
         writeTexTable(nameEntriesDict, f, "makespan", ">", refEntriesDict)
+        writeTexTable(nameEntriesDict, f, "runtime", ">", refEntriesDict)
 
     print >> f, '\\end{document}'
     f.flush()
     f.close()
+
+def evaluateProblem(problem, referenceProblem, target):
+    """ Evaluate problem's target property.
+        If a referenceProblem is given it is evaluated with respect to that.
+        In that case problem might be None if there was no data and None is returned. """
+
+    if problem is None:
+        return None
+
+    targetStr = "problem." + target
+    refProbStr = "referenceProblem." + target
+    if referenceProblem:
+        try:
+            return eval(refProbStr + " / " + targetStr)     # TODO generalize?
+        except ZeroDivisionError:       # targetStr was incredibly small -> result in huge eval + debug
+            return 999999.99
+    else:
+        return eval(targetStr)
+
+def writeTexTableEntry(f, problem, referenceProblem, target, best, num, sums):
+    """ Write one entry for an output table referring to the target property of problem.
+        If referenceProblem is given the problem is compared to the referenceProblem
+        and relative values are printed.
+        Comparison in done with respect to best.
+        In that case problem might be None if there was no result/data.
+        Sums is a dictionary of num -> accumulated sum that should be updated. """
+
+    targetStr = "problem." + target
+    refProbStr = "referenceProblem." + target
+    
+    # write actual entry for each ident
+    probVal = evaluateProblem(problem, referenceProblem, target)
+    if probVal:
+        if best and best == probVal:   # this is the best entry
+            print >> f, "\\textbf{",
+        print >> f, "%.2f" % probVal,
+        if best and best == probVal:
+            print >> f, "}",
+            sums[num] += probVal   # count for score
+    else:
+        print >> f, "-",
+
+def writeTexTableLine(f, problem_id, runs, refVals, target, better, numEntries, sums):
+    """ Write one line for problem_id in the output table referring to the target property of the problem.
+        If refVals is given the problem is compared to the reference
+        and relative values are printed.
+        Comparison in done with the better property of the division of the properties.
+        In that case runs might not contain a problem for problem_id if there was no result/data.
+        numEntries is only used to decide when the line ends.
+        Sums is a dictionary of run_num -> accumulated sum """
+    
+    print >> f, problem_id, "    &",
+ 
+    # First find the referenceProblem for problem_id
+    refProb = None
+    if refVals:
+        refProbSearch = [j for j in refVals if repr(j) == problem_id]
+        assert refProbSearch
+        refProb = refProbSearch[0]
+   
+    # find best entry in line
+    best = None
+    for num, ident, probs in runs:
+        # First find the current problem for problem_id
+        myProb = None
+        myProbSearch = [j for j in probs if repr(j) == problem_id]
+        if myProbSearch:
+            myProb = myProbSearch[0]
+
+        probVal = evaluateProblem(myProb, refProb, target) 
+        if probVal is None:
+            continue
+        if not best:
+            best = probVal
+        else:
+            if eval("probVal" + better + "best"):
+                best = probVal
+
+    # write actual entry for each ident
+    for num, ident, probs in runs:
+         # First find the current problem for problem_id
+        myProb = None
+        myProbSearch = [j for j in probs if repr(j) == problem_id]
+        if myProbSearch:
+            myProb = myProbSearch[0]
+
+        writeTexTableEntry(f, myProb, refProb, target, best, num, sums)
+  
+        if num < numEntries - 1:
+            print >> f, "&",
+        else:
+            print >> f, ""
+    print >> f, "\\\\"
 
 def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
     """ Write latex table for this dict.
@@ -179,6 +273,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
             except:
                 print "WARNING: No reference data for domain", domain, "- skipping domain!"
                 continue
+        print "Writing table for", domain
         print >> f, '\\begin{table}'
         print >> f, '  \\centering'
         print >> f, '  \\begin{tabular}{|l|c|c|}'
@@ -207,82 +302,24 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
         probList.sort(key=str.lower)
 
         if refVals:
-            probWithRefList = []
+            # verify check that all problems have ref-data
             for i in probList:
                 refProbs = [p for p in refVals if repr(p) == i]
                 if not refProbs:
                     print "No Ref data for domain", domain, " problem:", repr(i), "- skipping"
                     continue
-                assert len(refProbs) == 1
-                probWithRefList.append(i)
-            probList = probWithRefList
+            # probList = all refvals
+            # i.e. ignore original probList (might get some with no problem, which is OK, empty entries)
+            probList = [repr(i) for i in refVals]
 
         sums = dict( [ (num, 0) for num, ident, probs in runs ] )   # run# -> accumulated score
         ref_sum = len(probList) # every ref prob scores 1.0 quality
 
         # Now for each problem, write a table line
         for i in probList:
-            print >> f, i, "    &",
-            best = None
-            
-            targetStr = "myProb[0]." + target
-            refProbStr = "refProb[0]." + target
-            # find best entry in line
-            for num, ident, probs in runs:
-                myProb = [j for j in probs if repr(j) == i]
-                if refVals:
-                    refProb = [j for j in refVals if repr(j) == i]
-                    assert refProb
-                    if myProb:
-                        assert len(myProb) == 1
-                        if not best:
-                            best = eval(refProbStr + " / " + targetStr)
-                        else:
-                            if eval(refProbStr + " / " + targetStr + " " + better + " best"):
-                                best = eval(refProbStr + " / " + targetStr)
-                else:
-                    if myProb:
-                        assert len(myProb) == 1
-                        if not best:
-                            best = eval(targetStr)
-                        else:
-                            if eval(targetStr + " " + better + " best"):
-                                best = eval(targetStr)
+            writeTexTableLine(f, i, runs, refVals, target, better, len(val), sums)
 
-            # write actual entry for each ident
-            for num, ident, probs in runs:
-                myProb = [j for j in probs if repr(j) == i]
-                if refVals:
-                    refProb = [j for j in refVals if repr(j) == i]
-                    assert refProb
-                    if myProb:
-                        assert len(myProb) == 1
-                        if best and best == eval(refProbStr + " / " + targetStr):
-                            print >> f, "\\textbf{",
-                        print >> f, "%.2f" % eval(refProbStr + " / " + targetStr),
-                        if best and best == eval(refProbStr + " / " + targetStr):
-                            print >> f, "}",
-                        sums[num] += eval(refProbStr + " / " + targetStr)   # count for score
-                    else:
-                        print >> f, " - ",
-                else:
-                    if myProb:
-                        assert len(myProb) == 1
-                        if best and best == eval(targetStr):
-                            print >> f, "\\textbf{",
-                        print >> f, "%.2f" % eval(targetStr),
-                        if best and best == eval(targetStr):
-                            print >> f, "}",
-                    else:                       # no entry for this run version -> "-"
-                        print >> f, " - ",
-
-                if num < len(val) - 1:
-                    print >> f, "&",
-                else:
-                    print >> f, ""
-            print >> f, "\\\\"
-
-        if refVals:
+        if refVals and target == "makespan":    # this only makes sense for makespans
             print >> f, '  \\hline'
             print >> f, "Total &",
             for num, ident, probs in runs:
