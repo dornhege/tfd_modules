@@ -10,20 +10,23 @@ eval.py:
         - C is the domain
         - A/B describes the run configuration
     - there need to exist a plan.p03.pddl.best and times.p03.pddl files for a valid problem
+
 Usage:
     - There are three modes for running eval.py
-    1) Only pass in evaluation data:
+    1) Evaluate one run: Only pass in evaluation data
         Will write output.tex with absolute data for each of the runs in evaluation data dir.
         Creates makespan and runtime tables.
 
-    2) Pass in evaluation data and reference data:
+    2) Quality assessment for one/multiple runs: Pass in evaluation data and reference data
         For evaluating quality.
 
         For each domain it will compare each run to the reference makespans.
         Instead of computing absolute makespans, relative quality scores are computed.
         Provided ref-data should be used.
+
+        Alternately one run can be used as ref-data to compare two runs.
         
-    3) Compare two evaluation runs, one with reference plans: (-c)
+    3) Unit test: Compare two evaluation runs, one with reference plans (-c)
         For unit testing changes in the planner that should not change the behavior.
 
         Works like 2) but will check if plans from each run are identical to those in the reference
