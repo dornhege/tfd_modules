@@ -34,11 +34,37 @@ def parsePlan(file):
 
 
 def convertDomainDir(dir, probdirs):
+    """ Each probdir should contain:
+        domain.pddl, problem.pddl, plan.soln.1 """
     print "Converting ", dir
+    
+    # first figure out, if we can just take the same domain
+    allDomainsEqual = True
+    for p in probdirs:
+        domainx = os.path.join(dir, probdirs[0], "domain.pddl")
+        domainy = os.path.join(dir, p, "domain.pddl")
+        if not os.path.exists(domainx):
+            continue
+        if not os.path.exists(domainy):
+            continue
+        retcode = subprocess.call(["diff", "-q", domainx, domainy], stdout=subprocess.PIPE)
+        if retcode != 0:
+            allDomainsEqual = False
+            break
+    print "All domains equal:", allDomainsEqual
+    if allDomainsEqual:
+        # convert domain
+        domain = os.path.join(dir, probdirs[0], "domain.pddl")
+        newDomain = os.path.join(dir, "domain.pddl")
+        shutil.copyfile(domain, newDomain)
+
     for d in probdirs:
-        print "Problem:", d
+        #print "Problem:", d
+        # Convert plan
         plan = os.path.join(dir, d, "plan.soln.1")
-        assert os.path.exists(plan), "No plan file at: " + plan
+        if not os.path.exists(plan):
+            print "WARNING: No plan file at: " + plan
+            continue
         newPlan = os.path.join(dir, "plan.p" + d + ".pddl.best")
         shutil.copyfile(plan, newPlan)
         # read makespan and create times file
@@ -53,6 +79,16 @@ def convertDomainDir(dir, probdirs):
         with open(timesfile, "w") as f:
             print >> f, "# makespan search_time(s)"
             print >> f, latest_timestamp, "-1"
+        # Convert domain/problem
+        if not allDomainsEqual:
+            # convert domain
+            domain = os.path.join(dir, d, "domain.pddl")
+            newDomain = os.path.join(dir, "domain.p" + d + ".pddl")
+            shutil.copyfile(domain, newDomain)
+        # convert problem
+        problem = os.path.join(dir, d, "problem.pddl")
+        newProblem = os.path.join(dir, "problem.p" + d + ".pddl")
+        shutil.copyfile(problem, newProblem)
 
 def convertRefData(ref_dir):
     """ Parse dir and all subdirectories to find domain dirs. 
