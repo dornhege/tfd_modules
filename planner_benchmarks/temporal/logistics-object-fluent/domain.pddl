@@ -16,7 +16,7 @@
 (:durative-action drive
          :parameters    (?t - truck ?to - location)
          :duration (= ?duration 4)
-         :condition  (over all (= (city-of (location-of ?t)) (city-of ?to)))
+         :condition  (at start (= (city-of (location-of ?t)) (city-of ?to)))
          :effect    (change (location-of ?t) ?to))
 
 (:durative-action fly
@@ -28,7 +28,7 @@
 (:durative-action load
          :parameters    (?p - package ?v - vehicle)
          :duration (= ?duration 2)
-         :condition  (over all (= (location-of ?p) (location-of ?v)))
+         :condition  (at start (= (location-of ?p) (location-of ?v)))
          :effect     (change (location-of ?p) ?v))
 
 (:durative-action unload

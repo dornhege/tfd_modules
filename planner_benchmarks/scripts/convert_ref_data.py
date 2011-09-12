@@ -60,6 +60,18 @@ def convertDomainDir(dir, probdirs):
 
     for d in probdirs:
         #print "Problem:", d
+
+        # Convert domain/problem
+        if not allDomainsEqual:
+            # convert domain
+            domain = os.path.join(dir, d, "domain.pddl")
+            newDomain = os.path.join(dir, "d" + d + ".pddl")
+            shutil.copyfile(domain, newDomain)
+        # convert problem
+        problem = os.path.join(dir, d, "problem.pddl")
+        newProblem = os.path.join(dir, "p" + d + ".pddl")
+        shutil.copyfile(problem, newProblem)
+        
         # Convert plan
         plan = os.path.join(dir, d, "plan.soln.1")
         if not os.path.exists(plan):
@@ -79,16 +91,7 @@ def convertDomainDir(dir, probdirs):
         with open(timesfile, "w") as f:
             print >> f, "# makespan search_time(s)"
             print >> f, latest_timestamp, "-1"
-        # Convert domain/problem
-        if not allDomainsEqual:
-            # convert domain
-            domain = os.path.join(dir, d, "domain.pddl")
-            newDomain = os.path.join(dir, "domain.p" + d + ".pddl")
-            shutil.copyfile(domain, newDomain)
-        # convert problem
-        problem = os.path.join(dir, d, "problem.pddl")
-        newProblem = os.path.join(dir, "problem.p" + d + ".pddl")
-        shutil.copyfile(problem, newProblem)
+ 
 
 def convertRefData(ref_dir):
     """ Parse dir and all subdirectories to find domain dirs. 
