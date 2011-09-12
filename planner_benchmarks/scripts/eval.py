@@ -18,10 +18,18 @@ class Problem(object):
     def __init__(self, path, name):
         self.path = path
         self.name = name
-        # valid problem has times file + plan.best - if none, no data, if no plan, is there times???
-        self.planfile = os.path.join(self.path, "plan." + self.name + ".pddl.best")
-        self.timesfile = os.path.join(self.path, "times." + self.name + ".pddl")
-        self.makespan, self.runtime = self.parseTimes()
+        if self.path and self.name:
+            # valid problem has times file + plan.best - if none, no data, if no plan, is there times???
+            self.planfile = os.path.join(self.path, "plan." + self.name + ".pddl.best")
+            self.timesfile = os.path.join(self.path, "times." + self.name + ".pddl")
+            self.makespan, self.runtime = self.parseTimes()
+    def fromData(name, makespan):
+        p = Problem(None, None)
+        p.name = name
+        p.makespan = makespan
+        p.runtime = -1
+        return p
+    fromData = staticmethod(fromData)
     def dump(self):
         print "Base path: %s Plan: %s, Times: %s" % (self.path, self.planfile, self.timesfile)
     def __repr__(self):
@@ -46,8 +54,50 @@ class Problem(object):
                 yield (float)(entries[1])
     def hasSamePlan(self, other):
         """ Compare my plan with the plan of other """
+        if not self.planfile or not other.planfile:
+            return False
         retcode = subprocess.call(["diff", "-q", self.planfile, other.planfile], stdout=subprocess.PIPE)
         return retcode == 0
+
+def readRefDataFromFile(ref_file):
+    """ Read reference data from a file and return a problem dict
+        Containing {Domain: problem_list}
+        Format from linewise ipc2008 data:
+        tempo-sat  temporal-fast-downward  transport-numeric  12        OK       982                433                 0.440936863544
+        track       planner                 domain          problem#  solved?   planner-quality reference-quality       score=reference/planner-quality
+        We are interested in: tempo-sat track, any planner (don't care), any domain, any problem -> read the reference-quality
+    """
+    theDict = {}
+    with open(ref_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line.startswith("tempo-sat"):
+                continue
+            if not line:
+                continue
+            entries = line.split()
+            assert len(entries) == 8, "Wrong number of entries in ref data line"
+            domain = entries[2]
+            problemNr = int(entries[3])
+            problem = "p%02d" % problemNr
+            ref_quality_str = entries[6]
+            ref_quality = None
+            if not ref_quality_str == "n/a":
+                ref_quality = float(entries[6])
+            if not ref_quality:
+                continue
+            p = Problem.fromData(problem, ref_quality)
+            if not domain in theDict:
+                theDict[domain] = []
+            matches = [x for x in theDict[domain] if repr(p) == repr(x)]
+            if matches:
+                for i in matches:
+                    assert i.makespan == ref_quality
+            else:
+                theDict[domain].append(p)
+    for key, val in theDict.iteritems():
+        val.sort(key=lambda x: repr(x))
+    return theDict
 
 def evalDir(path, files):
     """ Evaluate the directory in path that contains a number of
@@ -405,20 +455,26 @@ def checkPlans(evaldict, refDict):
 def main():
     parser = OptionParser("usage: %prog PROBLEMS")
     parser.add_option("-e", "--eval-dir", dest="eval_dir", type="string", action="store")
-    parser.add_option("-r", "--ref-data-dir", dest="ref_data_dir", type="string", action="store")
+    parser.add_option("-r", "--ref-data", dest="ref_data", type="string", action="store")
     parser.add_option("-c", "--check-plans", action="store_true", dest="check_plans", default=False)
     opts, args = parser.parse_args()
     print "Eval results dir: %s" % opts.eval_dir
-    print "Ref data dir: %s" % opts.ref_data_dir
+    print "Ref data: %s" % opts.ref_data
     print "Check plans against ref data: %s" % opts.check_plans
 
     evalDict = parseResults(opts.eval_dir)
     # print "FINAL EVAL DICT: ", evalDict
 
     ref_data = None
-    if opts.ref_data_dir:
-        ref_data = parseResults(opts.ref_data_dir)
-        # print "REF DATA DICT: ", ref_data
+    if opts.ref_data:
+        if os.path.isdir(opts.ref_data):
+            ref_data = parseResults(opts.ref_data)
+        elif os.path.isfile(opts.ref_data):
+            ref_data = readRefDataFromFile(opts.ref_data)
+        else:
+            assert False, "ref data is neither dir nor file"
+        assert ref_data, "No ref_data read."
+        #print "REF DATA DICT: ", ref_data
 
     # write eval data
     writeEvalData(evalDict, ".")
