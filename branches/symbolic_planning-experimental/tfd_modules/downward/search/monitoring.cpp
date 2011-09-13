@@ -43,6 +43,10 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
 {
     vector<PlanStep> p;
     for (unsigned int i = 0; i < plan.size(); i++) {
+        if(plan[i].length() == 0)   // empty line
+            continue;
+        if((plan[i])[0] == ';')   // comment
+            continue;
         // start
         if(plan[i].find(":") == string::npos) {
             ROS_FATAL("%s - could not find ':' in step: %s.", __func__, plan[i].c_str());
@@ -80,10 +84,10 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
 
         // lookup op
         bool opFound = false;
-        for (unsigned int i = 0; i < g_operators.size(); i++) {
-            if (g_operators[i].get_name() == name) {
+        for (unsigned int j = 0; j < g_operators.size(); j++) {
+            if (g_operators[j].get_name() == name) {
                 // forward state? FIXME no state here, determined by next step
-                p.push_back(PlanStep(start,duration,&g_operators[i], NULL));
+                p.push_back(PlanStep(start,duration,&g_operators[j], NULL));
                 opFound = true;
                 break;
             }
