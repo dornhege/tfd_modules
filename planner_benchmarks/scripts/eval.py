@@ -474,6 +474,7 @@ def main():
         else:
             assert False, "ref data is neither dir nor file"
         assert ref_data, "No ref_data read."
+        print "Ref-Domains:", ", ".join(ref_data.keys())
         #print "REF DATA DICT: ", ref_data
 
     # write eval data
