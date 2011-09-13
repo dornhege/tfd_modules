@@ -303,6 +303,47 @@ double getSumOfSubgoals(const PlanTrace &path)
     return ret;
 }
 
+/// Epsilonize the plan at filename
+/**
+ * Uses a syscall to epsilonize_plan in tfd_modules package.
+ *
+ * \returns true, if the syscall was successfull.
+ */
+bool epsilonize_plan(const std::string & filename)
+{
+    // get a temp file name
+    char* tmpfile = new char[filename.length() + 10];
+    sprintf(tmpfile, "%s.XXXXXX", filename.c_str());
+    int fd = mkstemp(tmpfile);
+    if(fd == -1) {
+        cerr << __func__ << ": Could not create tmp file at: " << tmpfile << endl;
+        delete tmpfile;
+        return false;
+    }
+    close(fd);  // only semi-safe as there still could be a race
+
+    // create the syscall to write the epsilonized plan into the temp file
+    std::string syscall = "rosrun tfd_modules epsilonize_plan.py";
+    syscall += " < " + filename + " > " + tmpfile;  // read in the plan filename and output to tmpfile
+
+    // execute
+    int ret = system(syscall.c_str());
+    if(ret != 0) {
+        cerr << __func__ << ": Error executing epsilonize_plan as: " << syscall << endl;
+        delete tmpfile;
+        return false;
+    }
+
+    // move the temp file onto the original plan
+    int retMove = rename(tmpfile, filename.c_str());
+    delete tmpfile;
+    if(retMove != 0) {
+        cerr << __func__ << ": Error moving tmpfile: " << tmpfile << " to plan at: " << filename << endl;
+        return false;
+    }
+    return true;
+}
+
 pair<double, double> save_plan(const vector<PlanStep> &plan,
         const PlanTrace &path, pair<double, double> best_makespan,
         int &plan_number, string &plan_name)
@@ -429,33 +470,24 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
 
     FILE *file = 0;
     FILE *best_file = 0;
-
+    char* plan_filename = NULL;
+    char* best_plan_filename = NULL;
     if (plan_name != "-") {
-        int len = static_cast<int> (plan_name.size() + log10(plan_number) + 10);
-        //    char *temp_filename = (char*)malloc(len * sizeof(char));
-        //    sprintf(temp_filename, "%sTEMP.%d", plan_name.c_str(), plan_number);
-        char *best_filename = (char*) malloc(len * sizeof(char));
-        sprintf(best_filename, "%s.best", plan_name.c_str());
-        //sprintf(best_filename, "plan.best");
-        char *filename = (char*) malloc(len * sizeof(char));
+        int len = static_cast<int> (plan_name.size() + 5 + log10(plan_number) + 10);
+        best_plan_filename = (char*) malloc(len * sizeof(char));
+        sprintf(best_plan_filename, "%s.best", plan_name.c_str());
+        plan_filename = (char*) malloc(len * sizeof(char));
         if (g_parameters.anytime_search)
-            sprintf(filename, "%s.%d", plan_name.c_str(), plan_number);
+            sprintf(plan_filename, "%s.%d", plan_name.c_str(), plan_number);
         else
-            sprintf(filename, "%s", plan_name.c_str());
-        //    len = 2*len + 100;
-        //    char *syscall = (char*)malloc(len * sizeof(char));
-        //    sprintf(syscall, "./search/epsilonize_plan.py < %s > %s", temp_filename, filename);
-        //sprintf(syscall, "/home/eyerich/TemporalFastDownward/eclipseWorkspace/search/epsilonize_plan.py < %s > %s", temp_filename, filename);
-        //    sprintf(syscall, "./epsilonize_plan.py < %s > %s", temp_filename, filename);
-        //    char *syscall2 = (char*)malloc(len * sizeof(char));
-        //    sprintf(syscall2, "rm %s", temp_filename);
+            sprintf(plan_filename, "%s", plan_name.c_str());
 
-        //printf("FILENAME: %s\n", filename);
-        file = fopen(filename, "w");
-        best_file = fopen(best_filename, "w");
+        //printf("FILENAME: %s\n", plan_filename);
+        file = fopen(plan_filename, "w");
+        best_file = fopen(best_plan_filename, "w");
 
         if(file == NULL) {
-            fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, filename);
+            fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, plan_filename);
             return make_pair(original_makespan, makespan);
         }
     } else {
@@ -482,19 +514,20 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
     cout << "Plan length: " << new_plan.size() << " step(s)." << endl;
     cout << "Makespan   : " << makespan << endl;
 
-    //    int ret_of_syscall_1 = system(syscall);
-    //    int ret_of_syscall_2 = system(syscall2);
+    if(plan_filename != NULL) {
+        bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename);
+        if(!ret_of_epsilonize_plan)
+            cout << "Error while calling epsilonize plan! File: " << plan_filename << endl;
+    }
+    if(best_plan_filename != NULL) {
+        bool ret_of_epsilonize_best_plan = epsilonize_plan(best_plan_filename);
+        if(!ret_of_epsilonize_best_plan)
+            cout << "Error while calling epsilonize best_plan! File: " << best_plan_filename << endl;
+    }
 
-    //    if(ret_of_syscall_1 || ret_of_syscall_2) {
-    //	cout << "Error while calling epsilonize plan!" << endl;
-    //    }
+    free(plan_filename);
+    free(best_plan_filename);
 
-    //    free(temp_filename);
-    //    free(filename);
-    //    free(syscall);
-    //    free(syscall2);
-
-    //    return makespan;
     return make_pair(original_makespan, makespan);
-
 }
+
