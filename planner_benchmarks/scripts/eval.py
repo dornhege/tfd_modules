@@ -10,20 +10,47 @@ import subprocess
 import shutil
 import collections
 import datetime
+import re
 
 import data_tools
+from plan_file_parser import parsePlan
+from plan_file_parser import makespanFromPlan
 
 class Problem(object):
-    """ An evaluated problem with a plan and a times debug file. """
+    """ An evaluated problem. """
     def __init__(self, path, name):
-        self.path = path
+        """ Default init using a problem name, e.g. 02, and a path that contains a plan...best and times file """
         self.name = name
-        if self.path and self.name:
+        if path and self.name:
             # valid problem has times file + plan.best - if none, no data, if no plan, is there times???
-            self.planfile = os.path.join(self.path, "plan." + self.name + ".pddl.best")
-            self.timesfile = os.path.join(self.path, "times." + self.name + ".pddl")
+            self.planfiles = []
+            self.planfiles.append(os.path.join(path, "plan.p" + self.name + ".pddl.best"))
+            self.timesfile = os.path.join(path, "times.p" + self.name + ".pddl")
             self.makespan, self.runtime = self.parseTimes()
+    def fromDirectory(path, name):
+        """ Constructor for a directory at "path/name/" that contains
+            multiple plan.soln.### files """
+        p = Problem(None, None)
+        p.name = name
+        data_dir = os.path.join(path, name)
+        assert os.path.isdir(data_dir)
+        reg = "^plan\\.soln\\.[0-9]+$"
+        plan_files = [x for x in os.listdir(data_dir) if re.match(reg, x)]
+        # sort by integer number to put, e.g. 10 behind 1,2,...,9
+        def plan_nr(planfile):
+            assert planfile.startswith("plan.soln.")
+            nrInt = int(planfile[len("plan.soln."):])
+            return nrInt
+        plan_files.sort(key = plan_nr)
+        p.planfiles = [os.path.join(path, name, plan) for plan in plan_files]
+        # Read in plan files in numbered order!!!
+        if p.planfiles:
+            p.makespan = makespanFromPlan(parsePlan(p.planfiles[-1]))   # makespan is the makespan of the last/best 
+        p.runtime = -1
+        return p
+    fromDirectory = staticmethod(fromDirectory)
     def fromData(name, makespan):
+        """ Constructor from raw data without file reference """
         p = Problem(None, None)
         p.name = name
         p.makespan = makespan
@@ -31,7 +58,8 @@ class Problem(object):
         return p
     fromData = staticmethod(fromData)
     def dump(self):
-        print "Base path: %s Plan: %s, Times: %s" % (self.path, self.planfile, self.timesfile)
+        print "Name:",self.name, "Makespan:", self.makespan, "Runtime:", self.runtime
+        print "Plans: %s, Times: %s" % (self.planfiles, self.timesfile)
     def __repr__(self):
         return self.name
     def write(self, stream):
@@ -52,11 +80,11 @@ class Problem(object):
                 assert len(entries) == 2
                 yield (float)(entries[0])
                 yield (float)(entries[1])
-    def hasSamePlan(self, other):
+    def hasSameFirstPlan(self, other):
         """ Compare my plan with the plan of other """
-        if not self.planfile or not other.planfile:
+        if not self.planfiles or not other.planfiles:
             return False
-        retcode = subprocess.call(["diff", "-q", self.planfile, other.planfile], stdout=subprocess.PIPE)
+        retcode = subprocess.call(["diff", "-q", self.planfiles[0], other.planfiles[0]], stdout=subprocess.PIPE)
         return retcode == 0
 
 def readRefDataFromFile(ref_file):
@@ -79,7 +107,7 @@ def readRefDataFromFile(ref_file):
             assert len(entries) == 8, "Wrong number of entries in ref data line"
             domain = entries[2]
             problemNr = int(entries[3])
-            problem = "p%02d" % problemNr
+            problem = "%02d" % problemNr
             ref_quality_str = entries[6]
             ref_quality = None
             if not ref_quality_str == "n/a":
@@ -99,26 +127,36 @@ def readRefDataFromFile(ref_file):
         val.sort(key=lambda x: repr(x))
     return theDict
 
-def evalDir(path, files):
+def evalDir(path, files, files_are_condensed):
     """ Evaluate the directory in path that contains a number of
         plan...pddl.best files.
-        Returns a dict mapping from path to a list
-        of Problems """
-    # The expected format for problem named X with problem file X.pddl is:
-    # plan.X.pddl.best and times.X.pddl
-    plannames = []
-    for f in files:
-        if f.endswith(".pddl.best"):
-            # plan.p03.pddl.best -> p03
-            assert(f.startswith("plan."))
-            assert(len(f) > len("plan.") + len(".pddl.best"))
-            name = f[len("plan.") : - len(".pddl.best")]
-            plannames.append(name)
-    plannames.sort(key=str.lower)
-    # valid names are those, where a times.X.pddl file exists
-    validnames = [name for name in plannames if os.path.exists(os.path.join(path, "times." + name + ".pddl"))]
-    problems = [Problem(path, name) for name in validnames]
- 
+        Returns a dict mapping from path to a list of Problems 
+        
+        If files_are_condensed is False the files list is a list of
+        directories that contain one problem each with plan.soln.XXX files.
+        """
+    # First create a list of problems
+    problems = []
+    if files_are_condensed:
+        # The expected format for problem named X with problem file X.pddl is:
+        # plan.pX.pddl.best and times.pX.pddl
+        plannames = []
+        for f in files:
+            if f.endswith(".pddl.best"):
+                # plan.p03.pddl.best -> p03
+                assert(f.startswith("plan.p"))
+                assert(len(f) > len("plan.p") + len(".pddl.best"))
+                name = f[len("plan.p") : - len(".pddl.best")]
+                plannames.append(name)
+        plannames.sort(key=str.lower)
+        # valid names are those, where a times.X.pddl file exists
+        validnames = [name for name in plannames if os.path.exists(os.path.join(path, "times.p" + name + ".pddl"))]
+        problems.extend([Problem(path, name) for name in validnames])
+    else:
+        for i in files:
+            p = Problem.fromDirectory(path, i)
+            problems.append(p)
+
     # create return dictionary from path A/B/C/files -> {A: {B: {C: problems} } }
     theDict = {}
     dirList = data_tools.make_dir_list(path)
@@ -145,11 +183,19 @@ def parseResults(eval_dir):
 
     allResults = {}
     for root, dirs, files in os.walk(eval_dir):
-        # If files contains a file with "pddl" in it, it is a result dir
-        pddls = [f for f in files if f.lower().find("pddl") >= 0]
+        # If files contains a file with "plan...pddl" in it, it is a result dir
+        pddls = [f for f in files if f.lower().find("pddl") >= 0 and f.lower().find("plan.") >= 0]
         if pddls:
-            dirEval = evalDir(root, files)
+            dirEval = evalDir(root, files, True)
             allResults = data_tools.merge(allResults, dirEval)
+        
+        reg = "^[0-9]+$"    # only numbers
+        probs = [f for f in dirs if re.match(reg, f)]
+        probs.sort()
+        if probs:
+            dirEval = evalDir(root, probs, False)
+            allResults = data_tools.merge(allResults, dirEval)
+
     return allResults
 
 def writeEvalData(evaldict, path):
@@ -215,10 +261,15 @@ def evaluateProblem(problem, referenceProblem, target):
         return None
 
     targetStr = "problem." + target
+    try:
+        eval(targetStr)
+    except AttributeError:
+        return None
+
     refProbStr = "referenceProblem." + target
     if referenceProblem:
         try:
-            return eval(refProbStr + " / " + targetStr)     # TODO generalize?
+            return eval(refProbStr) / eval(targetStr)     # TODO generalize?
         except ZeroDivisionError:       # targetStr was incredibly small -> result in huge eval + debug
             return 999999.99
     else:
@@ -238,6 +289,7 @@ def writeTexTableEntry(f, problem, referenceProblem, target, best, num, sums):
     # write actual entry for each ident
     probVal = evaluateProblem(problem, referenceProblem, target)
     if probVal:
+        print >> f, "{\\tiny ", "%.0f" % eval(targetStr), "} ",
         if best and best == probVal:   # this is the best entry
             print >> f, "\\textbf{",
         print >> f, "%.2f" % probVal,
@@ -256,7 +308,7 @@ def writeTexTableLine(f, problem_id, runs, refVals, target, better, numEntries, 
         numEntries is only used to decide when the line ends.
         Sums is a dictionary of run_num -> accumulated sum """
     
-    print >> f, problem_id, "    &",
+    print >> f, "   ", problem_id, "    &",
  
     # First find the referenceProblem for problem_id
     refProb = None
@@ -296,7 +348,7 @@ def writeTexTableLine(f, problem_id, runs, refVals, target, better, numEntries, 
         if num < numEntries - 1:
             print >> f, "&",
         else:
-            print >> f, ""
+            print >> f, "",
     print >> f, "\\\\"
 
 def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
@@ -323,23 +375,27 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
             except:
                 print "WARNING: No reference data for domain", domain, "- skipping domain!"
                 continue
-        print "Writing table for", domain
-        print >> f, '\\begin{table}'
-        print >> f, '  \\centering'
-        print >> f, '  \\begin{tabular}{|l|c|c|}'
-        print >> f, '  \\hline'
-        
+
         # Runs contains:  Unique number, Descriptor Ident, Problem list
         runs = [ (num, ident, probs) for num, (ident,probs) in enumerate(val.iteritems()) ]
 
         # Write table header
+        print "Writing table for", domain
+        print >> f, '\\begin{table}'
+        print >> f, '  \\centering'
+        print >> f, '  \\begin{tabular}{|l',
+        for num, ident, probs in runs:
+            print >> f, "|c",
+        print >> f, "|}"
+        print >> f, '  \\hline'
+
         print >> f, '  Problem & ',
         for num, ident, probs in runs:
             print >> f, num,
             if num < len(val) - 1:
                 print >> f, "&",
             else:
-                print >> f, ""
+                print >> f, "",
         print >> f, "\\\\"
         print >> f, '  \\hline'
         
@@ -377,7 +433,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
                 if num < len(val) - 1:
                     print >> f, "&",
                 else:
-                    print >> f, ""
+                    print >> f, "",
             print >> f, "\\\\"
 
         print >> f, '  \\hline'
@@ -390,6 +446,7 @@ def writeTexTable(nameEntriesDict, f, target, better, refEntriesDict):
             print >> f, "\\\\"
         print >> f, ' }'
         print >> f, '\\end{table}'
+        print >> f, '\\clearpage'
         print >> f, ''
 
 def checkPlans(evaldict, refDict):
@@ -445,7 +502,7 @@ def checkPlans(evaldict, refDict):
             for num, ident, probs in runs:
                 myProb = [j for j in probs if repr(j) == i]
                 refProb = [j for j in refVals if repr(j) == i]
-                samePlan = myProb[0].hasSamePlan(refProb[0])
+                samePlan = myProb[0].hasSameFirstPlan(refProb[0])
                 if samePlan:
                     print repr(myProb[0]), "OK"
                 else:
@@ -453,7 +510,7 @@ def checkPlans(evaldict, refDict):
                     print "plan does NOT MATCH ref data"
 
 def main():
-    parser = OptionParser("usage: %prog PROBLEMS")
+    parser = OptionParser("usage: %prog ")
     parser.add_option("-e", "--eval-dir", dest="eval_dir", type="string", action="store")
     parser.add_option("-r", "--ref-data", dest="ref_data", type="string", action="store")
     parser.add_option("-c", "--check-plans", action="store_true", dest="check_plans", default=False)
@@ -478,7 +535,7 @@ def main():
         #print "REF DATA DICT: ", ref_data
 
     # write eval data
-    writeEvalData(evalDict, ".")
+    #writeEvalData(evalDict, ".")
 
     # create latex tables, all grouped by domain-name divided by settings/algos
     writeTex(evalDict, "output.tex", ref_data)
