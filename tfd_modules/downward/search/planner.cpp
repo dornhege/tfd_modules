@@ -18,8 +18,11 @@
 #include <cstdio>
 #include <math.h>
 #include "plannerParameters.h"
+#include "ros_printouts.h"
 
+#if ROS_BUILD
 #include <ros/ros.h>
+#endif
 
 #ifdef _WIN32
 #include "pddlModuleLoaderDLL.h"
@@ -31,6 +34,7 @@ using namespace std;
 
 #ifndef _WIN32
 #include <sys/times.h>
+#include <sys/time.h>
 #endif
 
 pair<double, double> save_plan(const vector<PlanStep> &plan,
@@ -51,8 +55,10 @@ double getCurrentTime()
 
 int main(int argc, char **argv)
 {
+#if ROS_BUILD
     ros::init(argc, argv, "tfd_modules", ros::init_options::NoSigintHandler);
     ros::NodeHandle nh;
+#endif
 
     ifstream file("../preprocess/output");
     if (strcmp(argv[argc - 1], "-eclipserun") == 0) {
@@ -312,35 +318,33 @@ double getSumOfSubgoals(const PlanTrace &path)
 bool epsilonize_plan(const std::string & filename)
 {
     // get a temp file name
-    char* tmpfile = new char[filename.length() + 10];
-    sprintf(tmpfile, "%s.XXXXXX", filename.c_str());
-    int fd = mkstemp(tmpfile);
-    if(fd == -1) {
-        cerr << __func__ << ": Could not create tmp file at: " << tmpfile << endl;
-        delete tmpfile;
+    char* orig_file = new char[filename.length() + 10];
+    sprintf(orig_file, "%s.orig", filename.c_str());
+
+    // first move filename to ...orig file
+    int retMove = rename(filename.c_str(), orig_file);
+    if(retMove != 0) {
+        cerr << __func__ << ": Error moving to orig file: " << orig_file << " from: " << filename << endl;
         return false;
     }
-    close(fd);  // only semi-safe as there still could be a race
 
-    // create the syscall to write the epsilonized plan into the temp file
+    // create the syscall to write the epsilonized plan
+#if ROS_BUILD
     std::string syscall = "rosrun tfd_modules epsilonize_plan.py";
-    syscall += " < " + filename + " > " + tmpfile;  // read in the plan filename and output to tmpfile
+#else
+    std::string syscall = "epsilonize_plan.py";
+#endif
+    // read in the orig plan filename and output to filename
+    syscall += " < " + std::string(orig_file) + " > " + filename;  
 
     // execute
     int ret = system(syscall.c_str());
     if(ret != 0) {
         cerr << __func__ << ": Error executing epsilonize_plan as: " << syscall << endl;
-        delete tmpfile;
+        delete orig_file;
         return false;
     }
 
-    // move the temp file onto the original plan
-    int retMove = rename(tmpfile, filename.c_str());
-    delete tmpfile;
-    if(retMove != 0) {
-        cerr << __func__ << ": Error moving tmpfile: " << tmpfile << " to plan at: " << filename << endl;
-        return false;
-    }
     return true;
 }
 

@@ -4,8 +4,10 @@
 #include "globals.h"
 #include "axioms.h"
 #include "plannerParameters.h"
-
+#include "ros_printouts.h"
+#if ROS_BUILD
 #include <ros/ros.h>
+#endif
 #include <iostream>
 #include <iomanip>
 #include <sstream>
