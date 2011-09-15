@@ -18,6 +18,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 include_directories(include module_api)
 
+add_definitions(-DROS_BUILD)
+
 set(module_api_SOURCES
    module_api/moduleLoader.cpp
    module_api/moduleLoaderDLL.cpp

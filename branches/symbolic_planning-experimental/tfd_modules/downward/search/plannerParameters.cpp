@@ -1,6 +1,8 @@
 #include "plannerParameters.h"
 #include <iostream>
+#if ROS_BUILD
 #include <ros/ros.h>
+#endif
 
 PlannerParameters::PlannerParameters()
 {
@@ -138,6 +140,7 @@ bool PlannerParameters::readROSParameters()
 {
     bool ret = true;
 
+#if ROS_BUILD
     ros::NodeHandle nhPriv("~");
     nhPriv.param("anytime_search", anytime_search, anytime_search);
     nhPriv.param("timeout_if_plan_found", timeout_if_plan_found, timeout_if_plan_found);
@@ -196,6 +199,7 @@ bool PlannerParameters::readROSParameters()
     // Don't get planMonitorFileName from param server as that is an input
 
     nhPriv.param("monitoring_verify_timestamps", monitoring_verify_timestamps, monitoring_verify_timestamps);
+#endif
 
     return ret;
 }
