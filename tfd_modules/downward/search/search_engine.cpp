@@ -2,6 +2,8 @@
 using namespace std;
 
 #include "search_engine.h"
+#include "state.h"
+#include "operator.h"
 
 //#include "globals.h"
 
@@ -50,6 +52,10 @@ const PlanTrace& SearchEngine::get_path() const
 
 void SearchEngine::set_path(const PlanTrace &states)
 {
+    // We need to free the old path as closed_list created new TSSs for us.
+    for(PlanTrace::const_iterator it = path.begin(); it != path.end(); it++)
+        delete (*it);
+    path.clear();
     path = states;
 }
 
@@ -60,12 +66,10 @@ enum SearchEngine::status SearchEngine::search()
         st = step();
         //    	solved = false;
     }
-    if (st == FAILED) {
+    if (st == FAILED || st == FAILED_TIMEOUT) {
         // FIXME: CLEANUP!!!!!!!!!!
         solved = false;
-        return FAILED;
-    } else {
-        return SOLVED;
     }
+    return st;
 }
 

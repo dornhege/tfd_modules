@@ -233,13 +233,13 @@ SearchEngine::status BestFirstSearchEngine::step()
         if (g_parameters.timeout_if_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_if_plan_found) {
             statistics(current_time);
-            exit(137);
+            return SOLVED_TIMEOUT;
         }
     } else {
         if (g_parameters.timeout_while_no_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_while_no_plan_found) {
             statistics(current_time);
-            exit(137);
+            return FAILED_TIMEOUT;
         }
     }
 
@@ -724,11 +724,12 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     if (!open_info) {
         if(found_at_least_one_solution()) {
             cout << "Completely explored state space -- best plan found!" << endl;
-        } else {
-            time_t current_time = time(NULL);
-            statistics(current_time);
-            cout << "Completely explored state space -- no solution!" << endl;
+            return SOLVED;
         }
+        
+        time_t current_time = time(NULL);
+        statistics(current_time);
+        cout << "Completely explored state space -- no solution!" << endl;
         return FAILED;
     }
 
