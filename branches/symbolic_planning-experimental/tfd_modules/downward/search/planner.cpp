@@ -42,16 +42,8 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
         int &plan_number, string &plan_name);
 void readPlanFromFile(const string& filename, vector<string>& plan);
 bool validatePlan(vector<string>& plan);
-void save_time(string &plan_name, double search_time, double time);
-
-double getCurrentTime()
-{
-    const double USEC_PER_SEC = 1000000;
-
-    struct timeval tv; 
-    gettimeofday(&tv,0);
-    return(tv.tv_sec + (double)tv.tv_usec / USEC_PER_SEC);
-}
+std::string getTimesName(const string & plan_name);    ///< returns the file name of the .times file for plan_name
+double getCurrentTime();            ///< returns the system time in seconds
 
 int main(int argc, char **argv)
 {
@@ -75,7 +67,6 @@ int main(int argc, char **argv)
     double start_walltime, search_start_walltime, search_end_walltime;
     start_walltime = getCurrentTime();
 #endif
-    bool poly_time_method = false;
 
     if(!g_parameters.readParameters(argc, argv)) {
         cerr << "Error in reading parameters.\n";
@@ -83,12 +74,11 @@ int main(int argc, char **argv)
     }
     g_parameters.dump();
 
+    bool poly_time_method = false;
     cin >> poly_time_method;
     if (poly_time_method) {
         cout << "Poly-time method not implemented in this branch." << endl;
         cout << "Starting normal solver." << endl;
-        // cout << "Aborting." << endl;
-        // return 1;
     }
 
 #ifdef _WIN32
@@ -115,12 +105,15 @@ int main(int argc, char **argv)
     }
 
     FILE* timeDebugFile = NULL;
-    if(!g_parameters.time_debug_file.empty()) {
-        timeDebugFile = fopen(g_parameters.time_debug_file.c_str(), "w");
+    if(!getTimesName(g_parameters.plan_name).empty()) {
+        timeDebugFile = fopen(getTimesName(g_parameters.plan_name).c_str(), "w");
         if(!timeDebugFile) {
-            cout << "WARNING: Could not open time debug file at: " << g_parameters.time_debug_file << endl;
+            cout << "WARNING: Could not open time debug file at: " << getTimesName(g_parameters.plan_name) << endl;
         } else {
-            fprintf(timeDebugFile, "# makespan search_time(s)\n");
+            fprintf(timeDebugFile, "# Makespans for created plans and the time it took to create the plan\n");
+            fprintf(timeDebugFile, "# The special makespan: -1 "
+                    "indicates the total runtime and not the generation of a plan\n");
+            fprintf(timeDebugFile, "# makespan search_time(s) total_time(s) search_walltime(s) total_walltime(s)\n");
             fflush(timeDebugFile);
         }
     }
@@ -135,6 +128,7 @@ int main(int argc, char **argv)
     //    g_initial_state->dump();
     //    rs = RelaxedState(*g_initial_state);
 
+    // Monitoring mode
     if (!g_parameters.planMonitorFileName.empty()) {
         vector<string> plan;
         readPlanFromFile(g_parameters.planMonitorFileName, plan);
@@ -145,6 +139,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    // Initialize search engine and heuristics
     g_engine = new BestFirstSearchEngine(g_parameters.queueManagementMode);
     if (g_parameters.makespan_heuristic || g_parameters.makespan_heuristic_preferred_operators)
         g_engine->add_heuristic(new CyclicCGHeuristic(
@@ -156,7 +151,7 @@ int main(int argc, char **argv)
     if (g_parameters.no_heuristic)
         g_engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
 
-    pair<double, double> best_makespan = make_pair(REALLYBIG, REALLYBIG); // first: original makespan, second: recheduled makespan
+    pair<double, double> best_makespan = make_pair(REALLYBIG, REALLYBIG); // first: original makespan, second: rescheduled makespan
 
     int plan_number = 1;
 #ifndef _WIN32
@@ -178,10 +173,16 @@ int main(int argc, char **argv)
                 = save_plan(g_engine->get_plan(), g_engine->get_path(),
                         best_makespan, plan_number, g_parameters.plan_name);
             // write plan length and search time to file
-            if(timeDebugFile) {
+            if(timeDebugFile && search_result == SearchEngine::SOLVED) {    // don't write info for timeout
                 int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
+                int total_ms = (search_end.tms_utime - start.tms_utime) * 10;
                 double search_time = 0.001 * (double)search_ms;
-                fprintf(timeDebugFile, "%f %f\n", best_makespan.second, search_time);
+                double total_time = 0.001 * (double)total_ms;
+                double search_time_wall = search_end_walltime - search_start_walltime;
+                double total_time_wall = search_end_walltime - start_walltime;
+
+                fprintf(timeDebugFile, "%f %f %f %f %f\n", best_makespan.second, search_time, total_time, 
+                        search_time_wall, total_time_wall);
                 fflush(timeDebugFile);
             }
             g_engine->bestMakespan = best_makespan.second;
@@ -222,20 +223,25 @@ int main(int argc, char **argv)
     }
     //   g_engine->statistics();
 
-    if(timeDebugFile)
-        fclose(timeDebugFile);
 
 #ifndef _WIN32
     double search_time_wall = search_end_walltime - search_start_walltime;
     double total_time_wall = search_end_walltime - start_walltime;
 
     int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
-    cout << "Search time: " << search_ms / 1000.0 << " seconds - Walltime: "
-        << search_time_wall << " seconds" << endl;
     int total_ms = (search_end.tms_utime - start.tms_utime) * 10;
-    cout << "Total time: " << total_ms / 1000.0 << " seconds - Walltime: " 
+    double search_time = 0.001 * (double)search_ms;
+    double total_time = 0.001 * (double)total_ms;
+    cout << "Search time: " << search_time << " seconds - Walltime: "
+        << search_time_wall << " seconds" << endl;
+    cout << "Total time: " << total_time << " seconds - Walltime: " 
         << total_time_wall << " seconds" << endl;
-    save_time(g_parameters.plan_name, search_ms, total_ms);
+
+    if(timeDebugFile) {
+        fprintf(timeDebugFile, "%f %f %f %f %f\n", -1.0, search_time, total_time, 
+                search_time_wall, total_time_wall);
+        fclose(timeDebugFile);
+    }
 #endif
 
     switch(search_result) {
@@ -271,28 +277,6 @@ bool validatePlan(vector<string> & plan)
     MonitorEngine* mon = MonitorEngine::getInstance();
     bool monitor = mon->validatePlan(plan);
     return monitor;
-}
-
-void save_time(string&plan_name, double search_time, double time)
-{
-    if (plan_name == "-") {
-        return;
-    }
-    int len = static_cast<int> (plan_name.size() + 20);
-    char *time_filename = (char*) malloc(len * sizeof(char));
-    if (g_parameters.anytime_search)
-        sprintf(time_filename, "%s.total.time", plan_name.c_str());
-    else
-        sprintf(time_filename, "%s.time", plan_name.c_str());
-    FILE *file = fopen(time_filename, "w");
-    if(file == NULL) {
-        fprintf(stderr, "%s:\n  Could not open file %s.\n", __PRETTY_FUNCTION__, time_filename);
-        free(time_filename);
-        return;
-    }
-    fprintf(file, "%.8f %.8f\n", search_time, time);
-    fclose(file);
-    free(time_filename);
 }
 
 double getSumOfSubgoals(const vector<PlanStep> &plan)
@@ -544,5 +528,23 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
     free(best_plan_filename);
 
     return make_pair(original_makespan, makespan);
+}
+
+std::string getTimesName(const string & plan_name)
+{
+    if(plan_name.empty())
+        return std::string();
+    if(plan_name == "-")
+        return std::string();
+    return plan_name + ".times";
+}
+
+double getCurrentTime()
+{
+    const double USEC_PER_SEC = 1000000;
+
+    struct timeval tv; 
+    gettimeofday(&tv, 0);
+    return(tv.tv_sec + (double)tv.tv_usec / USEC_PER_SEC);
 }
 

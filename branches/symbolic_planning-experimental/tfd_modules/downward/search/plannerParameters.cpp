@@ -28,7 +28,6 @@ PlannerParameters::PlannerParameters()
     use_tss_known = false;
 
     plan_name = "sas_plan";
-    time_debug_file = "";
     planMonitorFileName = "";
 
     monitoring_verify_timestamps = false;
@@ -124,7 +123,6 @@ void PlannerParameters::dump() const
     cout << "TSSKnown filtering: " << (use_tss_known ? "Enabled" : "Disabled") << endl;
 
     cout << "Plan name: \"" << plan_name << "\"" << endl;
-    cout << "Time debug file: \"" << time_debug_file << "\"" << endl;
     cout << "Plan monitor file: \"" << planMonitorFileName << "\"";
     if(planMonitorFileName.empty()) {
         cout << " (no monitoring)";
@@ -194,7 +192,6 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("use_tss_known", use_tss_known, use_tss_known);
 
     nhPriv.param("plan_name", plan_name, plan_name);
-    nhPriv.param("time_debug_file", time_debug_file, time_debug_file);
 
     // Don't get planMonitorFileName from param server as that is an input
 
@@ -222,7 +219,6 @@ void PlannerParameters::printUsage() const
     printf("  K - use tss known filtering (might crop search space\n");
     printf("  n - no_heuristic\n");
     printf("  p <plan file> - plan filename prefix\n");
-    printf("  d <time debug file> - store time debug infos here\n");
     printf("  M v - monitoring: verify timestamps\n");
 }
 
@@ -291,9 +287,6 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
             } else if (*c == 'p') {
                 assert(i + 1 < argc);
                 plan_name = string(argv[++i]);
-            } else if (*c == 'd') {
-                assert(i + 1 < argc);
-                time_debug_file = string(argv[++i]);
             } else if (*c == 'M') {
                 assert(i + 1 < argc);
                 const char *g = argv[++i];
