@@ -163,11 +163,12 @@ int main(int argc, char **argv)
     times(&search_start);
     search_start_walltime = getCurrentTime();
 #endif
+    SearchEngine::status search_result = SearchEngine::IN_PROGRESS;
     while (true) {
         g_engine->initialize();
         //time_t now = time(NULL);
         //g_engine->statistics(now);
-        SearchEngine::status is_solved = g_engine->search();
+        search_result = g_engine->search();
 #ifndef _WIN32
         times(&search_end);
         search_end_walltime = getCurrentTime();
@@ -185,8 +186,10 @@ int main(int argc, char **argv)
             }
             g_engine->bestMakespan = best_makespan.second;
             if (g_parameters.anytime_search) {
-                if (is_solved == SearchEngine::SOLVED) {
+                if (search_result == SearchEngine::SOLVED) {
                     g_engine->fetch_next_state();
+                } else {
+                    break;
                 }
             } else {
                 break;
@@ -235,7 +238,20 @@ int main(int argc, char **argv)
     save_time(g_parameters.plan_name, search_ms, total_ms);
 #endif
 
-    return g_engine->found_at_least_one_solution() ? 0 : 1;
+    switch(search_result) {
+        case SearchEngine::SOLVED_TIMEOUT:
+        case SearchEngine::FAILED_TIMEOUT:
+            return 137;
+        case SearchEngine::SOLVED:
+            return 0;
+        case SearchEngine::FAILED:
+            assert (!g_engine->found_at_least_one_solution());
+            return 1;
+        default:
+            cerr << "Invalid Search return value: " << search_result << endl;
+    }
+
+    return 2;
 }
 
 void readPlanFromFile(const string& filename, vector<string>& plan)
@@ -426,11 +442,6 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
 
     //    double sumOfSubgoals = getSumOfSubgoals(path);
     double sumOfSubgoals = getSumOfSubgoals(new_plan);
-
-    //free PlanTrace!
-    for (int i = 0; i < path.size(); ++i) {
-        delete (path[i]);
-    }
 
     if (makespan > best_makespan.second)
         return best_makespan;

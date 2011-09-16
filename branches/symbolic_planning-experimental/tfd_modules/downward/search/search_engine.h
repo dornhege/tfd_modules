@@ -18,7 +18,11 @@ class SearchEngine
     public:
         enum status
         {
-            FAILED, SOLVED, IN_PROGRESS
+            FAILED,                 ///< No plan could be found at all
+            SOLVED,                 ///< Found a plan
+            IN_PROGRESS,            ///< Still searching
+            FAILED_TIMEOUT,         ///< No plan found, ran into timeout
+            SOLVED_TIMEOUT          ///< Found a plan, but not explored search space
         };
     protected:
         virtual enum status step() = 0;
