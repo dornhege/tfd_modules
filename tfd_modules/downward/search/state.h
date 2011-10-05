@@ -18,276 +18,260 @@ class TimeStampedState;
 
 struct Prevail
 {
-        int var;
-        double prev;
-        Prevail(istream &in);
-        Prevail(int v, double p) :
-            var(v), prev(p)
-        {
-        }
-        virtual ~Prevail()
-        {
-        }
-        ;
+    int var;
+    double prev;
+    Prevail(istream &in);
+    Prevail(int v, double p) :
+        var(v), prev(p)
+    {
+    }
+    virtual ~Prevail()
+    {
+    }
 
-        bool is_applicable(const TimeStampedState& state, const Operator* op,
-                bool allowRelaxed = false) const;
-        bool is_applicableHACK(const TimeStampedState& state) const;
+    bool is_applicable(const TimeStampedState & state, const Operator* op, bool allowRelaxed = false) const;
+    bool is_applicableHACK(const TimeStampedState& state) const;
 
-        void dump() const;
+    void dump() const;
 
-        bool operator<(const Prevail &other) const
-        {
-            if (var < other.var)
-                return true;
-            if (var > other.var)
-                return false;
-            return prev < other.prev;
-        }
+    bool operator<(const Prevail &other) const {
+        if(var < other.var)
+            return true;
+        if(var > other.var)
+            return false;
+        return prev < other.prev;
+    }
 };
 
 struct PrePost
 {
-        int var;
-        double pre;
-        int var_post;
-        double post;
-        vector<Prevail> cond_start;
-        vector<Prevail> cond_overall;
-        vector<Prevail> cond_end;
-        assignment_op fop;
+    int var;
+    double pre;
+    int var_post;
+    double post;
+    vector<Prevail> cond_start;
+    vector<Prevail> cond_overall;
+    vector<Prevail> cond_end;
+    assignment_op fop;
 
-        PrePost()
-        {
-        } // Needed for axiom file-reading constructor, unfortunately.
-        PrePost(std::istream &in);
-        PrePost(int v, double pr, int vpo, double po,
-                const std::vector<Prevail> &co_start,
-                const std::vector<Prevail> &co_oa,
-                const std::vector<Prevail> &co_end, assignment_op fo = assign) :
-            var(v), pre(pr), var_post(vpo), post(po), cond_start(co_start),
-                    cond_overall(co_oa), cond_end(co_end), fop(fo)
-        {
-        }
-        PrePost(int v, double p) :
-            var(v), post(p)
-        {
-        }
-        virtual ~PrePost()
-        {
-        }
-        ;
+    PrePost()
+    {
+    } // Needed for axiom file-reading constructor, unfortunately.
+    PrePost(std::istream &in);
+    PrePost(int v, double pr, int vpo, double po, const std::vector<Prevail> &co_start,
+            const std::vector<Prevail> &co_oa,
+            const std::vector<Prevail> &co_end, assignment_op fo = assign) :
+        var(v), pre(pr), var_post(vpo), post(po),
+        cond_start(co_start), cond_overall(co_oa), cond_end(co_end), fop(fo)
+    {
+    }
+    PrePost(int v, double p) : var(v), post(p) {}
+    virtual ~PrePost() {}
 
-        bool is_applicable(const TimeStampedState &state) const;
+    bool is_applicable(const TimeStampedState &state) const;
 
-        bool does_fire(const TimeStampedState &state, const Operator *op) const
-        {
-            for (int i = 0; i < cond_start.size(); i++)
-                if (!cond_start[i].is_applicable(state, op, NULL)) // FIXME
-                    return false;
-            return true;
-        }
+    bool does_fire(const TimeStampedState &state, const Operator *op) const {
+        for(int i = 0; i < cond_start.size(); i++)
+            if(!cond_start[i].is_applicable(state, op, NULL)) // FIXME
+                return false;
+        return true;
+    }
 
-        void dump() const;
+    void dump() const;
 };
 
 struct ModuleEffect
 {
-        vector<Prevail> cond_start;
-        vector<Prevail> cond_overall;
-        vector<Prevail> cond_end;
-        EffectModule *module;
-        ModuleEffect(std::istream &in);
-        ModuleEffect(vector<Prevail> &_cond_start,
-                vector<Prevail> &_cond_overall, vector<Prevail> &_cond_end,
-                EffectModule *_module) :
-            cond_start(_cond_start), cond_overall(_cond_overall), cond_end(
-                    _cond_end), module(_module)
-        {
-        }
+    vector<Prevail> cond_start;
+    vector<Prevail> cond_overall;
+    vector<Prevail> cond_end;
+    EffectModule *module;
+    ModuleEffect(std::istream &in);
+    ModuleEffect(vector<Prevail> &_cond_start,
+            vector<Prevail> &_cond_overall, vector<Prevail> &_cond_end,
+            EffectModule *_module) :
+        cond_start(_cond_start), cond_overall(_cond_overall), cond_end(
+                _cond_end), module(_module)
+    {
+    }
 
-        bool does_fire(const TimeStampedState &state, const Operator* op) const
-        {
-            for (int i = 0; i < cond_start.size(); i++)
-                if (!cond_start[i].is_applicable(state, op, NULL)) // FIXME
-                    return false;
+    bool does_fire(const TimeStampedState &state, const Operator* op) const
+    {
+        for(int i = 0; i < cond_start.size(); i++)
+            if(!cond_start[i].is_applicable(state, op, NULL)) // FIXME
+                return false;
+        return true;
+    }
+};
+
+struct ScheduledEffect : public PrePost
+{
+    double time_increment;
+    ScheduledEffect(double t, vector<Prevail> &cas, vector<Prevail> &coa, vector<Prevail> &cae,
+        int va, int vi, assignment_op op) :
+        PrePost(va, -1.0, vi, -1.0, cas, coa, cae, op), time_increment(t)
+    {
+        initialize();
+    }
+    ScheduledEffect(double t, const PrePost& pp) : PrePost(pp), time_increment(t)
+    {
+        initialize();
+    }
+    void initialize()
+    {
+        sort(cond_start.begin(), cond_start.end());
+        sort(cond_overall.begin(), cond_overall.end());
+        sort(cond_end.begin(), cond_end.end());
+    }
+    bool operator<(const ScheduledEffect &other) const
+    {
+        if(time_increment < other.time_increment)
             return true;
-        }
-};
-
-struct ScheduledEffect: public PrePost
-{
-        double time_increment;
-        ScheduledEffect(double t, vector<Prevail> &cas, vector<Prevail> &coa,
-                vector<Prevail> &cae, int va, int vi, assignment_op op) :
-            PrePost(va, -1.0, vi, -1.0, cas, coa, cae, op), time_increment(t)
-        {
-            initialize();
-        }
-        ScheduledEffect(double t, const PrePost& pp) :
-            PrePost(pp), time_increment(t)
-        {
-            initialize();
-        }
-        void initialize()
-        {
-            sort(cond_start.begin(), cond_start.end());
-            sort(cond_overall.begin(), cond_overall.end());
-            sort(cond_end.begin(), cond_end.end());
-        }
-        bool operator<(const ScheduledEffect &other) const
-        {
-            if (time_increment < other.time_increment)
-                return true;
-            if (time_increment > other.time_increment)
-                return false;
-            if (var < other.var)
-                return true;
-            if (var > other.var)
-                return false;
-            if (pre < other.pre)
-                return true;
-            if (pre > other.pre)
-                return false;
-            if (var_post < other.var_post)
-                return true;
-            if (var_post > other.var_post)
-                return false;
-            if (post < other.post)
-                return true;
-            if (post > other.post)
-                return false;
-            if (fop < other.fop)
-                return true;
-            if (fop > other.fop)
-                return false;
-            if (cond_start.size() < other.cond_start.size())
-                return true;
-            if (cond_start.size() > other.cond_start.size())
-                return false;
-            if (cond_overall.size() < other.cond_overall.size())
-                return true;
-            if (cond_overall.size() > other.cond_overall.size())
-                return false;
-            if (cond_end.size() < other.cond_end.size())
-                return true;
-            if (cond_end.size() > other.cond_end.size())
-                return false;
-            if (lexicographical_compare(cond_start.begin(), cond_start.end(),
-                    other.cond_start.begin(), other.cond_start.end()))
-                return true;
-            if (lexicographical_compare(other.cond_start.begin(),
-                    other.cond_start.end(), cond_start.begin(),
-                    cond_start.end()))
-                return false;
-            if (lexicographical_compare(cond_overall.begin(),
-                    cond_overall.end(), other.cond_overall.begin(),
-                    other.cond_overall.end()))
-                return true;
-            if (lexicographical_compare(other.cond_overall.begin(),
-                    other.cond_overall.end(), cond_overall.begin(),
-                    cond_overall.end()))
-                return false;
-            if (lexicographical_compare(cond_end.begin(), cond_end.end(),
-                    other.cond_end.begin(), other.cond_end.end()))
-                return true;
-            if (lexicographical_compare(other.cond_end.begin(),
-                    other.cond_end.end(), cond_end.begin(), cond_end.end()))
-                return false;
+        if(time_increment > other.time_increment)
             return false;
-        }
+        if(var < other.var)
+            return true;
+        if(var > other.var)
+            return false;
+        if(pre < other.pre)
+            return true;
+        if(pre > other.pre)
+            return false;
+        if(var_post < other.var_post)
+            return true;
+        if(var_post > other.var_post)
+            return false;
+        if(post < other.post)
+            return true;
+        if(post > other.post)
+            return false;
+        if(fop < other.fop)
+            return true;
+        if(fop > other.fop)
+            return false;
+        if(cond_start.size() < other.cond_start.size())
+            return true;
+        if(cond_start.size() > other.cond_start.size())
+            return false;
+        if(cond_overall.size() < other.cond_overall.size())
+            return true;
+        if(cond_overall.size() > other.cond_overall.size())
+            return false;
+        if(cond_end.size() < other.cond_end.size())
+            return true;
+        if(cond_end.size() > other.cond_end.size())
+            return false;
+        if(lexicographical_compare(cond_start.begin(), cond_start.end(),
+                    other.cond_start.begin(), other.cond_start.end()))
+            return true;
+        if(lexicographical_compare(other.cond_start.begin(), other.cond_start.end(),
+            cond_start.begin(), cond_start.end()))
+            return false;
+        if(lexicographical_compare(cond_overall.begin(), cond_overall.end(),
+            other.cond_overall.begin(), other.cond_overall.end()))
+            return true;
+        if(lexicographical_compare(other.cond_overall.begin(), other.cond_overall.end(),
+            cond_overall.begin(), cond_overall.end()))
+            return false;
+        if(lexicographical_compare(cond_end.begin(), cond_end.end(),
+                    other.cond_end.begin(), other.cond_end.end()))
+            return true;
+        if(lexicographical_compare(other.cond_end.begin(), other.cond_end.end(),
+            cond_end.begin(), cond_end.end()))
+            return false;
+        return false;
+    }
 };
 
-struct ScheduledModuleEffect: public ModuleEffect
+struct ScheduledModuleEffect : public ModuleEffect
 {
-        double time_increment;
-        ScheduledModuleEffect(double t, vector<Prevail> &cas,
-                vector<Prevail> &coa, vector<Prevail> &cae,
-                EffectModule *module) :
-            ModuleEffect(cas, coa, cae, module), time_increment(t)
-        {
-            initialize();
-        }
+    double time_increment;
+    ScheduledModuleEffect(double t, vector<Prevail> &cas,
+            vector<Prevail> &coa, vector<Prevail> &cae,
+            EffectModule *module) :
+        ModuleEffect(cas, coa, cae, module), time_increment(t)
+    {
+        initialize();
+    }
 
-        ScheduledModuleEffect(double _time_increment,
-                const ModuleEffect &_mod_eff) :
-            ModuleEffect(_mod_eff), time_increment(_time_increment)
-        {
-        }
+    ScheduledModuleEffect(double _time_increment,
+            const ModuleEffect &_mod_eff) :
+        ModuleEffect(_mod_eff), time_increment(_time_increment)
+    {
+    }
 
-        void initialize()
-        {
-            sort(cond_start.begin(), cond_start.end());
-            sort(cond_overall.begin(), cond_overall.end());
-            sort(cond_end.begin(), cond_end.end());
-        }
+    void initialize()
+    {
+        sort(cond_start.begin(), cond_start.end());
+        sort(cond_overall.begin(), cond_overall.end());
+        sort(cond_end.begin(), cond_end.end());
+    }
 
-        bool operator<(const ScheduledModuleEffect &other) const
-        {
-            if (time_increment < other.time_increment)
-                return true;
-            if (time_increment > other.time_increment)
-                return false;
-            if (cond_start.size() < other.cond_start.size())
-                return true;
-            if (cond_start.size() > other.cond_start.size())
-                return false;
-            if (cond_overall.size() < other.cond_overall.size())
-                return true;
-            if (cond_overall.size() > other.cond_overall.size())
-                return false;
-            if (cond_end.size() < other.cond_end.size())
-                return true;
-            if (cond_end.size() > other.cond_end.size())
-                return false;
-            if (lexicographical_compare(cond_start.begin(), cond_start.end(),
+    bool operator<(const ScheduledModuleEffect &other) const
+    {
+        if(time_increment < other.time_increment)
+            return true;
+        if(time_increment > other.time_increment)
+            return false;
+        if(cond_start.size() < other.cond_start.size())
+            return true;
+        if(cond_start.size() > other.cond_start.size())
+            return false;
+        if(cond_overall.size() < other.cond_overall.size())
+            return true;
+        if(cond_overall.size() > other.cond_overall.size())
+            return false;
+        if(cond_end.size() < other.cond_end.size())
+            return true;
+        if(cond_end.size() > other.cond_end.size())
+            return false;
+        if(lexicographical_compare(cond_start.begin(), cond_start.end(),
                     other.cond_start.begin(), other.cond_start.end()))
-                return true;
-            if (lexicographical_compare(other.cond_start.begin(),
+            return true;
+        if(lexicographical_compare(other.cond_start.begin(),
                     other.cond_start.end(), cond_start.begin(),
                     cond_start.end()))
-                return false;
-            if (lexicographical_compare(cond_overall.begin(),
+            return false;
+        if(lexicographical_compare(cond_overall.begin(),
                     cond_overall.end(), other.cond_overall.begin(),
                     other.cond_overall.end()))
-                return true;
-            if (lexicographical_compare(other.cond_overall.begin(),
+            return true;
+        if(lexicographical_compare(other.cond_overall.begin(),
                     other.cond_overall.end(), cond_overall.begin(),
                     cond_overall.end()))
-                return false;
-            if (lexicographical_compare(cond_end.begin(), cond_end.end(),
+            return false;
+        if(lexicographical_compare(cond_end.begin(), cond_end.end(),
                     other.cond_end.begin(), other.cond_end.end()))
-                return true;
-            if (lexicographical_compare(other.cond_end.begin(),
+            return true;
+        if(lexicographical_compare(other.cond_end.begin(),
                     other.cond_end.end(), cond_end.begin(), cond_end.end()))
-                return false;
-            return (module->internal_name.compare(other.module->internal_name));
-        }
+            return false;
+        return (module->internal_name.compare(other.module->internal_name));
+    }
 };
 
-struct ScheduledCondition: public Prevail
+struct ScheduledCondition : public Prevail
 {
-        double time_increment;
-        ScheduledCondition(double t, int v, double p) :
-            Prevail(v, p), time_increment(t)
-        {
-        }
-        ScheduledCondition(double t, const Prevail &prev) :
-            Prevail(prev), time_increment(t)
-        {
-        }
-        bool operator<(const ScheduledCondition &other) const
-        {
-            if (time_increment < other.time_increment)
-                return true;
-            if (time_increment > other.time_increment)
-                return false;
-            if (var < other.var)
-                return true;
-            if (var > other.var)
-                return false;
-            return prev < other.prev;
-        }
+    double time_increment;
+    ScheduledCondition(double t, int v, double p) :
+        Prevail(v, p), time_increment(t)
+    {
+    }
+    ScheduledCondition(double t, const Prevail &prev) : Prevail(prev), time_increment(t)
+    {
+    }
+    bool operator<(const ScheduledCondition &other) const
+    {
+        if(time_increment < other.time_increment)
+            return true;
+        if(time_increment > other.time_increment)
+            return false;
+        if(var < other.var)
+            return true;
+        if(var > other.var)
+            return false;
+        return prev < other.prev;
+    }
 };
 
 class ScheduledOperator;
@@ -298,16 +282,16 @@ typedef std::vector<TimedSymbolicState> TimedSymbolicStates;
 
 class TimeStampedState
 {
-        friend class RelaxedState;
-        friend class AxiomEvaluator;
-        friend struct PrePost;
-        friend struct Prevail;
-        friend class Operator;
-        friend class NoHeuristic;
-        friend class MreHeuristic;
-        friend class CyclicCGHeuristic;
-        friend class ConsistencyCache;
-        friend struct TssCompareIgnoreTimestamp;
+    friend class RelaxedState;
+    friend class AxiomEvaluator;
+    friend struct PrePost;
+    friend struct Prevail;
+    friend class Operator;
+    friend class NoHeuristic;
+    friend class MreHeuristic;
+    friend class CyclicCGHeuristic;
+    friend class ConsistencyCache;
+    friend struct TssCompareIgnoreTimestamp;
 
     private:
         bool satisfies(const Prevail& cond) const
@@ -317,8 +301,8 @@ class TimeStampedState
 
         bool satisfies(const vector<Prevail>& conds) const
         {
-            for (int i = 0; i < conds.size(); i++)
-                if (!satisfies(conds[i]))
+            for(int i = 0; i < conds.size(); i++)
+                if(!satisfies(conds[i]))
                     return false;
             return true;
         }
@@ -330,7 +314,7 @@ class TimeStampedState
 
         void apply_numeric_effect(int lhs, assignment_op op, int rhs)
         {
-            switch (op) {
+            switch(op) {
                 case assign:
                     state[lhs] = state[rhs];
                     break;
@@ -361,7 +345,7 @@ class TimeStampedState
 
         void apply_effect(int lhs, assignment_op op, int rhs, double post)
         {
-            if (is_functional(lhs)) {
+            if(is_functional(lhs)) {
                 apply_numeric_effect(lhs, op, rhs);
             } else {
                 apply_discrete_effect(lhs, post);
@@ -376,7 +360,6 @@ class TimeStampedState
         }
 
     public:
-
         vector<double> state;
         vector<ScheduledEffect> scheduled_effects;
         vector<ScheduledModuleEffect> scheduled_module_effects;
@@ -388,13 +371,10 @@ class TimeStampedState
 
         TimeStampedState(istream &in);
         // apply an operator
-        TimeStampedState(const TimeStampedState &predecessor,
-                const Operator &op);
+        TimeStampedState(const TimeStampedState &predecessor, const Operator &op);
         // let time pass without applying an operator
-        TimeStampedState
-                let_time_pass(
-                        bool go_to_intermediate_between_now_and_next_happening =
-                                false) const;
+        TimeStampedState let_time_pass(
+            bool go_to_intermediate_between_now_and_next_happening = false) const;
 
         TimeStampedState increase_time_stamp_by(double increment) const;
 
@@ -427,8 +407,8 @@ class TimeStampedState
 
         bool satisfies(const vector<pair<int, double> >& goal) const
         {
-            for (int i = 0; i < goal.size(); i++)
-                if (!satisfies(goal[i]))
+            for(int i = 0; i < goal.size(); i++)
+                if(!satisfies(goal[i]))
                     return false;
             return true;
         }

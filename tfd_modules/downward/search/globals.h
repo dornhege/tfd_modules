@@ -16,11 +16,7 @@ using namespace std;
 #define EPS_TIME 0.001
 
 #include "causal_graph.h"
-#ifdef _WIN32
-   #include "pddlModuleLoaderDLL.h"
-#else
-   #include "pddlModuleLoaderLDL.h"
-#endif
+#include "pddlModuleLoaderLDL.h"
 #include "tfd_modules/module_api/pddlModuleTypes.h"
 
 class AxiomEvaluator;
@@ -42,16 +38,16 @@ class BestFirstSearchEngine;
 
 struct PlanStep
 {
-        double start_time;
-        double duration;
-        const Operator* op;
-        const TimeStampedState* pred;
+    double start_time;
+    double duration;
+    const Operator* op;
+    const TimeStampedState* pred;
 
-        PlanStep(double st, double dur, const Operator* o,
-                const TimeStampedState* p) :
+    PlanStep(double st, double dur, const Operator* o,
+        const TimeStampedState* p) :
             start_time(st), duration(dur), op(o), pred(p)
-        {
-        }
+    {
+    }
 
         void dump() const;
 };

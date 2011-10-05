@@ -5,8 +5,6 @@ using namespace std;
 #include "state.h"
 #include "operator.h"
 
-//#include "globals.h"
-
 SearchEngine::SearchEngine()
 {
     solved = false;
@@ -62,12 +60,10 @@ void SearchEngine::set_path(const PlanTrace &states)
 enum SearchEngine::status SearchEngine::search()
 {
     status st = IN_PROGRESS;
-    while (st == IN_PROGRESS) {
+    while(st == IN_PROGRESS) {
         st = step();
-        //    	solved = false;
     }
     if (st == FAILED || st == FAILED_TIMEOUT) {
-        // FIXME: CLEANUP!!!!!!!!!!
         solved = false;
     }
     return st;

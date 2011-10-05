@@ -242,7 +242,7 @@ void check_magic(istream &in, string magic)
 {
     string word;
     in >> word;
-    if (word != magic) {
+    if(word != magic) {
         cout << "Failed to match magic word '" << magic << "'." << endl;
         cout << "Got '" << word << "'." << endl;
         exit(1);
@@ -254,7 +254,7 @@ void read_variables(istream &in)
     check_magic(in, "begin_variables");
     int count;
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         string name;
         in >> name;
         g_variable_name.push_back(name);
@@ -265,7 +265,7 @@ void read_variables(istream &in)
         in >> layer;
         g_axiom_layers.push_back(layer);
         //identify variable type
-        if (range == -3) {
+        if(range == -3) {
             g_variable_types.push_back(costmodule);
         } else if (range == -2) {
             g_variable_types.push_back(module);
@@ -370,7 +370,7 @@ void read_goal(istream &in)
     check_magic(in, "begin_goal");
     int count;
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         int var;
         double val;
         in >> var >> val;
@@ -382,7 +382,7 @@ void read_goal(istream &in)
 void dump_goal()
 {
     cout << "Goal Conditions:" << endl;
-    for (int i = 0; i < g_goal.size(); i++)
+    for(int i = 0; i < g_goal.size(); i++)
         cout << "  " << g_variable_name[g_goal[i].first] << ": "
             << g_goal[i].second << endl;
 }
@@ -391,7 +391,7 @@ void read_operators(istream &in)
 {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
         g_operators.push_back(Operator(in));
 }
 
@@ -399,7 +399,7 @@ void read_logic_axioms(istream &in)
 {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         LogicAxiom *ax = new LogicAxiom(in);
         g_axioms.push_back(ax);
     }
@@ -409,7 +409,7 @@ void read_numeric_axioms(istream &in)
 {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         NumericAxiom *ax = new NumericAxiom(in);
         g_axioms.push_back(ax);
         // ax->dump();
@@ -494,7 +494,7 @@ void read_everything(istream &in)
 void dump_everything()
 {
     cout << "Variables (" << g_variable_name.size() << "):" << endl;
-    for (int i = 0; i < g_variable_name.size(); i++)
+    for(int i = 0; i < g_variable_name.size(); i++)
         cout << "  " << g_variable_name[i] << " (range "
             << g_variable_domain[i] << ")" << endl;
     cout << "Initial State:" << endl;
@@ -502,13 +502,13 @@ void dump_everything()
     dump_goal();
     cout << "Successor Generator:" << endl;
     g_successor_generator->dump();
-    for (int i = 0; i < g_variable_domain.size(); i++)
+    for(int i = 0; i < g_variable_domain.size(); i++)
         g_transition_graphs[i]->dump();
 }
 
 void dump_DTGs()
 {
-    for (int i = 0; i < g_variable_domain.size(); i++) {
+    for(int i = 0; i < g_variable_domain.size(); i++) {
         cout << "DTG of variable " << i;
         g_transition_graphs[i]->dump();
     }
@@ -561,19 +561,18 @@ istream& operator>>(istream &is, assignment_op &aop)
 {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("="))
+    if(!strVal.compare("="))
         aop = assign;
-    else if (!strVal.compare("+"))
+    else if(!strVal.compare("+"))
         aop = increase;
-    else if (!strVal.compare("-"))
+    else if(!strVal.compare("-"))
         aop = decrease;
-    else if (!strVal.compare("*"))
+    else if(!strVal.compare("*"))
         aop = scale_up;
-    else if (!strVal.compare("/"))
+    else if(!strVal.compare("/"))
         aop = scale_down;
     else {
-        cout << "SEVERE ERROR: expected assignment operator, read in "
-            << strVal << endl;
+        cout << "SEVERE ERROR: expected assignment operator, read in " << strVal << endl;
         assert(false);
     }
     return is;
@@ -598,8 +597,7 @@ ostream& operator<<(ostream &os, const assignment_op &aop)
             os << "-=";
             break;
         default:
-
-            cout << "Error: aop has value " << (int) aop << endl;
+            cout << "Error: aop has value " << (int)aop << endl;
 
             assert(false);
             break;
@@ -611,25 +609,25 @@ istream& operator>>(istream &is, binary_op &bop)
 {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("+"))
+    if(!strVal.compare("+"))
         bop = add;
-    else if (!strVal.compare("-"))
+    else if(!strVal.compare("-"))
         bop = subtract;
-    else if (!strVal.compare("*"))
+    else if(!strVal.compare("*"))
         bop = mult;
-    else if (!strVal.compare("/"))
+    else if(!strVal.compare("/"))
         bop = divis;
-    else if (!strVal.compare("<"))
+    else if(!strVal.compare("<"))
         bop = lt;
-    else if (!strVal.compare("<="))
+    else if(!strVal.compare("<="))
         bop = le;
-    else if (!strVal.compare("="))
+    else if(!strVal.compare("="))
         bop = eq;
-    else if (!strVal.compare(">="))
+    else if(!strVal.compare(">="))
         bop = ge;
-    else if (!strVal.compare(">"))
+    else if(!strVal.compare(">"))
         bop = gt;
-    else if (!strVal.compare("!="))
+    else if(!strVal.compare("!="))
         bop = ue;
     else {
         cout << strVal << " was read" << endl;
@@ -682,13 +680,13 @@ istream& operator>>(istream &is, trans_type &tt)
 {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("s"))
+    if(!strVal.compare("s"))
         tt = start;
-    else if (!strVal.compare("e"))
+    else if(!strVal.compare("e"))
         tt = end;
-    else if (!strVal.compare("c"))
+    else if(!strVal.compare("c"))
         tt = compressed;
-    else if (!strVal.compare("a"))
+    else if(!strVal.compare("a"))
         tt = ax;
     else {
         cout << strVal << " was read." << endl;
@@ -723,13 +721,13 @@ istream& operator>>(istream &is, condition_type &ct)
 {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("s"))
+    if(!strVal.compare("s"))
         ct = start_cond;
-    else if (!strVal.compare("o"))
+    else if(!strVal.compare("o"))
         ct = overall_cond;
-    else if (!strVal.compare("e"))
+    else if(!strVal.compare("e"))
         ct = end_cond;
-    else if (!strVal.compare("a"))
+    else if(!strVal.compare("a"))
         ct = ax_cond;
     else
         assert(false);
@@ -760,7 +758,7 @@ ostream& operator<<(ostream &os, const condition_type &ct)
 void printSet(const set<int> s)
 {
     set<int>::const_iterator it;
-    for (it = s.begin(); it != s.end(); ++it)
+    for(it = s.begin(); it != s.end(); ++it)
         cout << *it << ",";
     cout << endl;
 }

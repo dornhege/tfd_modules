@@ -32,9 +32,12 @@ BestFirstSearchEngine::BestFirstSearchEngine(QueueManagementMode _mode) :
     current_predecessor = 0;
     current_operator = 0;
     start_time = time(NULL);
-    last_time = start_time;
     bestMakespan = HUGE_VAL;
     bestSumOfGoals = HUGE_VAL;
+}
+
+BestFirstSearchEngine::~BestFirstSearchEngine()
+{
 }
 
 TimeStampedState* BestFirstSearchEngine::get_current_state()
@@ -42,24 +45,18 @@ TimeStampedState* BestFirstSearchEngine::get_current_state()
     return &current_state;
 }
 
-BestFirstSearchEngine::~BestFirstSearchEngine()
-{
-}
 
 void BestFirstSearchEngine::add_heuristic(Heuristic *heuristic,
         bool use_estimates, bool use_preferred_operators)
 {
-
-    // cout << "Adding heuristic" << endl;
-
     assert(use_estimates || use_preferred_operators);
     heuristics.push_back(heuristic);
     best_heuristic_values.push_back(-1);
     best_states.push_back(NULL);
-    if (use_estimates) {
+    if(use_estimates) {
         open_lists.push_back(OpenListInfo(heuristic, false));
     }
-    if (use_preferred_operators) {
+    if(use_preferred_operators) {
         open_lists.push_back(OpenListInfo(heuristic, true));
         preferred_operator_heuristics.push_back(heuristic);
     }
@@ -108,12 +105,12 @@ void BestFirstSearchEngine::statistics(time_t & current_time) const
 void BestFirstSearchEngine::dump_transition() const
 {
     cout << endl;
-    if (current_predecessor != 0) {
+    if(current_predecessor != 0) {
         cout << "DEBUG: In step(), current predecessor is: " << endl;
         current_predecessor->dump();
     }
     cout << "DEBUG: In step(), current operator is: ";
-    if (current_operator != 0) {
+    if(current_operator != 0) {
         current_operator->dump();
     } else {
         cout << "No operator before initial state." << endl;
@@ -150,7 +147,6 @@ void BestFirstSearchEngine::dump_everything() const
 
 SearchEngine::status BestFirstSearchEngine::step()
 {
-
     // Invariants:
     // - current_state is the next state for which we want to compute the heuristic.
     // - current_predecessor is a permanent pointer to the predecessor of that state.
@@ -161,9 +157,9 @@ SearchEngine::status BestFirstSearchEngine::step()
     bool discard = true;
 
     double maxTimeIncrement = 0.0;
-    for (int k = 0; k < current_state.operators.size(); ++k) {
+    for(int k = 0; k < current_state.operators.size(); ++k) {
         maxTimeIncrement = max(maxTimeIncrement,
-                current_state.operators[k].time_increment);
+            current_state.operators[k].time_increment);
     }
     double makeSpan = maxTimeIncrement + current_state.timestamp;
 
@@ -174,7 +170,7 @@ SearchEngine::status BestFirstSearchEngine::step()
         discard = false;
     }
 
-    if (!discard) {
+    if(!discard) {
         ClosedListInfo* closedListInfo = closed_list.insert(current_state,
                 current_predecessor, current_operator);
         const TimeStampedState *parent_ptr = closedListInfo->first;
@@ -197,16 +193,16 @@ SearchEngine::status BestFirstSearchEngine::step()
         //    		dump_plan_prefix_for__state(*current_predecessor);
         //    	cout << "-" << endl;
         //    	current_state.dump();
-        for (int i = 0; i < heuristics.size(); i++) {
+        for(int i = 0; i < heuristics.size(); i++) {
             heuristics[i]->evaluate(current_state);
         }
-        if (!is_dead_end()) {
-            if (check_progress(parent_ptr)) {
+        if(!is_dead_end()) {
+            if(check_progress(parent_ptr)) {
                 // current_state.dump();
                 report_progress();
                 reward_progress();
             }
-            if (check_goal())
+            if(check_goal())
                 return SOLVED;
             generate_successors(closedListInfo);
         }
@@ -229,7 +225,7 @@ SearchEngine::status BestFirstSearchEngine::step()
     }
 
     // use different timeouts depending if we found a plan or not.
-    if(g_engine->found_solution()) {
+    if(found_solution()) {
         if (g_parameters.timeout_if_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_if_plan_found) {
             statistics(current_time);
@@ -251,9 +247,9 @@ bool BestFirstSearchEngine::is_dead_end()
     // If a reliable heuristic reports a dead end, we trust it.
     // Otherwise, all heuristics must agree on dead-end-ness.
     int dead_end_counter = 0;
-    for (int i = 0; i < heuristics.size(); i++) {
-        if (heuristics[i]->is_dead_end()) {
-            if (heuristics[i]->dead_ends_are_reliable())
+    for(int i = 0; i < heuristics.size(); i++) {
+        if(heuristics[i]->is_dead_end()) {
+            if(heuristics[i]->dead_ends_are_reliable())
                 return true;
             else
                 dead_end_counter++;
@@ -267,8 +263,8 @@ bool BestFirstSearchEngine::check_goal()
     // Any heuristic reports 0 iff this is a goal state, so we can
     // pick an arbitrary one.
     Heuristic *heur = open_lists[0].heuristic;
-    if (!heur->is_dead_end() && heur->evaluate(current_state) == 0) {
-        if (current_state.operators.size() > 0) {
+    if(!heur->is_dead_end() && heur->evaluate(current_state) == 0) {
+        if(current_state.operators.size() > 0) {
             return false;
         }
 
@@ -301,13 +297,12 @@ void BestFirstSearchEngine::dump_plan_prefix_for_current_state() const
     dump_plan_prefix_for__state(current_state);
 }
 
-void BestFirstSearchEngine::dump_plan_prefix_for__state(
-        const TimeStampedState &state) const
+void BestFirstSearchEngine::dump_plan_prefix_for__state(const TimeStampedState &state) const
 {
     Plan plan;
     PlanTrace path;
     closed_list.trace_path(state, plan, path);
-    for (int i = 0; i < plan.size(); i++) {
+    for(int i = 0; i < plan.size(); i++) {
         const PlanStep& step = plan[i];
         cout << step.start_time << ": " << "(" << step.op->get_name() << ")"
             << " [" << step.duration << "]" << endl;
@@ -317,12 +312,12 @@ void BestFirstSearchEngine::dump_plan_prefix_for__state(
 bool BestFirstSearchEngine::check_progress(const TimeStampedState* state)
 {
     bool progress = false;
-    for (int i = 0; i < heuristics.size(); i++) {
-        if (heuristics[i]->is_dead_end())
+    for(int i = 0; i < heuristics.size(); i++) {
+        if(heuristics[i]->is_dead_end())
             continue;
         double h = heuristics[i]->get_heuristic();
         double &best_h = best_heuristic_values[i];
-        if (best_h == -1 || h < best_h) {
+        if(best_h == -1 || h < best_h) {
             best_h = h;
             best_states[i] = state;
             progress = true;
@@ -334,14 +329,12 @@ bool BestFirstSearchEngine::check_progress(const TimeStampedState* state)
 void BestFirstSearchEngine::report_progress()
 {
     cout << "Best heuristic value: ";
-    for (int i = 0; i < heuristics.size(); i++) {
+    for(int i = 0; i < heuristics.size(); i++) {
         cout << best_heuristic_values[i];
-        if (i != heuristics.size() - 1)
+        if(i != heuristics.size() - 1)
             cout << "/";
     }
     cout << " [expanded " << closed_list.size() << " state(s)]" << endl;
-    //cout << "current was " << endl;
-    //dump_transition();
 }
 
 void BestFirstSearchEngine::reward_progress()
@@ -356,8 +349,8 @@ void BestFirstSearchEngine::reward_progress()
     // from which the good state was extracted and/or the open queues
     // for the heuristic for which a new best value was found.
 
-    for (int i = 0; i < open_lists.size(); i++)
-        if (open_lists[i].only_preferred_operators)
+    for(int i = 0; i < open_lists.size(); i++)
+        if(open_lists[i].only_preferred_operators)
             open_lists[i].priority -= 1000;
 }
 
@@ -482,17 +475,17 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
     g_successor_generator->generate_applicable_ops(current_state, all_operators);
 
     vector<const Operator *> preferred_operators;
-    for (int i = 0; i < preferred_operator_heuristics.size(); i++) {
+    for(int i = 0; i < preferred_operator_heuristics.size(); i++) {
         Heuristic *heur = preferred_operator_heuristics[i];
-        if (!heur->is_dead_end()) {
+        if(!heur->is_dead_end()) {
             heur->get_preferred_operators(preferred_operators);
         }
     }
 
     // HACK!?!?! Entferne pref_ops aus normaler liste
-    for (int k = 0; k < preferred_operators.size(); ++k) {
-        for (int l = 0; l < all_operators.size(); ++l) {
-            if (all_operators[l] == preferred_operators[k]) {
+    for(int k = 0; k < preferred_operators.size(); ++k) {
+        for(int l = 0; l < all_operators.size(); ++l) {
+            if(all_operators[l] == preferred_operators[k]) {
                 all_operators[l] = all_operators[all_operators.size() - 1];
                 all_operators.pop_back();
                 break;
@@ -721,14 +714,16 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
 enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 {
     OpenListInfo *open_info = select_open_queue();
-    if (!open_info) {
+    if(!open_info) {
         if(found_at_least_one_solution()) {
             cout << "Completely explored state space -- best plan found!" << endl;
             return SOLVED;
         }
         
-        time_t current_time = time(NULL);
-        statistics(current_time);
+        if(g_parameters.verbose) {
+            time_t current_time = time(NULL);
+            statistics(current_time);
+        }
         cout << "Completely explored state space -- no solution!" << endl;
         return FAILED;
     }
@@ -751,25 +746,13 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     current_predecessor = std::tr1::get<0>(next);
     current_operator = std::tr1::get<1>(next);
 
-    //    cout << "---------------------------" << endl;
-    //    cout << "current_predecessor: ";
-    //
-    //    cout << "performed actions: " << endl;
-    //    dump_plan_prefix_for_current_state();
-    //    current_predecessor->dump();
-    //
-    //
-    //    cout << "current_operator: ";
-    //    current_operator->dump();
-
-    if (current_operator == g_let_time_pass) {
+    if(current_operator == g_let_time_pass) {
         // do not apply an operator but rather let some time pass until
         // next scheduled happening
         current_state = current_predecessor->let_time_pass();
     } else {
         assert(current_operator->get_name().compare("wait") != 0);
-        current_state = TimeStampedState(*current_predecessor,
-                *current_operator);
+        current_state = TimeStampedState(*current_predecessor, *current_operator);
     }
     assert(&current_state != current_predecessor);
     return IN_PROGRESS;
@@ -779,10 +762,9 @@ OpenListInfo *BestFirstSearchEngine::select_open_queue()
 {
     OpenListInfo *best = 0;
 
-    if (mode == PRIORITY_BASED) {
-        for (int i = 0; i < open_lists.size(); i++) {
-            if (!open_lists[i].open.empty() && (best == 0
-                        || open_lists[i].priority < best->priority))
+    if(mode == PRIORITY_BASED) {
+        for(int i = 0; i < open_lists.size(); i++) {
+            if(!open_lists[i].open.empty() && (best == 0 || open_lists[i].priority < best->priority))
                 best = &open_lists[i];
         }
     } else if (mode == ROUND_ROBIN) {

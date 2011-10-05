@@ -32,13 +32,11 @@
 
 using namespace std;
 
-#ifndef _WIN32
 #include <sys/times.h>
 #include <sys/time.h>
-#endif
 
-pair<double, double> save_plan(const vector<PlanStep> &plan,
-        const PlanTrace &path, pair<double, double> best_makespan,
+double save_plan(const vector<PlanStep> &plan,
+        const PlanTrace &path, double best_makespan,
         int &plan_number, string &plan_name);
 void readPlanFromFile(const string& filename, vector<string>& plan);
 bool validatePlan(vector<string>& plan);
@@ -53,7 +51,7 @@ int main(int argc, char **argv)
 #endif
 
     ifstream file("../preprocess/output");
-    if (strcmp(argv[argc - 1], "-eclipserun") == 0) {
+    if(strcmp(argv[argc - 1], "-eclipserun") == 0) {
         cin.rdbuf(file.rdbuf());
         cerr.rdbuf(cout.rdbuf());
         argc--;
@@ -61,12 +59,10 @@ int main(int argc, char **argv)
         cout.rdbuf(cerr.rdbuf());
     }
 
-#ifndef _WIN32
     struct tms start, search_start, search_end;
     times(&start);
     double start_walltime, search_start_walltime, search_end_walltime;
     start_walltime = getCurrentTime();
-#endif
 
     if(!g_parameters.readParameters(argc, argv)) {
         cerr << "Error in reading parameters.\n";
@@ -76,7 +72,7 @@ int main(int argc, char **argv)
 
     bool poly_time_method = false;
     cin >> poly_time_method;
-    if (poly_time_method) {
+    if(poly_time_method) {
         cout << "Poly-time method not implemented in this branch." << endl;
         cout << "Starting normal solver." << endl;
     }
@@ -119,15 +115,6 @@ int main(int argc, char **argv)
     }
 
 
-    //    dump_DTGs();
-    //    dump_everything();
-    //
-    //    RelaxedState rs = RelaxedState(*g_initial_state);
-    //    buildTestState(*g_initial_state);
-    //    cout << "test state:" << endl;
-    //    g_initial_state->dump();
-    //    rs = RelaxedState(*g_initial_state);
-
     // Monitoring mode
     if (!g_parameters.planMonitorFileName.empty()) {
         vector<string> plan;
@@ -151,24 +138,22 @@ int main(int argc, char **argv)
     if (g_parameters.no_heuristic)
         g_engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
 
-    pair<double, double> best_makespan = make_pair(REALLYBIG, REALLYBIG); // first: original makespan, second: rescheduled makespan
+    double best_makespan = REALLYBIG;
 
-    int plan_number = 1;
-#ifndef _WIN32
+
     times(&search_start);
     search_start_walltime = getCurrentTime();
-#endif
+    int plan_number = 1;
+
     SearchEngine::status search_result = SearchEngine::IN_PROGRESS;
-    while (true) {
+    while(true) {
         g_engine->initialize();
-        //time_t now = time(NULL);
-        //g_engine->statistics(now);
         search_result = g_engine->search();
-#ifndef _WIN32
+
         times(&search_end);
         search_end_walltime = getCurrentTime();
-#endif
-        if (g_engine->found_solution()) {
+
+        if(g_engine->found_solution()) {
             best_makespan
                 = save_plan(g_engine->get_plan(), g_engine->get_path(),
                         best_makespan, plan_number, g_parameters.plan_name);
@@ -181,12 +166,12 @@ int main(int argc, char **argv)
                 double search_time_wall = search_end_walltime - search_start_walltime;
                 double total_time_wall = search_end_walltime - start_walltime;
 
-                fprintf(timeDebugFile, "%f %f %f %f %f\n", best_makespan.second, search_time, total_time, 
+                fprintf(timeDebugFile, "%f %f %f %f %f\n", best_makespan, search_time, total_time, 
                         search_time_wall, total_time_wall);
                 fflush(timeDebugFile);
             }
-            g_engine->bestMakespan = best_makespan.second;
-            if (g_parameters.anytime_search) {
+            g_engine->bestMakespan = best_makespan;
+            if(g_parameters.anytime_search) {
                 if (search_result == SearchEngine::SOLVED) {
                     g_engine->fetch_next_state();
                 } else {
@@ -198,33 +183,8 @@ int main(int argc, char **argv)
         } else {
             break;
         }
-        /*if(g_engine->found_solution()) {
-          best_makespan = save_plan(g_engine->get_plan(),best_makespan,plan_number,g_parameters.plan_name);
-
-          cerr << "Plan found!" << endl;
-          MonitorEngine* mon = MonitorEngine::getInstance();
-          bool monitor = mon->validatePlan(g_engine->get_plan());
-          cerr << "Plan validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
-          vector<string> plan;
-
-          for(unsigned int i = 0; i < g_engine->get_plan().size(); i++)
-          {
-          stringstream tmp;
-          tmp << g_engine->get_plan()[i].start_time << ": " << "(" << g_engine->get_plan()[i].op->get_name() << ") [" << g_engine->get_plan()[i].duration << "]\n";
-          plan.push_back(tmp.str());
-          }
-          monitor = mon->validatePlan(plan);
-          cerr << "Plan (string) validated as " << ((monitor) ? "valid!" : "not valid!") << endl;
-          break;
-          }
-          else {
-          break;
-          }*/
     }
-    //   g_engine->statistics();
 
-
-#ifndef _WIN32
     double search_time_wall = search_end_walltime - search_start_walltime;
     double total_time_wall = search_end_walltime - start_walltime;
 
@@ -242,7 +202,6 @@ int main(int argc, char **argv)
                 search_time_wall, total_time_wall);
         fclose(timeDebugFile);
     }
-#endif
 
     switch(search_result) {
         case SearchEngine::SOLVED_TIMEOUT:
@@ -348,8 +307,8 @@ bool epsilonize_plan(const std::string & filename)
     return true;
 }
 
-pair<double, double> save_plan(const vector<PlanStep> &plan,
-        const PlanTrace &path, pair<double, double> best_makespan,
+double save_plan(const vector<PlanStep> &plan,
+        const PlanTrace &path, double best_makespan,
         int &plan_number, string &plan_name)
 {
     /*for(int i = 0; i < path.size(); ++i) {
@@ -427,9 +386,9 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
     //    double sumOfSubgoals = getSumOfSubgoals(path);
     double sumOfSubgoals = getSumOfSubgoals(new_plan);
 
-    if (makespan > best_makespan.second)
+    if (makespan > best_makespan)
         return best_makespan;
-    if (double_equals(makespan, best_makespan.second)) {
+    if (double_equals(makespan, best_makespan)) {
         //        cout << "Sum of goals: " << sumOfSubgoals << endl;
         if (sumOfSubgoals < g_engine->bestSumOfGoals) {
             cout
@@ -441,7 +400,7 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
             return best_makespan;
         }
     } else {
-        assert(makespan < best_makespan.second);
+        assert(makespan < best_makespan);
         g_engine->bestSumOfGoals = sumOfSubgoals;
     }
 
@@ -487,7 +446,7 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
 
         if(file == NULL) {
             fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, plan_filename);
-            return make_pair(original_makespan, makespan);
+            return makespan;
         }
     } else {
         file = stdout;
@@ -527,7 +486,7 @@ pair<double, double> save_plan(const vector<PlanStep> &plan,
     free(plan_filename);
     free(best_plan_filename);
 
-    return make_pair(original_makespan, makespan);
+    return makespan;
 }
 
 std::string getTimesName(const string & plan_name)

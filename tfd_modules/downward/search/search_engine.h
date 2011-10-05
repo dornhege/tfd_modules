@@ -1,12 +1,7 @@
 #ifndef SEARCH_ENGINE_H
 #define SEARCH_ENGINE_H
 
-#include <vector>
-#include <time.h>
 #include "globals.h"
-
-class Operator;
-class TimeStampedState;
 
 class SearchEngine
 {
@@ -33,9 +28,7 @@ class SearchEngine
         SearchEngine();
         virtual ~SearchEngine();
         virtual void statistics(time_t & current_time) const;
-        virtual void initialize()
-        {
-        }
+        virtual void initialize() {}
         virtual void dump_everything() const = 0;
         bool found_solution() const;
         bool found_at_least_one_solution() const;
