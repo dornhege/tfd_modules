@@ -16,15 +16,14 @@ Heuristic::~Heuristic()
 
 void Heuristic::set_preferred(const Operator *op)
 {
-    if (op->get_name().compare("wait") == 0) {
-        const ScheduledOperator *s_op =
-            dynamic_cast<const ScheduledOperator*> (op);
+    if(op->get_name().compare("wait") == 0) {
+        const ScheduledOperator *s_op = dynamic_cast<const ScheduledOperator*>(op);
         assert(op);
         waiting_time = min(waiting_time, s_op->time_increment);
         return;
     }
-    for (int i = 0; i < preferred_operators.size(); i++) {
-        if (preferred_operators[i] == op) {
+    for(int i = 0; i < preferred_operators.size(); i++) {
+        if(preferred_operators[i] == op) {
             return;
         }
     }
@@ -43,13 +42,13 @@ double Heuristic::evaluate(const TimeStampedState &state)
     //	}
     //    }
 
-    if (heuristic == NOT_INITIALIZED)
+    if(heuristic == NOT_INITIALIZED)
         initialize();
     preferred_operators.clear();
     heuristic = compute_heuristic(state);
     assert(heuristic == DEAD_END || heuristic >= 0);
 
-    if (heuristic == DEAD_END) {
+    if(heuristic == DEAD_END) {
         // It is ok to have preferred operators in dead-end states.
         // This allows a heuristic to mark preferred operators on-the-fly,
         // selecting the first ones before it is clear that all goals
@@ -63,7 +62,7 @@ double Heuristic::evaluate(const TimeStampedState &state)
     //    }
 
 #ifndef NDEBUG
-    if (heuristic != DEAD_END) {
+    if(heuristic != DEAD_END) {
         //	cout << "preferred operators:" << endl;
         //	for(int i = 0; i < preferred_operators.size(); i++) {
         //	    //assert(preferred_operators[i]->is_applicable(state));

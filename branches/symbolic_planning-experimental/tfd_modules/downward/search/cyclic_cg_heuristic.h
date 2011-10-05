@@ -7,11 +7,7 @@
 #include "heuristic.h"
 #include "state.h"
 #include "domain_transition_graph.h"
-#ifdef _WIN32
-    #include <list>
-#else
-    #include <ext/slist>
-#endif
+#include <ext/slist>
 #include <cmath>
 #include <stdlib.h>
 #include <sstream>
@@ -36,11 +32,7 @@ class Node_compare;
 typedef priority_queue<LocalProblemNode*, std::vector<LocalProblemNode*>,
         Node_compare> node_queue;
 
-#ifdef _WIN32
-typedef std::list<std::pair<LocalTransition*, int> > waiting_list_t;
-#else
 typedef __gnu_cxx ::slist<std::pair<LocalTransition*, int> > waiting_list_t;
-#endif
 typedef waiting_list_t::const_iterator const_it_waiting_list;
 typedef waiting_list_t::iterator it_waiting_list;
 
@@ -57,8 +49,7 @@ class LocalTransition
         int duration_var_local;
         const ValueTransitionLabel *label;
         virtual LocalProblemNode* get_source() = 0;
-        virtual void
-                on_condition_reached(int, double, const TimeStampedState&) = 0;
+        virtual void on_condition_reached(int, double, const TimeStampedState&) = 0;
         virtual void print_description() = 0;
         LocalTransition(ValueTransitionLabel *the_label) :
             label(the_label)
@@ -99,23 +90,20 @@ class LocalProblemNode
         waiting_list_t waiting_list;
 
         void updatePrimitiveNumericVariable(assignment_op a_op,
-                int primitive_var_local, int influencing_var_local, vector<
-                        double> &temp_children_state);
-        void
-        updateNumericVariablesRec(int var, vector<double> &temp_children_state);
+                int primitive_var_local, int influencing_var_local,
+                vector<double> &temp_children_state);
+        void updateNumericVariablesRec(int var, vector<double> &temp_children_state);
         void updateSubtermNumericVariables(int var, binary_op op, int left_var,
                 int right_var, vector<double> &temp_children_state);
         void updateComparisonVariables(int var, binary_op op, int left_var,
                 int right_var, vector<double> &temp_children_state);
 
-        bool all_conds_satiesfied(const ValueTransitionLabel *label,
-                const TimeStampedState &state);
+        bool all_conds_satiesfied(const ValueTransitionLabel *label, const TimeStampedState &state);
         void mark_helpful_transitions(const TimeStampedState &state);
         virtual ~LocalProblemNode()
         {
         }
-        LocalProblemNode(LocalProblem* owner, int children_state_size,
-                int _value) :
+        LocalProblemNode(LocalProblem* owner, int children_state_size, int _value) :
             owner(owner), value(_value)
         {
             children_state.resize(children_state_size, 0.0);
@@ -214,16 +202,14 @@ class LocalProblemDiscrete: public LocalProblem
     public:
 
         std::vector<LocalProblemNodeDiscrete> nodes;
-        virtual LocalProblemNodeDiscrete* get_node(int var_no)
-        {
+        virtual LocalProblemNodeDiscrete* get_node(int var_no) {
             return &(nodes[var_no]);
         }
 
         void build_nodes_for_variable(int var_no);
         void build_nodes_for_goal();
         void compile_DTG_arcs_to_LTD_objects(DomainTransitionGraphSymb *dtgs);
-        LocalProblemDiscrete(CyclicCGHeuristic* _owner, int var_no,
-                int start_val);
+        LocalProblemDiscrete(CyclicCGHeuristic* _owner, int var_no, int start_val);
         virtual void initialize(double base_priority, int start_value,
                 const TimeStampedState &state);
 };
@@ -238,7 +224,7 @@ class LocalProblemNodeComp: public LocalProblemNode
         std::vector<LocalTransitionComp> outgoing_transitions;
 
         vector<vector<pair<LocalProblemNode*, int> > >
-                nodes_where_this_subscribe;
+            nodes_where_this_subscribe;
 
         binary_op op;
 
@@ -256,8 +242,7 @@ class LocalProblemNodeComp: public LocalProblemNode
         void subscribe_to_waiting_lists();
         void updateNumericVariables(LocalTransitionComp &trans,
                 vector<double> &temp_children_state);
-        bool check_progress_of_transition(vector<double> &temp_children_state,
-                LocalTransitionComp *trans);
+        bool check_progress_of_transition(vector<double> &temp_children_state, LocalTransitionComp *trans);
         void dump();
         void print_name();
 };
@@ -270,16 +255,14 @@ class LocalTransitionComp: public LocalTransition
 
         LocalProblemNodeComp* target;
 
-        LocalProblemNodeComp* get_source()
-        {
+        LocalProblemNodeComp* get_source() {
             return source;
         }
 
         vector<bool> conds_satiesfied;
 
         LocalTransitionComp(FuncTransitionLabel *the_label,
-                LocalProblemNodeComp *the_source,
-                LocalProblemNodeComp *the_target) :
+                LocalProblemNodeComp *the_source, LocalProblemNodeComp *the_target) :
             LocalTransition(the_label), source(the_source), target(the_target)
         {
             target_cost = 0.0;
@@ -298,8 +281,7 @@ class LocalProblemComp: public LocalProblem
 
         //nodes[0] = false, nodes[1] = true
         std::vector<LocalProblemNodeComp> nodes;
-        LocalProblemNodeComp* get_node(int var_no)
-        {
+        LocalProblemNodeComp* get_node(int var_no) {
             return &(nodes[var_no]);
         }
 
@@ -362,8 +344,7 @@ class CyclicCGHeuristic: public Heuristic
 
         CyclicCGHeuristic(Mode mode);
         ~CyclicCGHeuristic();
-        virtual bool dead_ends_are_reliable()
-        {
+        virtual bool dead_ends_are_reliable() {
             return false;
         }
 };
@@ -384,8 +365,8 @@ inline bool LocalProblem::is_initialized() const
 inline LocalProblem *CyclicCGHeuristic::get_local_problem(int var_no, int value)
 {
     LocalProblem *result = local_problem_index[var_no][value];
-    if (!result) {
-        if (g_variable_types[var_no] == comparison) {
+    if(!result) {
+        if(g_variable_types[var_no] == comparison) {
             result = new LocalProblemComp(this, var_no, value);
         } else {
             assert(g_variable_types[var_no] == logical);

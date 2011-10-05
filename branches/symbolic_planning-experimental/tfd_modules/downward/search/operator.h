@@ -36,40 +36,31 @@ class Operator
         Operator(std::istream &in);
         explicit Operator(bool uses_concrete_time_information);
         void dump() const;
-        const vector<Prevail> &get_prevail_start() const
-        {
+        const vector<Prevail> &get_prevail_start() const {
             return prevail_start;
         }
-        const vector<Prevail> &get_prevail_overall() const
-        {
+        const vector<Prevail> &get_prevail_overall() const {
             return prevail_overall;
         }
-        const vector<Prevail> &get_prevail_end() const
-        {
+        const vector<Prevail> &get_prevail_end() const {
             return prevail_end;
         }
-        const vector<PrePost> &get_pre_post_start() const
-        {
+        const vector<PrePost> &get_pre_post_start() const {
             return pre_post_start;
         }
-        const vector<PrePost> &get_pre_post_end() const
-        {
+        const vector<PrePost> &get_pre_post_end() const {
             return pre_post_end;
         }
-        const vector<ModuleEffect> &get_mod_effs_start() const
-        {
+        const vector<ModuleEffect> &get_mod_effs_start() const {
             return mod_effs_start;
         }
-        const vector<ModuleEffect> &get_mod_effs_end() const
-        {
+        const vector<ModuleEffect> &get_mod_effs_end() const {
             return mod_effs_end;
         }
-        const int &get_duration_var() const
-        {
+        const int &get_duration_var() const {
             return duration_var;
         }
-        const string &get_name() const
-        {
+        const string &get_name() const {
             return name;
         }
 
@@ -99,17 +90,15 @@ class Operator
         }
 };
 
-class ScheduledOperator: public Operator
+class ScheduledOperator : public Operator
 {
     public:
         double time_increment;
         const Operator* origin; // need this for callbacks
-        ScheduledOperator(double t, const Operator& op) :
-            Operator(op), time_increment(t), origin(&op)
+        ScheduledOperator(double t, const Operator& op) : Operator(op), time_increment(t), origin(&op)
         {
         }
-        ScheduledOperator(double t) :
-            Operator(true), time_increment(t), origin(NULL)
+        ScheduledOperator(double t) : Operator(true), time_increment(t), origin(NULL)
         {
             if (time_increment >= HUGE_VAL) {
                 printf(

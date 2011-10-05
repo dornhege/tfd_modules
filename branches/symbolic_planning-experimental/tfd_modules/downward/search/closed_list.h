@@ -10,40 +10,37 @@
 
 struct TssHash
 {
-        std::size_t operator()(const TimeStampedState &/*tss*/) const;
+    std::size_t operator()(const TimeStampedState &/*tss*/) const;
 };
 
 bool prevailEquals(const Prevail &prev1, const Prevail &prev2);
 
-bool scheduledConditionEquals(const ScheduledCondition &cond1,
-        const ScheduledCondition &cond2);
+bool scheduledConditionEquals(const ScheduledCondition &cond1, const ScheduledCondition &cond2);
 
-bool scheduledEffectEquals(const ScheduledEffect &eff1,
-        const ScheduledEffect &eff2);
+bool scheduledEffectEquals(const ScheduledEffect &eff1, const ScheduledEffect &eff2);
 
 struct TssEquals
 {
-        bool operator()(const TimeStampedState &tss1,
-                const TimeStampedState &tss2) const;
+    bool operator()(const TimeStampedState &tss1, const TimeStampedState &tss2) const;
 };
 
 class ClosedList
 {
-        struct PredecessorInfo
+    struct PredecessorInfo
+    {
+        const TimeStampedState *predecessor;
+        const Operator *annotation;
+        PredecessorInfo(const TimeStampedState *pred,
+            const Operator *annote) :
+                predecessor(pred), annotation(annote)
         {
-                const TimeStampedState *predecessor;
-                const Operator *annotation;
-                PredecessorInfo(const TimeStampedState *pred,
-                        const Operator *annote) :
-                    predecessor(pred), annotation(annote)
-                {
-                }
-        };
+        }
+    };
 
-        typedef tr1::unordered_multimap<TimeStampedState, PredecessorInfo,
-                TssHash, TssEquals> ClosedListMap;
-        typedef ClosedListMap::value_type ValuePair;
-        ClosedListMap closed;
+    typedef tr1::unordered_multimap<TimeStampedState, PredecessorInfo, TssHash, TssEquals> ClosedListMap;
+    typedef ClosedListMap::value_type ValuePair;
+    ClosedListMap closed;
+
     public:
         ClosedList();
         ~ClosedList();
@@ -59,8 +56,7 @@ class ClosedList
         double get_min_ts_of_key(const TimeStampedState &state) const;
 
         int size() const;
-        double trace_path(const TimeStampedState &entry,
-                std::vector<PlanStep> &path, PlanTrace &staes) const;
+        double trace_path(const TimeStampedState &entry, std::vector<PlanStep> &path, PlanTrace &staes) const;
         double getCostOfPath(const TimeStampedState &entry) const;
 };
 

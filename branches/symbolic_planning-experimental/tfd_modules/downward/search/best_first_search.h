@@ -13,30 +13,27 @@ using namespace modules;
 
 class Heuristic;
 
-typedef std::tr1::tuple<const TimeStampedState *, const Operator *, double>
-        OpenListEntry;
+typedef std::tr1::tuple<const TimeStampedState *, const Operator *, double> OpenListEntry;
 
 class OpenListEntryCompare
 {
     public:
-        bool operator()(const OpenListEntry left_entry,
-                const OpenListEntry right_entry) const
+        bool operator()(const OpenListEntry left_entry, const OpenListEntry right_entry) const
         {
             return std::tr1::get<2>(right_entry) < std::tr1::get<2>(left_entry);
         }
 };
 
-typedef priority_queue<OpenListEntry, std::vector<OpenListEntry>,
-        OpenListEntryCompare> OpenList;
+typedef priority_queue<OpenListEntry, std::vector<OpenListEntry>,OpenListEntryCompare> OpenList;
 
 struct OpenListInfo
 {
-        OpenListInfo(Heuristic *heur, bool only_pref);
-        Heuristic *heuristic;
-        bool only_preferred_operators;
-        //    OpenList<OpenListEntry> open;
-        OpenList open;
-        int priority; // low value indicates high priority
+    OpenListInfo(Heuristic *heur, bool only_pref);
+    Heuristic *heuristic;
+    bool only_preferred_operators;
+    //    OpenList<OpenListEntry> open;
+    OpenList open;
+    int priority; // low value indicates high priority
 };
 
 typedef std::vector<std::pair<IntermediateStates, double> > SecondClosedList;
@@ -47,7 +44,7 @@ bool tssKnown(SecondClosedList& scl,
 bool tssKnown2(ThirdClosedList& tcl,
         const IntermediateStates& intermediateStates);
 
-class BestFirstSearchEngine: public SearchEngine
+class BestFirstSearchEngine : public SearchEngine
 {
         std::vector<Heuristic *> heuristics;
         std::vector<Heuristic *> preferred_operator_heuristics;
@@ -89,7 +86,6 @@ class BestFirstSearchEngine: public SearchEngine
         void dump_plan_prefix_for__state(const TimeStampedState &state) const;
 
         time_t start_time;
-        time_t last_time;
 
         int currentQueueIndex;
     protected:

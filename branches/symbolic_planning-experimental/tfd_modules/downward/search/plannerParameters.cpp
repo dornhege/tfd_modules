@@ -3,6 +3,7 @@
 #if ROS_BUILD
 #include <ros/ros.h>
 #endif
+#include <stdio.h>
 
 PlannerParameters::PlannerParameters()
 {
@@ -13,6 +14,7 @@ PlannerParameters::PlannerParameters()
 
     greedy = false;
     lazy_evaluation = true;
+    verbose = false;
 
     cyclic_cg_heuristic = false;
     cyclic_cg_preferred_operators = false;
@@ -81,6 +83,7 @@ void PlannerParameters::dump() const
         cout << " (no timeout)";
     cout << endl;
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
+    cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
 
     cout << "Cyclic CG heuristic: " << (cyclic_cg_heuristic ? "Enabled" : "Disabled")
@@ -206,10 +209,12 @@ void PlannerParameters::printUsage() const
     printf("Usage: search <option characters>  (input read from stdin)\n");
     printf("Options are:\n");
     printf("  a - enable anytime search (otherwise finish on first plan found)\n");
-    printf("  t <timeout secs> - timeout in seconds for anytime search (doesnt stop until plan found)\n");
+    printf("  t <timeout secs> - total timeout in seconds for anytime search (when plan found)\n");
+    printf("  T <timeout secs> - total timeout in seconds for anytime search (when no plan found)\n");
     printf("  m <monitor file> - monitor plan, validate a given plan\n");
     printf("  g - perform greedy search (follow heuristic)\n");
     printf("  l - lazy evaluation (Use parent's f instead of child's)\n");
+    printf("  v - enable verbose printouts\n");
     printf("  y - cyclic cg CEA heuristic\n");
     printf("  Y - cyclic cg CEA heuristic - preferred operators\n");
     printf("  x - cyclic cg makespan heuristic \n");
@@ -224,20 +229,16 @@ void PlannerParameters::printUsage() const
 
 bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
 {
-    //Check compliance with scripts
-    //A: tfd_plan (ROS direct - should behave like any ros node) -- Requirements Name=file?
-    //B: tfd_plan_eval -- should somehow work with ROS, ideally like A, but also be evaluatable in multiple parallel runs, maybe without core ... ?!?
-
     for (int i = 1; i < argc; i++) {
-        /*if(strncmp(argv[i], "__", 2) == 0)      // ignore ros options here
-          continue;*/
-        // FIXME: ros::init removed all those -- anything left over at this point is for the planner
         for (const char *c = argv[i]; *c != 0; c++) {
             if (*c == 'a') {
                 anytime_search = true;
             } else if (*c == 't') {
                 assert(i + 1 < argc);
                 timeout_if_plan_found = atoi(string(argv[++i]).c_str());
+            } else if (*c == 'T') {
+                assert(i + 1 < argc);
+                timeout_while_no_plan_found = atoi(string(argv[++i]).c_str());
             } else if (*c == 'm') {
                 assert(i + 1 < argc);
                 planMonitorFileName = string(argv[++i]);
@@ -245,6 +246,8 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                 greedy = true;
             } else if (*c == 'l') {
                 lazy_evaluation = true;
+            } else if (*c == 'v') {
+                verbose = true;
             } else if (*c == 'y') {
                 cyclic_cg_heuristic = true;
             } else if (*c == 'Y') {

@@ -24,6 +24,7 @@ class PlannerParameters
       
       bool greedy;                  ///< Perform greedy search
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
+      bool verbose;                 ///< Verbose outputs
 
       bool cyclic_cg_heuristic;                    ///< Use cyclic_cg heuristic
       bool cyclic_cg_preferred_operators;          ///< Use cyclic_cg heuristic preferred operators

@@ -5,27 +5,18 @@
 
 class TimeStampedState;
 
-class NoHeuristic: public Heuristic
+class NoHeuristic : public Heuristic
 {
-        enum
-        {
+        enum {
             QUITE_A_LOT = 1000000
         };
     protected:
         virtual void initialize();
-        virtual double compute_heuristic(
-                const TimeStampedState &TimeStampedState);
+        virtual double compute_heuristic(const TimeStampedState &TimeStampedState);
     public:
-        NoHeuristic()
-        {
-        }
-        ;
-        ~NoHeuristic()
-        {
-        }
-        ;
-        virtual bool dead_ends_are_reliable()
-        {
+        NoHeuristic() {}
+        ~NoHeuristic() {}
+        virtual bool dead_ends_are_reliable() {
             return true;
         }
 };

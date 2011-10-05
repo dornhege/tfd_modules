@@ -18,17 +18,15 @@ class Heuristic
 
         struct EvaluationInfo
         {
-                EvaluationInfo()
-                {
-                    heuristic = NOT_INITIALIZED;
-                }
-                EvaluationInfo(double heur,
-                        const std::vector<const Operator *> &pref) :
-                    heuristic(heur), preferred_operators(pref)
-                {
-                }
-                double heuristic;
-                std::vector<const Operator *> preferred_operators;
+            EvaluationInfo() {
+                heuristic = NOT_INITIALIZED;
+            }
+            EvaluationInfo(double heur, const std::vector<const Operator *> &pref) :
+                heuristic(heur), preferred_operators(pref)
+            {
+            }
+            double heuristic;
+            std::vector<const Operator *> preferred_operators;
         };
 
         bool use_cache;
