@@ -74,10 +74,15 @@ class MonitorEngine
         MonitorEngine();
         static MonitorEngine* instance;
 
+        static void readPlanFromFile(const string & filename, vector<string> & plan);
+
     public:
         ~MonitorEngine();
 
         static MonitorEngine* getInstance();
+
+        /// Static convenience function to validate the plan from this file.
+        static bool validatePlan(const string & filename);
 
         bool validatePlan(std::vector<std::string> & plan);
 

@@ -24,11 +24,7 @@
 #include <ros/ros.h>
 #endif
 
-#ifdef _WIN32
-#include "pddlModuleLoaderDLL.h"
-#else
 #include <pddlModuleLoaderLDL.h>
-#endif
 
 using namespace std;
 
@@ -36,8 +32,6 @@ using namespace std;
 #include <sys/time.h>
 
 double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name);
-void readPlanFromFile(const string& filename, vector<string>& plan);
-bool validatePlan(vector<string>& plan);
 std::string getTimesName(const string & plan_name);    ///< returns the file name of the .times file for plan_name
 double getCurrentTime();            ///< returns the system time in seconds
 
@@ -112,9 +106,7 @@ int main(int argc, char **argv)
 
     // Monitoring mode
     if (!g_parameters.planMonitorFileName.empty()) {
-        vector<string> plan;
-        readPlanFromFile(g_parameters.planMonitorFileName, plan);
-        bool ret = validatePlan(plan);
+        bool ret = MonitorEngine::validatePlan(g_parameters.planMonitorFileName);
         ROS_INFO_STREAM("Monitoring: Plan is valid: " << ret);
         if(ret)
             exit(0);
@@ -211,25 +203,6 @@ int main(int argc, char **argv)
     return 2;
 }
 
-void readPlanFromFile(const string& filename, vector<string>& plan)
-{
-    ifstream fin(filename.c_str(), ifstream::in);
-    string buffer;
-    while (fin.good()) {
-        getline(fin, buffer, '\n');
-        if(!buffer.empty())
-            plan.push_back(buffer);
-    }
-    fin.close();
-}
-
-bool validatePlan(vector<string> & plan)
-{
-    MonitorEngine* mon = MonitorEngine::getInstance();
-    bool monitor = mon->validatePlan(plan);
-    return monitor;
-}
-
 double getSumOfSubgoals(const vector<PlanStep> &plan)
 {
     double ret = 0.0;
@@ -292,6 +265,11 @@ bool epsilonize_plan(const std::string & filename)
     int ret = system(syscall.c_str());
     if(ret != 0) {
         cerr << __func__ << ": Error executing epsilonize_plan as: " << syscall << endl;
+        // move back instead of copying/retaining .orig although not epsilonized
+        int retMove = rename(orig_file, filename.c_str());
+        if(retMove != 0) {
+            cerr << __func__ << ": Error moving orig file: " << orig_file << " back to: " << filename << endl;
+        }
         delete orig_file;
         return false;
     }

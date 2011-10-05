@@ -46,9 +46,11 @@ bool PlannerParameters::readParameters(int argc, char** argv)
     ret &= readCmdLineParameters(argc, argv);
 
     if(!cyclic_cg_heuristic && !makespan_heuristic && !no_heuristic) {
-        cerr << "Error: you must select at least one heuristic!" << endl
-            << "If you are unsure, choose options \"yY\" / cyclic_cg_heuristic." << endl;
-        ret = false;
+        if(planMonitorFileName.empty()) {   // for monitoring this is irrelevant
+            cerr << "Error: you must select at least one heuristic!" << endl
+                << "If you are unsure, choose options \"yY\" / cyclic_cg_heuristic." << endl;
+            ret = false;
+        }
     }
     if(timeout_if_plan_found < 0) {
         cerr << "Error: timeout_if_plan_found < 0, have: " << timeout_if_plan_found << endl;

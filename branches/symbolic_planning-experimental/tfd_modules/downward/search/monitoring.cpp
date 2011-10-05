@@ -28,6 +28,29 @@ MonitorEngine* MonitorEngine::getInstance()
     return instance;
 }
 
+void MonitorEngine::readPlanFromFile(const string& filename, vector<string>& plan)
+{
+    ifstream fin(filename.c_str(), ifstream::in);
+    string buffer;
+    while(fin.good()) {
+        getline(fin, buffer, '\n');
+        if(!buffer.empty())
+            plan.push_back(buffer);
+    }
+    fin.close();
+}
+
+bool MonitorEngine::validatePlan(const string & filename)
+{
+    vector<string> plan;
+    MonitorEngine::readPlanFromFile(filename, plan);
+
+    MonitorEngine* mon = MonitorEngine::getInstance();
+    bool monitor = mon->validatePlan(plan);
+    return monitor;
+}
+
+
 MonitorEngine::MonitorEngine()
 {
 }
