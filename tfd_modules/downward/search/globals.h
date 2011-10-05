@@ -34,7 +34,6 @@ class EffectModule;
 class CostModule;
 class InitModule;
 class Module;
-class BestFirstSearchEngine;
 
 struct PlanStep
 {
@@ -102,8 +101,6 @@ enum variable_type
     module,
     costmodule
 };
-
-extern BestFirstSearchEngine* g_engine;
 
 extern int g_last_arithmetic_axiom_layer;
 extern int g_comparison_axiom_layer;
