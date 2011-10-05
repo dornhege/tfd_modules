@@ -35,9 +35,7 @@ using namespace std;
 #include <sys/times.h>
 #include <sys/time.h>
 
-double save_plan(const vector<PlanStep> &plan,
-        const PlanTrace &path, double best_makespan,
-        int &plan_number, string &plan_name);
+double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name);
 void readPlanFromFile(const string& filename, vector<string>& plan);
 bool validatePlan(vector<string>& plan);
 std::string getTimesName(const string & plan_name);    ///< returns the file name of the .times file for plan_name
@@ -77,11 +75,8 @@ int main(int argc, char **argv)
         cout << "Starting normal solver." << endl;
     }
 
-#ifdef _WIN32
-    g_module_loader = new PDDLModuleLoaderDLL();
-#else
     g_module_loader = new PDDLModuleLoaderLDL();
-#endif
+
     read_everything(cin);
 
     /*
@@ -127,16 +122,16 @@ int main(int argc, char **argv)
     }
 
     // Initialize search engine and heuristics
-    g_engine = new BestFirstSearchEngine(g_parameters.queueManagementMode);
-    if (g_parameters.makespan_heuristic || g_parameters.makespan_heuristic_preferred_operators)
-        g_engine->add_heuristic(new CyclicCGHeuristic(
+    BestFirstSearchEngine* engine = new BestFirstSearchEngine(g_parameters.queueManagementMode);
+    if(g_parameters.makespan_heuristic || g_parameters.makespan_heuristic_preferred_operators)
+        engine->add_heuristic(new CyclicCGHeuristic(
                     CyclicCGHeuristic::SUFFIX_MAKESPAN), g_parameters.makespan_heuristic,
                 g_parameters.makespan_heuristic_preferred_operators);
-    if (g_parameters.cyclic_cg_heuristic || g_parameters.cyclic_cg_preferred_operators)
-        g_engine->add_heuristic(new CyclicCGHeuristic(CyclicCGHeuristic::CEA),
-                g_parameters.cyclic_cg_heuristic, g_parameters.cyclic_cg_preferred_operators);
-    if (g_parameters.no_heuristic)
-        g_engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
+    if(g_parameters.cyclic_cg_heuristic || g_parameters.cyclic_cg_preferred_operators)
+        engine->add_heuristic(new CyclicCGHeuristic(CyclicCGHeuristic::CEA), g_parameters.cyclic_cg_heuristic,
+            g_parameters.cyclic_cg_preferred_operators);
+    if(g_parameters.no_heuristic)
+        engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
 
     double best_makespan = REALLYBIG;
 
@@ -147,16 +142,13 @@ int main(int argc, char **argv)
 
     SearchEngine::status search_result = SearchEngine::IN_PROGRESS;
     while(true) {
-        g_engine->initialize();
-        search_result = g_engine->search();
+        engine->initialize();
+        search_result = engine->search();
 
         times(&search_end);
         search_end_walltime = getCurrentTime();
-
-        if(g_engine->found_solution()) {
-            best_makespan
-                = save_plan(g_engine->get_plan(), g_engine->get_path(),
-                        best_makespan, plan_number, g_parameters.plan_name);
+        if(engine->found_solution()) {
+            best_makespan = save_plan(*engine, best_makespan, plan_number, g_parameters.plan_name);
             // write plan length and search time to file
             if(timeDebugFile && search_result == SearchEngine::SOLVED) {    // don't write info for timeout
                 int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
@@ -170,10 +162,10 @@ int main(int argc, char **argv)
                         search_time_wall, total_time_wall);
                 fflush(timeDebugFile);
             }
-            g_engine->bestMakespan = best_makespan;
+            engine->bestMakespan = best_makespan;
             if(g_parameters.anytime_search) {
                 if (search_result == SearchEngine::SOLVED) {
-                    g_engine->fetch_next_state();
+                    engine->fetch_next_state();
                 } else {
                     break;
                 }
@@ -210,7 +202,7 @@ int main(int argc, char **argv)
         case SearchEngine::SOLVED:
             return 0;
         case SearchEngine::FAILED:
-            assert (!g_engine->found_at_least_one_solution());
+            assert (!engine->found_at_least_one_solution());
             return 1;
         default:
             cerr << "Invalid Search return value: " << search_result << endl;
@@ -307,10 +299,11 @@ bool epsilonize_plan(const std::string & filename)
     return true;
 }
 
-double save_plan(const vector<PlanStep> &plan,
-        const PlanTrace &path, double best_makespan,
-        int &plan_number, string &plan_name)
+double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name)
 {
+    const vector<PlanStep> &plan = engine.get_plan();
+    const PlanTrace &path = engine.get_path();
+
     /*for(int i = 0; i < path.size(); ++i) {
       path[i]->dump();
       }*/
@@ -372,7 +365,7 @@ double save_plan(const vector<PlanStep> &plan,
     }
 
     double makespan = 0;
-    for (int i = 0; i < new_plan.size(); i++) {
+    for(int i = 0; i < new_plan.size(); i++) {
         double end_time = new_plan[i].start_time + new_plan[i].duration;
         makespan = max(makespan, end_time);
     }
@@ -386,29 +379,28 @@ double save_plan(const vector<PlanStep> &plan,
     //    double sumOfSubgoals = getSumOfSubgoals(path);
     double sumOfSubgoals = getSumOfSubgoals(new_plan);
 
-    if (makespan > best_makespan)
+    if(makespan > best_makespan)
         return best_makespan;
     if (double_equals(makespan, best_makespan)) {
         //        cout << "Sum of goals: " << sumOfSubgoals << endl;
-        if (sumOfSubgoals < g_engine->bestSumOfGoals) {
+        if (sumOfSubgoals < engine.bestSumOfGoals) {
             cout
                 << "Found plan of equal makespan but with faster solved subgoals."
                 << endl;
             cout << "Sum of subgoals = " << sumOfSubgoals << endl;
-            g_engine->bestSumOfGoals = sumOfSubgoals;
+            engine.bestSumOfGoals = sumOfSubgoals;
         } else {
             return best_makespan;
         }
     } else {
         assert(makespan < best_makespan);
-        g_engine->bestSumOfGoals = sumOfSubgoals;
+        engine.bestSumOfGoals = sumOfSubgoals;
     }
 
     cout << "Plan:" << endl;
-    for (int i = 0; i < plan.size(); i++) {
+    for(int i = 0; i < plan.size(); i++) {
         const PlanStep& step = plan[i];
-        fprintf(stderr, "%.8f: (%s) [%.8f]\n", step.start_time,
-                step.op->get_name().c_str(), step.duration);
+        printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
     }
 
     cout << "new Plan:" << endl;

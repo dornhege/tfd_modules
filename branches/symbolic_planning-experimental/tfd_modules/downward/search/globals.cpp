@@ -18,7 +18,6 @@ using namespace modules;
 #include "operator.h"
 #include "state.h"
 #include "successor_generator.h"
-#include "best_first_search.h"
 #include "plannerParameters.h"
 
 static const bool s_OutputPredMappings = false;
@@ -513,8 +512,6 @@ void dump_DTGs()
         g_transition_graphs[i]->dump();
     }
 }
-
-BestFirstSearchEngine* g_engine;
 
 const TimeStampedState* g_modulecallback_state = NULL;
 
