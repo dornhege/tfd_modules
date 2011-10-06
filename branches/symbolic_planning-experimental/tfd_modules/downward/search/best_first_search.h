@@ -42,6 +42,7 @@ bool tssKnown2(ThirdClosedList& scl,
 
 class BestFirstSearchEngine : public SearchEngine
 {
+    private:
         std::vector<Heuristic *> heuristics;
         std::vector<Heuristic *> preferred_operator_heuristics;
         std::vector<OpenListInfo> open_lists;
@@ -66,6 +67,10 @@ class BestFirstSearchEngine : public SearchEngine
         const TimeStampedState *current_predecessor;
         const Operator *current_operator;
 
+        time_t start_time;
+        int currentQueueIndex;
+
+    private:
         bool is_dead_end();
         bool check_goal();
         bool check_progress(const TimeStampedState* state);
@@ -80,11 +85,16 @@ class BestFirstSearchEngine : public SearchEngine
         void dump_plan_prefix_for_current_state() const;
         void dump_plan_prefix_for__state(const TimeStampedState &state) const;
 
-        time_t start_time;
+        /// Compute G depending on the current g mode.
+        double getG(const TimeStampedState* state_ptr, const TimeStampedState* closed_ptr, const Operator* op) const;
+        double getGc(const TimeStampedState *parent_ptr) const;
+        double getGc(const TimeStampedState *parent_ptr, const Operator *op) const;
+        double getGm(const TimeStampedState *parent_ptr) const;
+        double getGt(const TimeStampedState *parent_ptr) const;
 
-        int currentQueueIndex;
     protected:
         virtual SearchEngine::status step();
+
     public:
         enum QueueManagementMode
         {
@@ -97,12 +107,9 @@ class BestFirstSearchEngine : public SearchEngine
         virtual void statistics(time_t & current_time) const;
         virtual void initialize();
         SearchEngine::status fetch_next_state();
+
+    public:
         double bestMakespan;
-        double getGc(const TimeStampedState *parent_ptr);
-        double getGc(const TimeStampedState *parent_ptr, const Operator *op);
-        double getGm(const TimeStampedState *parent_ptr);
-        double getGt(const TimeStampedState *parent_ptr);
-        TimeStampedState* get_current_state();
         double bestSumOfGoals;
 };
 

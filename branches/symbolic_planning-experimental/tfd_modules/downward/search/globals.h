@@ -61,16 +61,6 @@ class PlanStepCompareStartTime
 typedef std::vector<PlanStep> Plan;
 typedef std::vector<TimeStampedState*> PlanTrace;
 
-struct PredecessorInfo
-{
-        const TimeStampedState *predecessor;
-        const Operator *annotation;
-        PredecessorInfo(const TimeStampedState *pred, const Operator *annote) :
-            predecessor(pred), annotation(annote)
-        {
-        }
-};
-
 bool double_equals(double a, double b);
 
 const int REALLYBIG = 9999999;
