@@ -43,7 +43,7 @@ class LogicAxiom : public Axiom
         bool is_applicable(const TimeStampedState &state) const
         {
             for(int i = 0; i < prevail.size(); i++)
-                if(!prevail[i].is_applicableHACK(state))
+                if(!prevail[i].is_applicable(state, NULL, false))
                     return false;
             return true;
         }

@@ -36,13 +36,9 @@ struct OpenListInfo
     int priority; // low value indicates high priority
 };
 
-typedef std::vector<std::pair<IntermediateStates, double> > SecondClosedList;
 typedef std::map<std::vector<double>, double> ThirdClosedList;
-
-bool tssKnown(SecondClosedList& scl,
-        const IntermediateStates& intermediateStates, double timeStamp);
-bool tssKnown2(ThirdClosedList& tcl,
-        const IntermediateStates& intermediateStates);
+bool tssKnown2(ThirdClosedList& scl,
+        const TimedSymbolicStates& timedSymbolicStates);
 
 class BestFirstSearchEngine : public SearchEngine
 {
@@ -50,7 +46,6 @@ class BestFirstSearchEngine : public SearchEngine
         std::vector<Heuristic *> preferred_operator_heuristics;
         std::vector<OpenListInfo> open_lists;
         ClosedList closed_list;
-        SecondClosedList scl;
         ThirdClosedList tcl;
 
         std::vector<double> best_heuristic_values;
@@ -76,7 +71,7 @@ class BestFirstSearchEngine : public SearchEngine
         bool check_progress(const TimeStampedState* state);
         void report_progress();
         void reward_progress();
-        void generate_successors(ClosedListInfo *closedListInfo);
+        void generate_successors(const TimeStampedState *parent_ptr);
         void dump_transition() const;
         /// Dump the whole knowledge of search engine.
         void dump_everything() const;

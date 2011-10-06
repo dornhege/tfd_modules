@@ -168,10 +168,9 @@ SearchEngine::status BestFirstSearchEngine::step()
     }
 
     if(!discard) {
-        ClosedListInfo* closedListInfo = closed_list.insert(current_state,
+        // FIXME: What is the difference between parent_ptr and current_state?
+        const TimeStampedState *parent_ptr = closed_list.insert(current_state,
                 current_predecessor, current_operator);
-        const TimeStampedState *parent_ptr = closedListInfo->first;
-
         assert(&current_state != current_predecessor);
 
         //	cout << "................" << endl;
@@ -201,7 +200,7 @@ SearchEngine::status BestFirstSearchEngine::step()
             }
             if(check_goal())
                 return SOLVED;
-            generate_successors(closedListInfo);
+            generate_successors(parent_ptr);
         }
     }
 
@@ -214,9 +213,8 @@ SearchEngine::status BestFirstSearchEngine::step()
     //    cout << "---------------------------------------" << endl << endl << endl;
 
     time_t current_time = time(NULL);
-
     static time_t last_stat_time = current_time;
-    if(current_time - last_stat_time > 10.0) {
+    if(g_parameters.verbose && current_time - last_stat_time >= 10) {
         statistics(current_time);
         last_stat_time = current_time;
     }
@@ -225,13 +223,15 @@ SearchEngine::status BestFirstSearchEngine::step()
     if(found_solution()) {
         if (g_parameters.timeout_if_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_if_plan_found) {
-            statistics(current_time);
+            if(g_parameters.verbose)
+                statistics(current_time);
             return SOLVED_TIMEOUT;
         }
     } else {
         if (g_parameters.timeout_while_no_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_while_no_plan_found) {
-            statistics(current_time);
+            if(g_parameters.verbose)
+                statistics(current_time);
             return FAILED_TIMEOUT;
         }
     }
@@ -387,63 +387,6 @@ double BestFirstSearchEngine::getGt(const TimeStampedState *state)
     return state->timestamp;
 }
 
-bool tssKnown(SecondClosedList& scl,
-        const IntermediateStates& intermediateStates, double timeStamp)
-{
-
-    assert(intermediateStates.size() > 0);
-
-    //    cout << "SCL:" << endl;
-    //    for(int i = 0; i < scl.size(); ++i) {
-    //        for(int j = 0; j < scl[i].first.size(); ++j) {
-    //            for(int k = 0; k < scl[i].first[j].size(); ++k) {
-    //                cout << scl[i].first[j][k] << " ";
-    //            }
-    //            cout << endl;
-    //        }
-    //        cout << endl;
-    //    }
-    //    cout << endl;
-    //
-    //    cout << "InterStates:" << endl;
-    //    for(int i = 0; i < intermediateStates.size(); ++i) {
-    //        for(int j = 0; j < intermediateStates[i].size(); ++j) {
-    //            cout << intermediateStates[i][j] << " ";
-    //        }
-    //        cout << endl;
-    //    }
-    //    cout << endl;
-
-    for (int i = 0; i < scl.size(); ++i) {
-        bool breakOuter = false;
-        if (scl[i].first.size() < intermediateStates.size()) {
-            continue;
-        }
-        for (int j = 0; j < scl[i].first.size(); ++j) {
-            if (breakOuter) {
-                break;
-            }
-            for (int k = 0; k < scl[i].first[j].size(); ++k) {
-                if (!double_equals(scl[i].first[j][k], intermediateStates[j][k])) {
-                    breakOuter = true;
-                    break;
-                }
-            }
-        }
-        if (!breakOuter) {
-            assert(i < scl.size());
-            if (scl[i].second + EPSILON <= timeStamp) {
-                return true;
-            } else {
-                scl[i].second = timeStamp;
-                return false;
-            }
-        }
-    }
-    scl.push_back(make_pair(intermediateStates, timeStamp));
-    return false;
-}
-
 bool tssKnown2(ThirdClosedList& scl,
         const TimedSymbolicStates& timedSymbolicStates)
 {
@@ -465,9 +408,8 @@ bool tssKnown2(ThirdClosedList& scl,
     return ret;
 }
 
-void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
+void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_ptr)
 {
-    const TimeStampedState* parent_ptr = closedListInfo->first;
     vector<const Operator *> all_operators;
     g_successor_generator->generate_applicable_ops(current_state, all_operators);
 
@@ -590,7 +532,7 @@ void BestFirstSearchEngine::generate_successors(ClosedListInfo* closedListInfo)
             maxTimeIncrement = max(maxTimeIncrement, duration);
             double makeSpan = maxTimeIncrement + current_state.timestamp;
             TimedSymbolicStates timedSymbolicStates;
-            if (ops[j]->is_applicable2(closedListInfo, timedSymbolicStates, false) &&
+            if (ops[j]->is_applicable(*parent_ptr, timedSymbolicStates, false) &&
                     makeSpan < bestMakespan &&
                     (!g_parameters.use_tss_known || !tssKnown2(tcl,timedSymbolicStates))   // use_tss_known => !tssKnow2
                ) {
@@ -731,11 +673,9 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 
     const TimeStampedState* state = std::tr1::get<0>(next);
     const Operator* op = std::tr1::get<1>(next);
-    ClosedListInfo closed_info = make_pair(state, op);
 
-    IntermediateStates intermediateStates;
-    if (op != g_let_time_pass && !op->is_applicable(&closed_info,
-                intermediateStates)) {
+    TimedSymbolicStates tss;
+    if (op != g_let_time_pass && !op->is_applicable(*state, tss, false)) {
         return fetch_next_state();
     }
     open_info->priority++;

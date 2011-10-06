@@ -176,15 +176,14 @@ bool TssEquals::operator()(const TimeStampedState &tss1, const TimeStampedState 
 //}
 
 
-pair<const TimeStampedState*, const Operator*>* ClosedList::insert(
+const TimeStampedState *ClosedList::insert(
         TimeStampedState &entry, const TimeStampedState *predecessor,
         const Operator *annotation)
 {
     ClosedListMap::iterator ret =
         closed.insert(ValuePair(entry, PredecessorInfo(predecessor, annotation)));
     //    assert(ret.second);
-    return new pair<const TimeStampedState*, const Operator*> (&(ret->first),
-            ret->second.annotation);
+    return &ret->first;
 }
 
 void ClosedList::clear()

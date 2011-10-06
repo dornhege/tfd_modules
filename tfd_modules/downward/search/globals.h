@@ -71,9 +71,6 @@ struct PredecessorInfo
         }
 };
 
-/// this represents a state and the stored operator leading to the stored state.
-typedef pair<const TimeStampedState*, const Operator*> ClosedListInfo;
-
 bool double_equals(double a, double b);
 
 const int REALLYBIG = 9999999;

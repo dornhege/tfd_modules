@@ -299,9 +299,8 @@ bool FullPlanTrace::isApplicable(const Operator* op) const
     if(plan.empty())
         return false;
 
-    ClosedListInfo cli = make_pair(&plan.back().state, op);
-    IntermediateStates is;  // never used???
-    return op->is_applicable(&cli, is); // FIXME: why again op - what is the semantics of op in CLI
+    TimedSymbolicStates tss;  // never used
+    return op->is_applicable(plan.back().state, tss, false);
 }
 
 FullPlanTrace FullPlanTrace::applyOperator(const Operator* op) const

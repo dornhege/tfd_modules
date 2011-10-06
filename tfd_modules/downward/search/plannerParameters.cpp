@@ -14,7 +14,7 @@ PlannerParameters::PlannerParameters()
 
     greedy = false;
     lazy_evaluation = true;
-    verbose = false;
+    verbose = true;
 
     cyclic_cg_heuristic = false;
     cyclic_cg_preferred_operators = false;
@@ -217,7 +217,7 @@ void PlannerParameters::printUsage() const
     printf("  m <monitor file> - monitor plan, validate a given plan\n");
     printf("  g - perform greedy search (follow heuristic)\n");
     printf("  l - lazy evaluation (Use parent's f instead of child's)\n");
-    printf("  v - enable verbose printouts\n");
+    printf("  v - disable verbose printouts\n");
     printf("  y - cyclic cg CEA heuristic\n");
     printf("  Y - cyclic cg CEA heuristic - preferred operators\n");
     printf("  x - cyclic cg makespan heuristic \n");
@@ -250,7 +250,7 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
             } else if (*c == 'l') {
                 lazy_evaluation = true;
             } else if (*c == 'v') {
-                verbose = true;
+                verbose = false;
             } else if (*c == 'y') {
                 cyclic_cg_heuristic = true;
             } else if (*c == 'Y') {

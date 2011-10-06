@@ -73,14 +73,9 @@ class Operator
          */
         double get_duration(const TimeStampedState* state, int relaxed = 0) const;
 
-        bool is_applicable(ClosedListInfo* closedListInfo,
-                IntermediateStates& intermediateStates, bool allowRelaxed =
-                        false) const;
+        bool is_applicable(const TimeStampedState & state,
+            TimedSymbolicStates& timedSymbolicStates, bool allowRelaxed) const;
 
-        bool
-                is_applicable2(ClosedListInfo* closedListInfo,
-                        TimedSymbolicStates& timedSymbolicStates,
-                        bool allowRelaxed) const;
         bool isDisabledBy(const Operator* other) const;
 
         bool enables(const Operator* other) const;

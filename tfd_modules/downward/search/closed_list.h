@@ -44,8 +44,8 @@ class ClosedList
     public:
         ClosedList();
         ~ClosedList();
-        pair<const TimeStampedState*, const Operator*>* insert(
-                TimeStampedState &entry, const TimeStampedState *predecessor,
+        const TimeStampedState *insert(TimeStampedState &entry,
+                const TimeStampedState *predecessor,
                 const Operator *annotation);
         void clear();
 
