@@ -17,11 +17,11 @@ bool Prevail::is_applicable(const TimeStampedState &state, const Operator * op,
     assert(var >= 0 && var < g_variable_name.size());
     assert((prev >= 0 && prev < g_variable_domain[var]) || (g_variable_types[var] == module));
     if(g_variable_types[var] == module) {
+        assert(op != NULL);     // there should always be an operator unless 
+                                // called from LogicAxiom, where it should not be a module
+        if(op == NULL)
+            return false;
 
-        if(op == NULL) {
-            printf("well that didnt work.\n");
-            exit(1);
-        }
         pair<const TimeStampedState*, const Operator*> * pcPtr = new pair<
             const TimeStampedState*, const Operator*> (&state, op);
         plannerContextPtr pc = pcPtr;
@@ -40,14 +40,6 @@ bool Prevail::is_applicable(const TimeStampedState &state, const Operator * op,
     } else {
         return double_equals(state[var], prev);
     }
-}
-
-bool Prevail::is_applicableHACK(const TimeStampedState &state) const
-{
-    assert(var >= 0 && var < g_variable_name.size());
-    assert((prev >= 0 && prev < g_variable_domain[var]) || (g_variable_types[var] == module));
-    assert(!(g_variable_types[var] == module));
-    return double_equals(state[var], prev);
 }
 
 PrePost::PrePost(istream &in)
@@ -219,14 +211,10 @@ void Operator::dump() const
     cout << endl;
 }
 
-bool Operator::is_applicable(ClosedListInfo* closedListInfo,
-        IntermediateStates& intermediateStates, bool allowRelaxed) const
+bool Operator::is_applicable(const TimeStampedState & state,
+        TimedSymbolicStates& timedSymbolicStates, bool allowRelaxed) const
 {
-    const TimeStampedState &state = *(closedListInfo->first);
-    //FIXME: ClosedListInfo?????? necessary??
-    //    const Operator* old_op = closedListInfo->second;
-
-    //FIXME: query duration now (wasted call) just to check applicability: use caching?
+    // query duration now (wasted call) just to check applicability: caching?
     double duration = get_duration(&state);
     if(duration <= 0 || duration >= INFINITE_COST)
         return false;
@@ -256,8 +244,9 @@ bool Operator::is_applicable(ClosedListInfo* closedListInfo,
         if(state.operators[i].get_name() == get_name())
             return false;
 
-    return TimeStampedState(*(closedListInfo->first), *this).is_consistent_when_progressed(intermediateStates);
+    return TimeStampedState(state, *this).is_consistent_when_progressed(timedSymbolicStates);
 }
+
 
 bool Operator::isDisabledBy(const Operator* other) const
 {
@@ -418,47 +407,6 @@ double Operator::get_duration(const TimeStampedState* state, int relaxed) const
 
     // default behaviour: duration is defined by duration_var
     return (*state)[duration_var];
-}
-
-bool Operator::is_applicable2(ClosedListInfo* closedListInfo,
-        TimedSymbolicStates& timedSymbolicStates, bool allowRelaxed) const
-{
-    const TimeStampedState &state = *(closedListInfo->first);
-    // ClosedListInfo?????? necessary??
-    //    const Operator* old_op = closedListInfo->second;
-
-    //: query duration now (wasted call) just to check applicability: caching?
-    double duration = get_duration(&state);
-    if(duration <= 0 || duration >= INFINITE_COST)
-        return false;
-
-    for(int i = 0; i < pre_post_start.size(); i++)
-        if(!pre_post_start[i].is_applicable(state))
-            return false;
-
-    for(int i = 0; i < prevail_start.size(); i++)
-        if(!prevail_start[i].is_applicable(state, this, allowRelaxed)) //FIXME: is this a temporaray??????????
-            return false;
-
-    // Make sure that there is no other operator currently running, that
-    // has the same end timepoint as this operator would have.
-    //for(int i = 0; i < state.scheduled_effects.size(); i++) {
-    //if(double_equals(state.scheduled_effects[i].time_increment,
-    //    state[duration_var])) {
-    //    return false;
-    //}
-    //}
-
-    // There may be no simultaneous applications of two instances of the
-    // same ground operator (for technical reasons, to simplify the task
-    // of keeping track of durations committed to at the start of the
-    // operator application)
-    for(int i = 0; i < state.operators.size(); i++)
-        if(state.operators[i].get_name() == get_name())
-            return false;
-
-    return TimeStampedState(*(closedListInfo->first), *this).is_consistent_when_progressed(
-            timedSymbolicStates);
 }
 
 bool Operator::operator<(const Operator &other) const

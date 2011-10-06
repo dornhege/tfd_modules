@@ -30,7 +30,6 @@ struct Prevail
     }
 
     bool is_applicable(const TimeStampedState & state, const Operator* op, bool allowRelaxed = false) const;
-    bool is_applicableHACK(const TimeStampedState& state) const;
 
     void dump() const;
 
@@ -275,7 +274,6 @@ struct ScheduledCondition : public Prevail
 };
 
 class ScheduledOperator;
-typedef std::vector<std::vector<double> > IntermediateStates;
 
 typedef std::pair<std::vector<double>, double> TimedSymbolicState;
 typedef std::vector<TimedSymbolicState> TimedSymbolicStates;
@@ -393,10 +391,7 @@ class TimeStampedState
         double next_happening() const;
 
         bool is_consistent_now() const;
-        bool is_consistent_when_progressed(
-                IntermediateStates& intermediateStates) const;
-        bool is_consistent_when_progressed(
-                TimedSymbolicStates& timedSymbolicStates) const;
+        bool is_consistent_when_progressed(TimedSymbolicStates& timedSymbolicStates) const;
 
         bool operator<(const TimeStampedState &other) const;
 
