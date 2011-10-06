@@ -21,8 +21,7 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
     if(label->duration_variable != -1) {
         if(label->duration_variable == -2) {
             assert(false);
-            ScheduledOperator *s_op =
-                dynamic_cast<ScheduledOperator*> (label->op);
+            ScheduledOperator *s_op = dynamic_cast<ScheduledOperator*>(label->op);
             assert(s_op);
             g_HACK()->waiting_time = max(g_HACK()->waiting_time,
                     s_op->time_increment);

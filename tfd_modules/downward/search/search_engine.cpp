@@ -50,7 +50,7 @@ const PlanTrace& SearchEngine::get_path() const
 
 void SearchEngine::set_path(const PlanTrace &states)
 {
-    // We need to free the old path as closed_list created new TSSs for us.
+    // We need to free the old path as ClosedList::trace_path created new TSSs for us.
     for(PlanTrace::const_iterator it = path.begin(); it != path.end(); it++)
         delete (*it);
     path.clear();
