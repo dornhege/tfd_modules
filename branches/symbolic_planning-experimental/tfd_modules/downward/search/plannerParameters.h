@@ -47,6 +47,7 @@ class PlannerParameters
       bool use_tss_known;         ///< Enable tss known filtering (might crop search space!)
  
       string plan_name;             ///< File prefix for outputting plans
+      bool keep_original_plans;     ///< Store non-epsilonized plans as "...orig" files
       string planMonitorFileName;   ///< Filename for monitoring (if set, implies monitoring mode)
 
       bool monitoring_verify_timestamps;     ///< During monitoring only accept the monitored plan if the timestamps match the original one.

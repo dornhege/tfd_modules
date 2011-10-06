@@ -152,14 +152,11 @@ SearchEngine::status BestFirstSearchEngine::step()
     // - current_predecessor is a permanent pointer to the predecessor of that state.
     // - current_operator is the operator which leads to current_state from predecessor.
 
-    //cout << endl << endl << "==============================" << endl << "DEBUG: New Step." << endl;
-
     bool discard = true;
 
     double maxTimeIncrement = 0.0;
     for(int k = 0; k < current_state.operators.size(); ++k) {
-        maxTimeIncrement = max(maxTimeIncrement,
-            current_state.operators[k].time_increment);
+        maxTimeIncrement = max(maxTimeIncrement, current_state.operators[k].time_increment);
     }
     double makeSpan = maxTimeIncrement + current_state.timestamp;
 

@@ -30,6 +30,7 @@ PlannerParameters::PlannerParameters()
     use_tss_known = false;
 
     plan_name = "sas_plan";
+    keep_original_plans = true;
     planMonitorFileName = "";
 
     monitoring_verify_timestamps = false;

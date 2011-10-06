@@ -237,16 +237,18 @@ double getSumOfSubgoals(const PlanTrace &path)
 /**
  * Uses a syscall to epsilonize_plan in tfd_modules package.
  *
+ * This will result in the file "filename" copied at "filename.orig" and
+ * "filename" being the epsilonized version.
+ *
  * \returns true, if the syscall was successfull.
  */
-bool epsilonize_plan(const std::string & filename)
+bool epsilonize_plan(const std::string & filename, bool keepOriginalPlan = true)
 {
     // get a temp file name
-    char* orig_file = new char[filename.length() + 10];
-    sprintf(orig_file, "%s.orig", filename.c_str());
+    std::string orig_file = filename + ".orig";
 
-    // first move filename to ...orig file
-    int retMove = rename(filename.c_str(), orig_file);
+    // first move filename to ...orig file, FIXME copy better?
+    int retMove = rename(filename.c_str(), orig_file.c_str());
     if(retMove != 0) {
         cerr << __func__ << ": Error moving to orig file: " << orig_file << " from: " << filename << endl;
         return false;
@@ -259,19 +261,22 @@ bool epsilonize_plan(const std::string & filename)
     std::string syscall = "epsilonize_plan.py";
 #endif
     // read in the orig plan filename and output to filename
-    syscall += " < " + std::string(orig_file) + " > " + filename;  
+    syscall += " < " + orig_file + " > " + filename;  
 
-    // execute
+    // execute epsilonize
     int ret = system(syscall.c_str());
     if(ret != 0) {
         cerr << __func__ << ": Error executing epsilonize_plan as: " << syscall << endl;
         // move back instead of copying/retaining .orig although not epsilonized
-        int retMove = rename(orig_file, filename.c_str());
+        int retMove = rename(orig_file.c_str(), filename.c_str());
         if(retMove != 0) {
             cerr << __func__ << ": Error moving orig file: " << orig_file << " back to: " << filename << endl;
         }
-        delete orig_file;
         return false;
+    }
+
+    if(!keepOriginalPlan) {
+        remove(orig_file.c_str());  // don't care about return value, can't do anything if it fails
     }
 
     return true;
@@ -282,24 +287,9 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     const vector<PlanStep> &plan = engine.get_plan();
     const PlanTrace &path = engine.get_path();
 
-    /*for(int i = 0; i < path.size(); ++i) {
-      path[i]->dump();
-      }*/
     const bool RESCHEDULE = false;
 
     PartialOrderLifter partialOrderLifter(plan, path);
-
-    /*    for(int i = 0; i < plan.size(); ++i) {
-          plan[i].dump();
-          }
-
-          cout << "-------------------------------------" << endl;
-          for(int i = 0; i < path.size(); ++i) {
-          cout << "PATH STEP: " << i << endl;
-          path[i]->dump();
-          cout << "-------------------------------------" << endl;
-          }
-          */
 
     Plan new_plan = plan;
     if (RESCHEDULE)
@@ -396,65 +386,70 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
         cout << "Solution was epsilonized to a makespan of " << makespan << "."
             << endl;
 
+    // Determine filenames to write to
     FILE *file = 0;
     FILE *best_file = 0;
-    char* plan_filename = NULL;
-    char* best_plan_filename = NULL;
+    std::string plan_filename;
+    std::string best_plan_filename;
     if (plan_name != "-") {
-        int len = static_cast<int> (plan_name.size() + 5 + log10(plan_number) + 10);
-        best_plan_filename = (char*) malloc(len * sizeof(char));
-        sprintf(best_plan_filename, "%s.best", plan_name.c_str());
-        plan_filename = (char*) malloc(len * sizeof(char));
-        if (g_parameters.anytime_search)
-            sprintf(plan_filename, "%s.%d", plan_name.c_str(), plan_number);
-        else
-            sprintf(plan_filename, "%s", plan_name.c_str());
+        // Construct planNrStr to get 42 into "42".
+        int nrLen = log10(plan_number) + 10;
+        char* planNr = (char*)malloc(nrLen * sizeof(char));
+        sprintf(planNr, "%d", plan_number);
+        std::string planNrStr = planNr;
+        free(planNr);
 
-        //printf("FILENAME: %s\n", plan_filename);
-        file = fopen(plan_filename, "w");
-        best_file = fopen(best_plan_filename, "w");
+        // Construct filenames
+        best_plan_filename = plan_name + ".best";
+        if (g_parameters.anytime_search)
+            plan_filename = plan_name + "." + planNrStr;
+        else
+            plan_filename = plan_name;
+
+        // open files
+        file = fopen(plan_filename.c_str(), "w");
+        best_file = fopen(best_plan_filename.c_str(), "w");
 
         if(file == NULL) {
-            fprintf(stderr, "%s:\n  Could not open plan file %s.\n", __PRETTY_FUNCTION__, plan_filename);
+            fprintf(stderr, "%s:\n  Could not open plan file %s for writing.\n", 
+                    __PRETTY_FUNCTION__, plan_filename.c_str());
             return makespan;
         }
     } else {
         file = stdout;
     }
 
+    // Actually write the plan
     plan_number++;
-    for (int i = 0; i < new_plan.size(); i++) {
+    for(int i = 0; i < new_plan.size(); i++) {
         const PlanStep& step = new_plan[i];
-        fprintf(file, "%.8f: (%s) [%.8f]\n", step.start_time,
-                step.op->get_name().c_str(), step.duration);
+        fprintf(file, "%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
         if (best_file) {
-            fprintf(best_file, "%.8f: (%s) [%.8f]\n", step.start_time,
-                    step.op->get_name().c_str(), step.duration);
+            fprintf(best_file, "%.8f: (%s) [%.8f]\n", 
+                step.start_time, step.op->get_name().c_str(), step.duration);
         }
-        //	printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
     }
 
     if (plan_name != "-") {
         fclose(file);
-        fclose(best_file);
+        if(best_file)
+            fclose(best_file);
     }
 
     cout << "Plan length: " << new_plan.size() << " step(s)." << endl;
     cout << "Makespan   : " << makespan << endl;
 
-    if(plan_filename != NULL) {
-        bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename);
+    // Perform epsilonize
+    if(!plan_filename.empty()) {
+        bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename, g_parameters.keep_original_plans);
         if(!ret_of_epsilonize_plan)
             cout << "Error while calling epsilonize plan! File: " << plan_filename << endl;
     }
-    if(best_plan_filename != NULL) {
-        bool ret_of_epsilonize_best_plan = epsilonize_plan(best_plan_filename);
+    if(!best_plan_filename.empty()) {
+        bool ret_of_epsilonize_best_plan = epsilonize_plan(best_plan_filename, g_parameters.keep_original_plans);
         if(!ret_of_epsilonize_best_plan)
             cout << "Error while calling epsilonize best_plan! File: " << best_plan_filename << endl;
     }
-
-    free(plan_filename);
-    free(best_plan_filename);
 
     return makespan;
 }
