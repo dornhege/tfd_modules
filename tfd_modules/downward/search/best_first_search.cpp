@@ -40,12 +40,6 @@ BestFirstSearchEngine::~BestFirstSearchEngine()
 {
 }
 
-TimeStampedState* BestFirstSearchEngine::get_current_state()
-{
-    return &current_state;
-}
-
-
 void BestFirstSearchEngine::add_heuristic(Heuristic *heuristic,
         bool use_estimates, bool use_preferred_operators)
 {
@@ -159,9 +153,6 @@ SearchEngine::status BestFirstSearchEngine::step()
         maxTimeIncrement = max(maxTimeIncrement, current_state.operators[k].time_increment);
     }
     double makeSpan = maxTimeIncrement + current_state.timestamp;
-
-    cout << setprecision(10);
-    //    cout << "makeSpan: " << makeSpan << ", bestMakespan: " << bestMakespan << endl;
 
     if (makeSpan < bestMakespan && !closed_list.contains(current_state)) {
         discard = false;
@@ -351,42 +342,6 @@ void BestFirstSearchEngine::reward_progress()
             open_lists[i].priority -= 1000;
 }
 
-double BestFirstSearchEngine::getGc(const TimeStampedState *state)
-{
-    return closed_list.getCostOfPath(*state);
-}
-
-double BestFirstSearchEngine::getGc(const TimeStampedState *state,
-        const Operator *op)
-{
-    double opCost = 0.0;
-    if (op && op != g_let_time_pass) {
-        opCost += op->get_duration(state);
-    }
-    return getGc(state) + opCost;
-}
-
-double BestFirstSearchEngine::getGm(const TimeStampedState *state)
-{
-    double longestActionDuration = 0.0;
-    for (int i = 0; i < state->operators.size(); ++i) {
-        const ScheduledOperator* op = &state->operators[i];
-        double duration = 0.0;
-        if (op && op != g_let_time_pass) {
-            duration = op->origin->get_duration(state);  // FIXME use origin
-        }
-        if (duration > longestActionDuration) {
-            longestActionDuration = duration;
-        }
-    }
-    return state->timestamp + longestActionDuration;
-}
-
-double BestFirstSearchEngine::getGt(const TimeStampedState *state)
-{
-    return state->timestamp;
-}
-
 bool tssKnown2(ThirdClosedList& scl,
         const TimedSymbolicStates& timedSymbolicStates)
 {
@@ -485,23 +440,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         assert(false);
         return;
     }
-    switch(g_parameters.g_values) {
-        case PlannerParameters::GTimestamp:
-            parentG = getGt(parent_ptr);
-            break;
-        case PlannerParameters::GCost:
-            parentG = getGc(parent_ptr);
-            break;
-        case PlannerParameters::GMakespan:
-            parentG = getGm(parent_ptr);
-            break;
-        case PlannerParameters::GWeighted:
-            parentG = g_parameters.g_weight * getGm(parent_ptr) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
-            break;
-        default:
-            assert(false);
-    }
-
+    parentG = getG(parent_ptr, parent_ptr, NULL);
     parentF = parentG + parentH;
     for (; i < open_lists.size(); i++) {
         double childG, childH, childF;
@@ -517,10 +456,8 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 index = 0;
             }
         }
-        vector<const Operator *>
-            &ops =
-            open_lists[index].only_preferred_operators ? preferred_operators
-            : all_operators;
+        vector<const Operator *> & ops =
+            open_lists[index].only_preferred_operators ? preferred_operators : all_operators;
         for (int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
             double maxTimeIncrement = 0.0;
@@ -546,24 +483,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                     continue;
                 }
 
-                switch(g_parameters.g_values) {
-                    case PlannerParameters::GTimestamp:
-                        childG = getGt(&tss);
-                        break;
-                    case PlannerParameters::GCost:
-                        childG = getGc(parent_ptr, ops[j]);
-                        break;
-                    case PlannerParameters::GMakespan:
-                        childG = getGm(&tss);
-                        break;
-                    case PlannerParameters::GWeighted:
-                        childG = g_parameters.g_weight * getGm(&tss) 
-                            + (1.0 - g_parameters.g_weight) * getGc(parent_ptr, ops[j]);
-                        break;
-                    default:
-                        assert(false);
-                }
-
+                childG = getG(&tss, parent_ptr, ops[j]);
                 childF = childG + childH;
                 numberOfChildren++;
                 if (double_equals(parentG, childG)) {
@@ -602,23 +522,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             return;
         }
 
-        switch(g_parameters.g_values) {
-            case PlannerParameters::GTimestamp:
-                childG = getGt(&tss);
-                break;
-            case PlannerParameters::GCost:
-                childG = getGc(parent_ptr);
-                break;
-            case PlannerParameters::GMakespan:
-                childG = getGm(&tss);
-                break;
-            case PlannerParameters::GWeighted:
-                childG = g_parameters.g_weight * getGm(&tss) + (1.0 - g_parameters.g_weight) * getGc(parent_ptr);
-                break;
-            default:
-                assert(false);
-        }
-
+        childG = getG(&tss, parent_ptr, NULL);
         childF = childH + childG;
         numberOfChildren++;
         if (double_equals(parentG, childG)) {
@@ -735,3 +639,77 @@ OpenListInfo *BestFirstSearchEngine::select_open_queue()
 
     return best;
 }
+
+double BestFirstSearchEngine::getGc(const TimeStampedState *state) const
+{
+    return closed_list.getCostOfPath(*state);
+}
+
+double BestFirstSearchEngine::getGc(const TimeStampedState *state,
+        const Operator *op) const
+{
+    double opCost = 0.0;
+    if (op && op != g_let_time_pass) {
+        opCost += op->get_duration(state);
+    }
+    return getGc(state) + opCost;
+}
+
+double BestFirstSearchEngine::getGm(const TimeStampedState *state) const
+{
+    double longestActionDuration = 0.0;
+    for (int i = 0; i < state->operators.size(); ++i) {
+        const ScheduledOperator* op = &state->operators[i];
+        double duration = 0.0;
+        if (op && op != g_let_time_pass) {
+            duration = op->origin->get_duration(state);  // FIXME use origin
+        }
+        if (duration > longestActionDuration) {
+            longestActionDuration = duration;
+        }
+    }
+    return state->timestamp + longestActionDuration;
+}
+
+double BestFirstSearchEngine::getGt(const TimeStampedState *state) const
+{
+    return state->timestamp;
+}
+
+/**
+ * If mode is cost or weighted a parent_ptr and op have to be given.
+ *
+ * \param [in] state_ptr the state to compute G for
+ * \param [in] closed_ptr should be a closed node that op could be applied to, if state is not closed (i.e. a child)
+ */
+double BestFirstSearchEngine::getG(const TimeStampedState* state_ptr, 
+        const TimeStampedState* closed_ptr, const Operator* op) const
+{
+    double g = HUGE_VAL;
+    switch(g_parameters.g_values) {
+        case PlannerParameters::GTimestamp:
+            g = getGt(state_ptr);
+            break;
+        case PlannerParameters::GCost:
+            if(op == NULL)
+                g = getGc(closed_ptr);
+            else
+                g = getGc(closed_ptr, op);
+            break;
+        case PlannerParameters::GMakespan:
+            g = getGm(state_ptr);
+            break;
+        case PlannerParameters::GWeighted:
+            if(op == NULL)
+                g = g_parameters.g_weight * getGm(state_ptr) 
+                    + (1.0 - g_parameters.g_weight) * getGc(closed_ptr);
+            else
+                g = g_parameters.g_weight * getGm(state_ptr) 
+                    + (1.0 - g_parameters.g_weight) * getGc(closed_ptr, op);
+            break;
+        default:
+            assert(false);
+    }
+    return g;
+}
+
