@@ -23,8 +23,7 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
             assert(false);
             ScheduledOperator *s_op = dynamic_cast<ScheduledOperator*>(label->op);
             assert(s_op);
-            g_HACK()->waiting_time = max(g_HACK()->waiting_time,
-                    s_op->time_increment);
+            g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(), s_op->time_increment));
         } else if(g_variable_types[label->duration_variable] == costmodule) {
             //FIXME: can we get relevant info in here
             plannerContextPtr pc = NULL;
@@ -97,9 +96,8 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
                 if(!double_equals(cond_node->reached_by_wait_for, -1.0)) {
                     // assert(cond_node->cost == 0.0);
                     assert(cond_node->cost < LocalProblem::QUITE_A_LOT);
-                    g_HACK()->waiting_time = max(g_HACK()->waiting_time,
-                            cond_node->reached_by_wait_for - EPS_TIME);
-                    //                cout << "cond_node: " << g_HACK->get_waiting_time() << endl;
+                    g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(),
+                        cond_node->reached_by_wait_for - EPS_TIME));
                 } else if(cond_node->expanded) {
                     target_cost = target_cost + cond_node->cost;
                     if(target->cost <= target_cost) {
@@ -204,9 +202,8 @@ bool LocalProblemNode::all_conds_satiesfied(const ValueTransitionLabel *label, c
 {
     for(int i = 0; i < label->precond.size(); ++i) {
         int var = label->precond[i].prev_dtg->var;
-        if(g_variable_types[var] != module && !double_equals(
-                    label->precond[i].value, state[var])) {
-            //			cout << "at least the cond " << label->precond[i].prev_dtg->var << ":" << label->precond[i].value << " is not sat." << " for " << label->op->get_name() << endl;
+        if(g_variable_types[var] != module &&
+            !double_equals(label->precond[i].value, state[var])) {
             return false;
         }
     }
@@ -247,8 +244,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                   delete pcPtr;
                   }*/
             } else {
-                duration
-                    = reached_by->get_source()->children_state[reached_by->duration_var_local];
+                duration = reached_by->get_source()->children_state[reached_by->duration_var_local];
             }
         }
         if(double_equals(reached_by->target_cost, duration)) {
@@ -415,8 +411,7 @@ void LocalProblemDiscrete::build_nodes_for_goal()
     nodes[0].outgoing_transitions.push_back(trans);
 }
 
-LocalProblemDiscrete::LocalProblemDiscrete(CyclicCGHeuristic* _owner,
-        int the_var_no, int the_start_val) :
+LocalProblemDiscrete::LocalProblemDiscrete(CyclicCGHeuristic* _owner, int the_var_no, int the_start_val) :
     LocalProblem(_owner, the_var_no, the_start_val)
 {
     if(var_no == -1)
@@ -760,7 +755,7 @@ bool CyclicCGHeuristic::is_running(LocalTransition* trans, const TimeStampedStat
         return false;
     for(int i = 0; i < state.operators.size(); ++i) {
         if(!(state.operators[i].get_name().compare(trans->label->op->get_name()))) {
-            waiting_time = max(waiting_time, state.operators[i].time_increment - EPS_TIME);
+            set_waiting_time(max(get_waiting_time(), state.operators[i].time_increment - EPS_TIME));
             return true;
         }
     }
@@ -793,8 +788,8 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
         int prev_value = static_cast<int> (pre_cond.value);
         LocalProblemNode *cond_node = child_problem->get_node(prev_value);
         if(!double_equals(cond_node->reached_by_wait_for, -1.0)) {
-            g_HACK()->waiting_time = max(g_HACK()->waiting_time,
-                    cond_node->reached_by_wait_for - EPS_TIME);
+            g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(),
+                cond_node->reached_by_wait_for - EPS_TIME));
             assert(trans->target_cost < LocalProblem::QUITE_A_LOT);
             assert(trans->conds_satiesfied[i] == false);
             trans->conds_satiesfied[i] = true;
@@ -1215,9 +1210,8 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
 {
     if(state.satisfies(g_goal) && state.operators.empty())
         return 0.0;
-    //    build_transitions_for_running_ops(state);
     initialize_queue();
-    waiting_time = REALLYSMALL;
+    set_waiting_time(REALLYSMALL);
     goal_problem->base_priority = -1;
     for(int i = 0; i < local_problems.size(); i++)
         local_problems[i]->base_priority = -1;
@@ -1409,8 +1403,8 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
         return heuristicNew;
     } else if(mode == WEIGHTED) {
         assert(!double_equals(heuristic, -1.0));
-        if(waiting_time - EPSILON > 0.0) {
-            heuristic += waiting_time;
+        if(get_waiting_time() - EPSILON > 0.0) {
+            heuristic += get_waiting_time();
         }
         double longestRunningAction = 0.0;
         for(int i = 0; i < state.operators.size(); ++i) {
@@ -1426,8 +1420,8 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
         assert(mode == CEA);
         assert(!double_equals(heuristic, -1.0));
         //        assert(heuristic > 0.9);
-        if(waiting_time - EPSILON > 0.0) {
-            heuristic += waiting_time;
+        if(get_waiting_time() - EPSILON > 0.0) {
+            heuristic += get_waiting_time();
         }
         return heuristic;
     }
