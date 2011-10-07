@@ -98,7 +98,7 @@ class BestFirstSearchEngine : public SearchEngine
     public:
         enum QueueManagementMode
         {
-            ROUND_ROBIN, PRIORITY_BASED, HIERARCHICAL
+            ROUND_ROBIN, PRIORITY_BASED
         } mode;
         BestFirstSearchEngine(QueueManagementMode _mode);
         ~BestFirstSearchEngine();

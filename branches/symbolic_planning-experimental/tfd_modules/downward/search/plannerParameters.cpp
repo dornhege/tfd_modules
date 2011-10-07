@@ -120,9 +120,6 @@ void PlannerParameters::dump() const
         case BestFirstSearchEngine::ROUND_ROBIN:
             cout << "Round Robin";
             break;
-        case BestFirstSearchEngine::HIERARCHICAL:
-            cout << "Hierarchical";
-            break;
     }
     cout << endl;
 
@@ -187,8 +184,6 @@ bool PlannerParameters::readROSParameters()
             queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
         } else if(qMode == "round_robin") {
             queueManagementMode = BestFirstSearchEngine::ROUND_ROBIN;
-        } else if(qMode == "hierarchical") {
-            queueManagementMode = BestFirstSearchEngine::HIERARCHICAL;
         } else {
             ROS_FATAL("Unknown value: %s for queue management mode. Valid values: [priority_based, round_robin, hierarchical]", qMode.c_str());
             ret = false;
@@ -280,11 +275,9 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                 const char *g = argv[++i];
                 if (*g == 'r') {
                     queueManagementMode = BestFirstSearchEngine::ROUND_ROBIN;
-                } else if (*g == 'p') {
-                    queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
                 } else {
-                    assert(*g == 'h');
-                    queueManagementMode = BestFirstSearchEngine::HIERARCHICAL;
+                    assert(*g == 'p');
+                    queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
                 }
             } else if (*c == 'n') {
                 no_heuristic = true;
