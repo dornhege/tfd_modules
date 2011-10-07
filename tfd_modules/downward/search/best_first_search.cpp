@@ -164,22 +164,6 @@ SearchEngine::status BestFirstSearchEngine::step()
                 current_predecessor, current_operator);
         assert(&current_state != current_predecessor);
 
-        //	cout << "................" << endl;
-        //	dump_plan_prefix_for__state(*parent_ptr);
-        //	parent_ptr->dump();
-        //	cout << "--------" << endl;
-        //	if(current_operator == g_let_time_pass) {
-        //	    cout << "op: let_time_pass" << endl;
-        //	} else {
-        //	    cout << "op: " << current_operator->get_name() << endl;
-        //	}
-
-        //        cout << "Expanded Nodes: " << closed_list.size() << " state(s)." << endl;
-        //        cout << "Prefix:" << endl;
-        //    	if(current_predecessor)
-        //    		dump_plan_prefix_for__state(*current_predecessor);
-        //    	cout << "-" << endl;
-        //    	current_state.dump();
         for(int i = 0; i < heuristics.size(); i++) {
             heuristics[i]->evaluate(current_state);
         }
@@ -194,14 +178,6 @@ SearchEngine::status BestFirstSearchEngine::step()
             generate_successors(parent_ptr);
         }
     }
-
-    //    statistics();
-    //    cout << "State was: " << endl;
-    //    cout << "-" << endl;
-    //    dump_plan_prefix_for__state(*current_predecessor);
-    //    cout << "-" << endl;
-    //    current_state.dump();
-    //    cout << "---------------------------------------" << endl << endl << endl;
 
     time_t current_time = time(NULL);
     static time_t last_stat_time = current_time;
@@ -366,7 +342,7 @@ bool tssKnown2(ThirdClosedList& scl,
 void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_ptr)
 {
     vector<const Operator *> all_operators;
-    g_successor_generator->generate_applicable_ops(current_state, all_operators);
+    g_successor_generator->generate_applicable_ops(*parent_ptr, all_operators);
 
     vector<const Operator *> preferred_operators;
     for(int i = 0; i < preferred_operator_heuristics.size(); i++) {
@@ -387,93 +363,43 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         }
     }
 
-    //   cout << "Preferred ops: " << endl;
-    //   for(int i = 0; i < preferred_operators.size(); ++i) {
-    //       cout << preferred_operators[i]->get_name() << endl;
-    //   }
-    //   cout << "............................." << endl;
-    //
-    //   cout << "All ops:" << endl;
-    //   for(int i = 0; i < all_operators.size(); ++i) {
-    //       cout << all_operators[i]->get_name() << endl;
-    //   }
-    //   cout << "---------------" << endl;
-
-
-    bool is_g_plateau = true;
-    int i = 0;
-    if (mode == HIERARCHICAL) {
-        i = 1;
-        double parentG = getGm(parent_ptr);
-        vector<const Operator *> &ops =
-            open_lists[0].only_preferred_operators ? preferred_operators
-            : all_operators;
-        for (int j = 0; j < ops.size(); j++) {
-            assert(ops[j]->get_name().compare("wait") != 0);
-            TimeStampedState tss = TimeStampedState(current_state, *ops[j]);
-            double childG = getGm(&tss);
-            if (!double_equals(parentG, childG)) {
-                currentQueueIndex = 0;
-                is_g_plateau = false;
-                break;
-            }
-        }
-        if (is_g_plateau) {
-            currentQueueIndex = 1;
-        }
-    }
-
-    Heuristic *heur;
-    if (mode == HIERARCHICAL) {
-        if (is_g_plateau) {
-            heur = open_lists[1].heuristic;
-        } else {
-            heur = open_lists[0].heuristic;
-        }
-    } else {
-        heur = open_lists[i].heuristic;
-    }
     double parentG, parentH, parentF;
-
-    parentH = heur->evaluate(*parent_ptr);
-    if (parentH == -1) {
-        assert(false);
-        return;
-    }
     parentG = getG(parent_ptr, parent_ptr, NULL);
-    parentF = parentG + parentH;
-    for (; i < open_lists.size(); i++) {
+
+    for(int i = 0; i < open_lists.size(); i++) {
+        Heuristic *heur = open_lists[i].heuristic;
+        parentH = heur->evaluate(*parent_ptr);
+        if (parentH == -1) {
+            assert(false);
+            return;
+        }
+        parentF = parentG + parentH;
+
         double childG, childH, childF;
 
         int numberOfChildrenWithSameG = 0;
         int numberOfChildren = 0;
 
-        int index = i;
-        if (mode == HIERARCHICAL) {
-            if (is_g_plateau) {
-                index = 1;
-            } else {
-                index = 0;
-            }
-        }
+        OpenList &open = open_lists[i].open;
         vector<const Operator *> & ops =
-            open_lists[index].only_preferred_operators ? preferred_operators : all_operators;
-        for (int j = 0; j < ops.size(); j++) {
+            open_lists[i].only_preferred_operators ? preferred_operators : all_operators;
+
+        for(int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
             double maxTimeIncrement = 0.0;
-            for (int k = 0; k < current_state.operators.size(); ++k) {
-                maxTimeIncrement = max(maxTimeIncrement,
-                        current_state.operators[k].time_increment);
+            for(int k = 0; k < parent_ptr->operators.size(); ++k) {
+                maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
             }
-            double duration = ops[j]->get_duration(&current_state, 1);
+            double duration = ops[j]->get_duration(parent_ptr, 1);
             maxTimeIncrement = max(maxTimeIncrement, duration);
-            double makeSpan = maxTimeIncrement + current_state.timestamp;
+            double makeSpan = maxTimeIncrement + parent_ptr->timestamp;
             TimedSymbolicStates timedSymbolicStates;
+            // FIXME TODO: This should be true for allow_relaxed?
             if (ops[j]->is_applicable(*parent_ptr, timedSymbolicStates, false) &&
                     makeSpan < bestMakespan &&
                     (!g_parameters.use_tss_known || !tssKnown2(tcl,timedSymbolicStates))   // use_tss_known => !tssKnow2
                ) {
-                TimeStampedState tss = TimeStampedState(current_state, *ops[j]);
+                TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j]);
                 if(g_parameters.lazy_evaluation) {
                     childH = 42.0;   // set something != -1, this is NOT used below
                 } else {
@@ -497,22 +423,13 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 } else {
                     childsWithDifferentF++;
                 }
-                index = i;
-                if (mode == HIERARCHICAL) {
-                    if (double_equals(parentG, childG)) {
-                        index = 1;
-                    } else {
-                        index = 0;
-                    }
-                }
                 //               cout << "inserting " << ops[j]->get_name() << " with val: " << parentF << endl;
                 double priority = g_parameters.lazy_evaluation ? parentF : childF;
-                open_lists[index].open.push(std::tr1::make_tuple(parent_ptr,
-                            ops[j], priority));
+                open.push(std::tr1::make_tuple(parent_ptr, ops[j], priority));
                 generated_states++;
             }
         }
-        TimeStampedState tss = current_state.let_time_pass(false);
+        TimeStampedState tss = parent_ptr->let_time_pass(false);
         if(g_parameters.lazy_evaluation) {
             childH = 42.0;   // set something != -1, this is NOT used below
         } else {
@@ -548,8 +465,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             parentsWithAtMostOneChild++;
         }
         double priority = g_parameters.lazy_evaluation ? parentF : childF;
-        open_lists[i].open.push(std::tr1::make_tuple(parent_ptr,
-                    g_let_time_pass, priority));
+        open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
         generated_states++;
     }
 }
@@ -575,6 +491,9 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
         open_info->open.top();
     open_info->open.pop();
 
+    // tentative new current_predecessor and current_operator
+    // We need to recheck operator applicability in case a relaxed op (relaxed module calls)
+    // was inserted in the open queue
     const TimeStampedState* state = std::tr1::get<0>(next);
     const Operator* op = std::tr1::get<1>(next);
 
@@ -603,38 +522,22 @@ OpenListInfo *BestFirstSearchEngine::select_open_queue()
 {
     OpenListInfo *best = 0;
 
-    if(mode == PRIORITY_BASED) {
-        for(int i = 0; i < open_lists.size(); i++) {
-            if(!open_lists[i].open.empty() && (best == 0 || open_lists[i].priority < best->priority))
-                best = &open_lists[i];
-        }
-    } else if (mode == ROUND_ROBIN) {
-
-        for (int i = 0; i < open_lists.size(); i++) {
-            currentQueueIndex = (currentQueueIndex + 1) % open_lists.size();
-            if (!open_lists[currentQueueIndex].open.empty()) {
-                best = &open_lists[currentQueueIndex];
-                break;
+    switch(mode) {
+        case PRIORITY_BASED:
+            for(int i = 0; i < open_lists.size(); i++) {
+                if(!open_lists[i].open.empty() && (best == 0 || open_lists[i].priority < best->priority))
+                    best = &open_lists[i];
             }
-        }
-
-    } else {
-        assert(mode == HIERARCHICAL);
-        // Convention: open_lists[0] must be the f_m queue, and open_lists[1] must be the f_mw queue.
-        // Requires: open_lists.size() == 2
-
-        if (currentQueueIndex == -1)
-            currentQueueIndex = 0;
-
-        if (open_lists[currentQueueIndex].open.empty()) {
-            currentQueueIndex = (currentQueueIndex + 1) % 2;
-            if (!open_lists[currentQueueIndex].open.empty()) {
-                best = &open_lists[currentQueueIndex];
+            break;
+        case ROUND_ROBIN:
+            for(int i = 0; i < open_lists.size(); i++) {
+                currentQueueIndex = (currentQueueIndex + 1) % open_lists.size();
+                if(!open_lists[currentQueueIndex].open.empty()) {
+                    best = &open_lists[currentQueueIndex];
+                    break;
+                }
             }
-        } else {
-            best = &open_lists[currentQueueIndex];
-            assert(!open_lists[currentQueueIndex].open.empty());
-        }
+            break;
     }
 
     return best;
