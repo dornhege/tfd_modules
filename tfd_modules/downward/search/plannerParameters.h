@@ -39,14 +39,14 @@ class PlannerParameters
          GMakespan,               ///< g values by makespan (timestamp + longest duration of running operators
          GCost,                   ///< g values by path cost
          GTimestamp,              ///< g values by timestamp
-         GWeighted,               ///< g values weighted by  w * makespan + (1-w) * pathcost
+         GWeighted                ///< g values weighted by  w * makespan + (1-w) * pathcost
       };
       enum GValues g_values;      ///< How g values are calculated - Default: Timestamp
       double g_weight;            ///< The weight w for GWeighted
 
       BestFirstSearchEngine::QueueManagementMode queueManagementMode;
 
-      bool use_tss_known;         ///< Enable tss known filtering (might crop search space!)
+      bool use_known_by_logical_state_only;         ///< Enable tss known filtering (might crop search space!)
  
       string plan_name;             ///< File prefix for outputting plans
       bool keep_original_plans;     ///< Store non-epsilonized plans as "...orig" files

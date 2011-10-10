@@ -211,8 +211,8 @@ void Operator::dump() const
     cout << endl;
 }
 
-bool Operator::is_applicable(const TimeStampedState & state,
-        TimedSymbolicStates& timedSymbolicStates, bool allowRelaxed) const
+bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
+        TimedSymbolicStates* timedSymbolicStates) const
 {
     // query duration now (wasted call) just to check applicability: caching?
     double duration = get_duration(&state);

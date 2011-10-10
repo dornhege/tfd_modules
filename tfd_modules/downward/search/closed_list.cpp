@@ -302,7 +302,6 @@ double ClosedList::trace_path(const TimeStampedState &entry,
             ret += duration;
         }
         states.push_back(new TimeStampedState(*pred));
-        //        states.back()->dump();
         current_entry = *pred;
     }
     reverse(path.begin(), path.end());
