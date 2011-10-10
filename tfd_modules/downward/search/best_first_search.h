@@ -8,6 +8,7 @@
 #include "state.h"
 #include "operator.h"
 #include <tr1/tuple>
+#include "search_statistics.h"
 
 using namespace modules;
 
@@ -51,17 +52,6 @@ class BestFirstSearchEngine : public SearchEngine
 
         std::vector<double> best_heuristic_values;
         std::vector<const TimeStampedState*> best_states;
-        int generated_states;
-        int statePutInOpenList;
-        int statesOmmitedFromOpenList;
-        int childsWithSameG;
-        int childsWithDifferentG;
-        int childsWithSameF;
-        int childsWithDifferentF;
-        int parentsWithTwoOrMoreChilds;
-        int parentsWithTwoOrMoreChildsWithSameG;
-        int parentsWithAtMostOneChild;
-        int parentsWithAtMostOneChildWithSameG;
 
         TimeStampedState current_state;
         const TimeStampedState *current_predecessor;
@@ -69,6 +59,8 @@ class BestFirstSearchEngine : public SearchEngine
 
         time_t start_time;
         int currentQueueIndex;
+
+        SearchStatistics search_statistics;
 
     private:
         bool is_dead_end();

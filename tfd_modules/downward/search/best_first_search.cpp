@@ -20,15 +20,6 @@ OpenListInfo::OpenListInfo(Heuristic *heur, bool only_pref)
 BestFirstSearchEngine::BestFirstSearchEngine(QueueManagementMode _mode) :
     current_state(*g_initial_state), currentQueueIndex(-1), mode(_mode)
 {
-    generated_states = 0;
-    childsWithDifferentG = 0;
-    childsWithSameG = 0;
-    childsWithDifferentF = 0;
-    childsWithSameF = 0;
-    parentsWithTwoOrMoreChildsWithSameG = 0;
-    parentsWithAtMostOneChildWithSameG = 0;
-    parentsWithAtMostOneChild = 0;
-    parentsWithTwoOrMoreChilds = 0;
     current_predecessor = 0;
     current_operator = 0;
     start_time = time(NULL);
@@ -66,27 +57,13 @@ void BestFirstSearchEngine::statistics(time_t & current_time) const
     cout << endl;
     cout << "Search Time: " << (current_time - start_time) << " sec." << endl;
     cout << "Expanded Nodes: " << closed_list.size() << " state(s)." << endl;
-    cout << "Generated Nodes: " << generated_states << " state(s)." << endl;
-    cout << "Children with same g as parent: " << childsWithSameG << endl;
-    cout << "Children with different g as parent: " << childsWithDifferentG
-        << endl;
-    cout << "Children with same f as parent: " << childsWithSameF << endl;
-    cout << "Children with different f as parent: " << childsWithDifferentF
-        << endl;
-    cout << "Parents with 2 or more children: " << parentsWithTwoOrMoreChilds
-        << endl;
-    cout << "Parents with at most 1 children: " << parentsWithAtMostOneChild
-        << endl;
-    cout << "Parents with 2 or more children with same g: "
-        << parentsWithTwoOrMoreChildsWithSameG << endl;
-    cout << "Parents with at most 1 children with same g: "
-        << parentsWithAtMostOneChildWithSameG << endl;
-    cout << "Average branching factor: " << (generated_states
-            / (double) closed_list.size()) << endl;
-    cout << "Average branching factor on zero cost edges: " << (childsWithSameG
-            / (double) closed_list.size()) << endl;
-    cout << "Best heuristic value: " << best_heuristic_values[0] << endl
-        << endl;
+    search_statistics.dump(closed_list.size());
+    cout << "OpenList sizes:";
+    for(unsigned int i = 0; i < open_lists.size(); ++i) {
+        cout << " " << open_lists[i].open.size();
+    }
+    cout << endl;
+    cout << "Best heuristic value: " << best_heuristic_values[0] << endl << endl;
     //    cout << "Best state:" << endl;
     //    const TimeStampedState &state = *best_states[0];
     //    if(&state) {
@@ -135,7 +112,6 @@ void BestFirstSearchEngine::dump_everything() const
             cout << "Value: " << h << endl;
             cout << "end OpenListEntry" << endl;
         }
-
     }
 }
 
@@ -377,9 +353,6 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
         double childG, childH, childF;
 
-        int numberOfChildrenWithSameG = 0;
-        int numberOfChildren = 0;
-
         OpenList &open = open_lists[i].open;
         vector<const Operator *> & ops =
             open_lists[i].only_preferred_operators ? preferred_operators : all_operators;
@@ -411,22 +384,11 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
                 childG = getG(&tss, parent_ptr, ops[j]);
                 childF = childG + childH;
-                numberOfChildren++;
-                if (double_equals(parentG, childG)) {
-                    childsWithSameG++;
-                    numberOfChildrenWithSameG++;
-                } else {
-                    childsWithDifferentG++;
-                }
-                if (double_equals(parentF, childF)) {
-                    childsWithSameF++;
-                } else {
-                    childsWithDifferentF++;
-                }
-                //               cout << "inserting " << ops[j]->get_name() << " with val: " << parentF << endl;
+
+                search_statistics.countChild(parentG, childG, parentF, childF);
+
                 double priority = g_parameters.lazy_evaluation ? parentF : childF;
                 open.push(std::tr1::make_tuple(parent_ptr, ops[j], priority));
-                generated_states++;
             }
         }
         TimeStampedState tss = parent_ptr->let_time_pass(false);
@@ -441,32 +403,12 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
         childG = getG(&tss, parent_ptr, NULL);
         childF = childH + childG;
-        numberOfChildren++;
-        if (double_equals(parentG, childG)) {
-            childsWithSameG++;
-            numberOfChildrenWithSameG++;
-        } else {
-            childsWithDifferentG++;
-        }
-        if (double_equals(parentF, childF)) {
-            childsWithSameF++;
-        } else {
-            childsWithDifferentF++;
-        }
 
-        if (numberOfChildrenWithSameG >= 2) {
-            parentsWithTwoOrMoreChildsWithSameG++;
-        } else {
-            parentsWithAtMostOneChildWithSameG++;
-        }
-        if (numberOfChildren >= 2) {
-            parentsWithTwoOrMoreChilds++;
-        } else {
-            parentsWithAtMostOneChild++;
-        }
+        search_statistics.countChild(parentG, childG, parentF, childF);
+        search_statistics.finishExpansion();
+
         double priority = g_parameters.lazy_evaluation ? parentF : childF;
         open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
-        generated_states++;
     }
 }
 
