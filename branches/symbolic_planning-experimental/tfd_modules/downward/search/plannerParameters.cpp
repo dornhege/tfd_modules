@@ -29,7 +29,7 @@ PlannerParameters::PlannerParameters()
 
     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
 
-    use_tss_known = false;
+    use_known_by_logical_state_only = false;
 
     plan_name = "sas_plan";
     keep_original_plans = true;
@@ -68,8 +68,8 @@ bool PlannerParameters::readParameters(int argc, char** argv)
     if(!lazy_evaluation) {
         cerr << "WARNING: Disabling lazy_evaluation is experimental at the moment." << endl;
     }
-    if(use_tss_known) {
-        cerr << "WARNING: tss known is experimental" << endl;
+    if(use_known_by_logical_state_only) {
+        cerr << "WARNING: known by logical state only is experimental and might lead to incompleteness!" << endl;
     }
 
     return ret;
@@ -127,7 +127,8 @@ void PlannerParameters::dump() const
     }
     cout << endl;
 
-    cout << "TSSKnown filtering: " << (use_tss_known ? "Enabled" : "Disabled") << endl;
+    cout << "Known by logical state only filtering: "
+        << (use_known_by_logical_state_only ? "Enabled" : "Disabled") << endl;
 
     cout << "Plan name: \"" << plan_name << "\"" << endl;
     cout << "Plan monitor file: \"" << planMonitorFileName << "\"";
@@ -194,7 +195,8 @@ bool PlannerParameters::readROSParameters()
         }
     }
 
-    nhPriv.param("use_tss_known", use_tss_known, use_tss_known);
+    nhPriv.param("use_known_by_logical_state_only",
+            use_known_by_logical_state_only, use_known_by_logical_state_only);
 
     nhPriv.param("plan_name", plan_name, plan_name);
 
@@ -223,7 +225,7 @@ void PlannerParameters::printUsage() const
     printf("  X - cyclic cg makespan heuristic - preferred operators\n");
     printf("  G [m|c|t|w] - G value evaluation, one of m - makespan, c - pathcost, t - timestamp, w [weight] - weighted / Note: One of those has to be set!\n");
     printf("  Q [r|p|h] - queue mode, one of r - round robin, p - priority, h - hierarchical\n");
-    printf("  K - use tss known filtering (might crop search space\n");
+    printf("  K - use tss known filtering (might crop search space)!\n");
     printf("  n - no_heuristic\n");
     printf("  p <plan file> - plan filename prefix\n");
     printf("  M v - monitoring: verify timestamps\n");
@@ -286,7 +288,7 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
                 }
             } else if (*c == 'K') {
-                use_tss_known = true;
+                use_known_by_logical_state_only = true;
             } else if (*c == 'p') {
                 assert(i + 1 < argc);
                 plan_name = string(argv[++i]);

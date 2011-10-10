@@ -390,7 +390,7 @@ class TimeStampedState
         double next_happening() const;
 
         bool is_consistent_now() const;
-        bool is_consistent_when_progressed(TimedSymbolicStates& timedSymbolicStates) const;
+        bool is_consistent_when_progressed(TimedSymbolicStates* timedSymbolicStates) const;
 
         bool operator<(const TimeStampedState &other) const;
 

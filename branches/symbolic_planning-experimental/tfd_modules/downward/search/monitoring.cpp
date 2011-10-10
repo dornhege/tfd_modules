@@ -299,8 +299,7 @@ bool FullPlanTrace::isApplicable(const Operator* op) const
     if(plan.empty())
         return false;
 
-    TimedSymbolicStates tss;  // never used
-    return op->is_applicable(plan.back().state, tss, false);
+    return op->is_applicable(plan.back().state, false);
 }
 
 FullPlanTrace FullPlanTrace::applyOperator(const Operator* op) const

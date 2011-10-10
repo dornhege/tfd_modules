@@ -8,6 +8,8 @@
 #include <iomanip>
 
 #include <cassert>
+#include <cmath>
+
 using namespace std;
 
 OpenListInfo::OpenListInfo(Heuristic *heur, bool only_pref)
@@ -294,9 +296,11 @@ void BestFirstSearchEngine::reward_progress()
             open_lists[i].priority -= 1000;
 }
 
-bool tssKnown2(ThirdClosedList& scl,
-        const TimedSymbolicStates& timedSymbolicStates)
+bool knownByLogicalStateOnly(LogicalStateClosedList& scl, const TimedSymbolicStates& timedSymbolicStates)
 {
+    // feature disabled -> return false = state unkown -> insert
+    if(!g_parameters.use_known_by_logical_state_only)
+       return false;
     assert(timedSymbolicStates.size() > 0);
     bool ret = true;
     for (int i = 0; i < timedSymbolicStates.size(); ++i) {
@@ -304,8 +308,7 @@ bool tssKnown2(ThirdClosedList& scl,
             double currentBestMakespan = scl[timedSymbolicStates[i].first];
             if (timedSymbolicStates[i].second + EPSILON < currentBestMakespan) {
                 ret = false;
-                scl[timedSymbolicStates[i].first]
-                    = timedSymbolicStates[i].second;
+                scl[timedSymbolicStates[i].first] = timedSymbolicStates[i].second;
             }
         } else {
             ret = false;
@@ -368,9 +371,9 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             double makeSpan = maxTimeIncrement + parent_ptr->timestamp;
             TimedSymbolicStates timedSymbolicStates;
             // FIXME TODO: This should be true for allow_relaxed?
-            if (ops[j]->is_applicable(*parent_ptr, timedSymbolicStates, false) &&
+            if (ops[j]->is_applicable(*parent_ptr, false, &timedSymbolicStates) &&
                     makeSpan < bestMakespan &&
-                    (!g_parameters.use_tss_known || !tssKnown2(tcl,timedSymbolicStates))   // use_tss_known => !tssKnow2
+                    (!knownByLogicalStateOnly(logical_state_closed_list,timedSymbolicStates))
                ) {
                 TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j]);
                 if(g_parameters.lazy_evaluation) {
@@ -439,8 +442,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     const TimeStampedState* state = std::tr1::get<0>(next);
     const Operator* op = std::tr1::get<1>(next);
 
-    TimedSymbolicStates tss;
-    if (op != g_let_time_pass && !op->is_applicable(*state, tss, false)) {
+    if (op != g_let_time_pass && !op->is_applicable(*state, false)) {
         return fetch_next_state();
     }
     open_info->priority++;

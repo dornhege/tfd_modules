@@ -451,8 +451,7 @@ bool TimeStampedState::is_consistent_now() const
     return true;
 }
 
-bool TimeStampedState::is_consistent_when_progressed(
-        TimedSymbolicStates& timedSymbolicStates) const
+bool TimeStampedState::is_consistent_when_progressed(TimedSymbolicStates* timedSymbolicStates) const
 {
     double last_time = -1.0;
     double current_time = timestamp;
@@ -464,19 +463,16 @@ bool TimeStampedState::is_consistent_when_progressed(
             return false;
         }
 
-        current_progression = current_progression.let_time_pass(
-                go_to_intermediate);
+        current_progression = current_progression.let_time_pass(go_to_intermediate);
         go_to_intermediate = !go_to_intermediate;
         last_time = current_time;
         current_time = current_progression.timestamp;
-        if(!go_to_intermediate) {
-            timedSymbolicStates.push_back(make_pair(vector<double> (),
-                        current_progression.timestamp));
+
+        if(!go_to_intermediate && timedSymbolicStates != NULL) {
+            timedSymbolicStates->push_back(make_pair(vector<double> (), current_progression.timestamp));
             for(int i = 0; i < current_progression.state.size(); ++i) {
-                if(g_variable_types[i] == primitive_functional
-                        || g_variable_types[i] == logical) {
-                    timedSymbolicStates.back().first.push_back(
-                            current_progression.state[i]);
+                if(g_variable_types[i] == primitive_functional || g_variable_types[i] == logical) {
+                    timedSymbolicStates->back().first.push_back(current_progression.state[i]);
                 }
             }
         }

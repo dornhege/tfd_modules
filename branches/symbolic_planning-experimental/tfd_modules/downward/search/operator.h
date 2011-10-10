@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdio.h>
+#include <math.h>
 
 #include "globals.h"
 #include "state.h"
@@ -74,8 +76,13 @@ class Operator
          */
         double get_duration(const TimeStampedState* state, int relaxed = 0) const;
 
-        bool is_applicable(const TimeStampedState & state,
-            TimedSymbolicStates& timedSymbolicStates, bool allowRelaxed) const;
+        /// Compute applicability of this operator in state.
+        /**
+         * \param [in] allowRelaxed if true, only relaxed module calls will be performed.
+         * \param [out] timedSymbolicStates if not NULL the timedSymbolicStates will be computed
+         */
+        bool is_applicable(const TimeStampedState & state, bool allowRelaxed,
+            TimedSymbolicStates* timedSymbolicStates = NULL) const;
 
         bool isDisabledBy(const Operator* other) const;
 
@@ -90,18 +97,17 @@ class ScheduledOperator : public Operator
 {
     public:
         double time_increment;
-        const Operator* origin; // need this for callbacks
+        const Operator* origin; ///< the operator this was constructed from
         ScheduledOperator(double t, const Operator& op) : Operator(op), time_increment(t), origin(&op)
         {
         }
         ScheduledOperator(double t) : Operator(true), time_increment(t), origin(NULL)
         {
             if (time_increment >= HUGE_VAL) {
-                printf(
-                        "WARNING: Created scheduled operator with time_increment %f\n",
-                        t);
+                printf("WARNING: Created scheduled operator with time_increment %f\n", t);
             }
         }
+
         bool operator<(const ScheduledOperator &other) const
         {
             if (time_increment < other.time_increment)

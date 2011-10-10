@@ -37,8 +37,9 @@ struct OpenListInfo
     int priority; // low value indicates high priority
 };
 
-typedef std::map<std::vector<double>, double> ThirdClosedList;
-bool tssKnown2(ThirdClosedList& scl,
+/// Maps logical state to best timestamp for that state
+typedef std::map<std::vector<double>, double> LogicalStateClosedList;
+bool knownByLogicalStateOnly(LogicalStateClosedList& scl,
         const TimedSymbolicStates& timedSymbolicStates);
 
 class BestFirstSearchEngine : public SearchEngine
@@ -48,7 +49,8 @@ class BestFirstSearchEngine : public SearchEngine
         std::vector<Heuristic *> preferred_operator_heuristics;
         std::vector<OpenListInfo> open_lists;
         ClosedList closed_list;
-        ThirdClosedList tcl;
+        
+        LogicalStateClosedList logical_state_closed_list;
 
         std::vector<double> best_heuristic_values;
         std::vector<const TimeStampedState*> best_states;
@@ -92,6 +94,7 @@ class BestFirstSearchEngine : public SearchEngine
         {
             ROUND_ROBIN, PRIORITY_BASED
         } mode;
+
         BestFirstSearchEngine(QueueManagementMode _mode);
         ~BestFirstSearchEngine();
         void add_heuristic(Heuristic *heuristic, bool use_estimates,
