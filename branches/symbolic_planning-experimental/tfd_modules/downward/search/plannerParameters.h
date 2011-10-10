@@ -31,6 +31,8 @@ class PlannerParameters
       bool makespan_heuristic;                     ///< Use makespan heuristic
       bool makespan_heuristic_preferred_operators; ///< Use makespan heuristic preferred operators
       bool no_heuristic;                           ///< Use the no heuristic
+
+      bool cg_heuristic_zero_cost_waiting_transitions;  ///< If false, scheduled effects are accounted
  
       /// Possible definitions of "g"
       enum GValues {

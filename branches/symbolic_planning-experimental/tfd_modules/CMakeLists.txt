@@ -84,12 +84,12 @@ set(search_HEADERS
    downward/search/heuristic.h
    downward/search/module.h
    downward/search/monitoring.h
-   downward/search/mre_heuristic.h
    downward/search/no_heuristic.h
    downward/search/operator.h
    downward/search/partial_order_lifter.h
    downward/search/scheduler.h
    downward/search/search_engine.h
+   downward/search/search_statistics.h
    downward/search/state.h
    downward/search/successor_generator.h)
    
@@ -106,13 +106,13 @@ set(search_SOURCES
    downward/search/heuristic.cpp
    downward/search/module.cpp
    downward/search/monitoring.cpp
-   downward/search/mre_heuristic.cpp
    downward/search/no_heuristic.cpp
    downward/search/operator.cpp
    downward/search/partial_order_lifter.cpp
    downward/search/planner.cpp
    downward/search/scheduler.cpp
    downward/search/search_engine.cpp
+   downward/search/search_statistics.cpp
    downward/search/state.cpp
    downward/search/successor_generator.cpp)
 

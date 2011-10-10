@@ -286,7 +286,6 @@ class TimeStampedState
     friend struct Prevail;
     friend class Operator;
     friend class NoHeuristic;
-    friend class MreHeuristic;
     friend class CyclicCGHeuristic;
     friend class ConsistencyCache;
     friend struct TssCompareIgnoreTimestamp;

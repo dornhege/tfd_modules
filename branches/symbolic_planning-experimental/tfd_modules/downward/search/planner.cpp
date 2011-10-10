@@ -1,7 +1,6 @@
 #include "best_first_search.h"
 #include "cyclic_cg_heuristic.h"
 #include "no_heuristic.h"
-#include "mre_heuristic.h"
 #include "monitoring.h"
 
 #include "globals.h"
@@ -115,10 +114,10 @@ int main(int argc, char **argv)
 
     // Initialize search engine and heuristics
     BestFirstSearchEngine* engine = new BestFirstSearchEngine(g_parameters.queueManagementMode);
+
     if(g_parameters.makespan_heuristic || g_parameters.makespan_heuristic_preferred_operators)
-        engine->add_heuristic(new CyclicCGHeuristic(
-                    CyclicCGHeuristic::SUFFIX_MAKESPAN), g_parameters.makespan_heuristic,
-                g_parameters.makespan_heuristic_preferred_operators);
+        engine->add_heuristic(new CyclicCGHeuristic(CyclicCGHeuristic::SUFFIX_MAKESPAN),
+            g_parameters.makespan_heuristic, g_parameters.makespan_heuristic_preferred_operators);
     if(g_parameters.cyclic_cg_heuristic || g_parameters.cyclic_cg_preferred_operators)
         engine->add_heuristic(new CyclicCGHeuristic(CyclicCGHeuristic::CEA), g_parameters.cyclic_cg_heuristic,
             g_parameters.cyclic_cg_preferred_operators);

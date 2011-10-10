@@ -459,8 +459,7 @@ bool TimeStampedState::is_consistent_when_progressed(
     TimeStampedState current_progression(*this);
 
     bool go_to_intermediate = true;
-    while (!double_equals(current_time, last_time)) {
-
+    while(!double_equals(current_time, last_time)) {
         if(!current_progression.is_consistent_now()) {
             return false;
         }
