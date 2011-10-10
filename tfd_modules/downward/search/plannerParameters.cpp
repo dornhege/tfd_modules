@@ -22,6 +22,8 @@ PlannerParameters::PlannerParameters()
     makespan_heuristic_preferred_operators = false;
     no_heuristic = false;
 
+    cg_heuristic_zero_cost_waiting_transitions = false;
+
     g_values = GTimestamp;
     g_weight = 0.5;
 
@@ -94,6 +96,8 @@ void PlannerParameters::dump() const
     cout << "Makespan heuristic: " << (makespan_heuristic ? "Enabled" : "Disabled")
         << " \tPreferred Operators: " << (makespan_heuristic_preferred_operators ? "Enabled" : "Disabled") << endl;
     cout << "No Heuristic: " << (no_heuristic ? "Enabled" : "Disabled") << endl;
+    cout << "Cg Heuristic Zero Cost Waiting Transitions: "
+        << (cg_heuristic_zero_cost_waiting_transitions ? "Enabled" : "Disabled") << endl;
 
     cout << "GValues by: ";
     switch(g_values) {
@@ -254,6 +258,8 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                 makespan_heuristic = true;
             } else if (*c == 'X') {
                 makespan_heuristic_preferred_operators = true;
+            } else if (*c == 'n') {
+                no_heuristic = true;
             } else if (*c == 'G') {
                 assert(i + 1 < argc);
                 const char *g = argv[++i];
@@ -279,8 +285,6 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                     assert(*g == 'p');
                     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
                 }
-            } else if (*c == 'n') {
-                no_heuristic = true;
             } else if (*c == 'K') {
                 use_tss_known = true;
             } else if (*c == 'p') {

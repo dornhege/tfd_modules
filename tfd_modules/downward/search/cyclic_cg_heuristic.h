@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <sstream>
 #include <string>
-#include "scheduler.h"
+
+#include <tr1/tuple>
+#include "operator.h"
 
 class FuncTransitionLabel;
 class TimeStampedState;
@@ -59,6 +61,7 @@ class LocalTransition
         {
         }
         double get_direct_cost(const TimeStampedState& state);
+
         inline CyclicCGHeuristic* g_HACK();
 };
 
@@ -135,14 +138,10 @@ class LocalProblem
         vector<vector<int> > children_in_cg;
         int getLocalIndexOfGlobalVariable(int global_var);
         void buildDependingVars(int parents_num);
-        vector<TimedOp> extract_subplan(LocalProblemNode* goalNode, set<
+        vector<TimedOp> generate_causal_constraints(LocalProblemNode* goalNode, set<
                 CausalConstraint>& constraints, vector<TimedOp>& neededOps,
                 const TimeStampedState& state, set<const Operator*>& labels);
-        void extract_subplan2(LocalProblemNode* goalNode, string indent,
-                vector<pair<Operator*, double> >& needed_ops,
-                const TimeStampedState& state);
-        virtual ~LocalProblem()
-        {
+        virtual ~LocalProblem() {
         }
         virtual void initialize(double base_priority, int start_value,
                 const TimeStampedState &state) = 0;
@@ -347,6 +346,9 @@ class CyclicCGHeuristic: public Heuristic
         virtual bool dead_ends_are_reliable() {
             return false;
         }
+    
+    protected:
+        double computeScheduledPlanMakespan(const TimeStampedState & state) const;
 };
 
 //*****************************************************

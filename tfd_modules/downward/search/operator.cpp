@@ -247,7 +247,6 @@ bool Operator::is_applicable(const TimeStampedState & state,
     return TimeStampedState(state, *this).is_consistent_when_progressed(timedSymbolicStates);
 }
 
-
 bool Operator::isDisabledBy(const Operator* other) const
 {
     if(name.compare(other->name) == 0)

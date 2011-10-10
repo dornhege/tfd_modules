@@ -20,6 +20,7 @@ class Operator
         vector<ModuleEffect> mod_effs_end;
         int duration_var;
         string name;
+
         bool deletesPrecond(const vector<Prevail>& conds,
                 const vector<PrePost>& effects) const;
         bool deletesPrecond(const vector<PrePost>& effs1,

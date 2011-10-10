@@ -111,7 +111,6 @@ bool SimpleTemporalProblem::solveWithP3C()
                     continue;
                 }
                 int jNode = m_arcsLarger[kNode][j];
-                //        cout << "iNode:" << iNode << ", jNode:" << jNode << ", kNode:" << kNode << endl;
                 assert(arcExists(iNode, kNode) && arcExists(jNode, kNode));
                 assert(arcExists(kNode, jNode));
                 assert(arcExists(iNode, kNode));
@@ -166,7 +165,6 @@ bool SimpleTemporalProblem::performDPC()
 
 void SimpleTemporalProblem::makeGraphChordal()
 {
-    //  dumpConnections();
     m_numberOfNeighbors.resize(number_of_nodes);
     for (int i = 0; i < number_of_nodes; ++i) {
         m_numberOfNeighbors[i] = calcNumberOfNeighbors(i);
@@ -176,7 +174,6 @@ void SimpleTemporalProblem::makeGraphChordal()
     list<int> currentChildren;
     int nextPositionInOrdering = 0;
     while ((currentNode = getNextNodeInOrdering()) != -1) {
-        //      cout << "currentNode: " << currentNode << endl;
         for (int j = 0; j < number_of_nodes; ++j) {
             if (arcExists(currentNode, j)) {
                 m_numberOfNeighbors[j]--;
@@ -191,22 +188,12 @@ void SimpleTemporalProblem::makeGraphChordal()
 
         currentChildren.clear();
         collectChildren(currentNode, currentChildren, true);
-        //    cout << "children (" << currentChildren.size() << "): ";
-        //    for (list<int>::iterator it = currentChildren.begin(); it != currentChildren.end(); ++it) {
-        //        cout << *it << " ";
-        //    }
-        //    cout << endl;
         createFillEdges(currentChildren);
     }
 }
 
 void SimpleTemporalProblem::extractMinimalDistances()
 {
-    //    cout << "m_minimDist: ";
-    //    for (int i = 0; i < m_minimalDistances.size(); ++i) {
-    //        cout << m_minimalDistances[i] << " ";
-    //    }
-    //    cout << endl;
     assert(m_minimalDistances[number_of_nodes-1] == 0.0);
     list<int> nodesToUpdate;
     nodesToUpdate.push_front(number_of_nodes - 1);
@@ -267,7 +254,6 @@ void SimpleTemporalProblem::createFillEdges(list<int>& currentChildren)
         it2 = it1;
         it2++;
         for (; it2 != currentChildren.end(); ++it2) {
-            //        cout << "checking " << *it1 << ", " << *it2 << endl;
             if (!arcExists(*it1, *it2)) {
                 setInterval(*it1, *it2, -INF, +INF);
                 m_numberOfNeighbors[*it1]++;
@@ -363,16 +349,6 @@ void SimpleTemporalProblem::reset()
     m_minimalDistances[number_of_nodes - 1] = 0.0;
 }
 
-// reset all arc weights to INFINITY (except for self-loops, whose
-// weights are reset to zero).
-//void SimpleTemporalProblem::reset() {
-//  for(size_t i = 0; i < number_of_nodes; i++) {
-//    for(size_t j = 0; j < number_of_nodes; j++) {
-//      matrix[i][j] = (i == j ? 0.0 : INF);
-//    }
-//  }
-//}
-
 // dump problem
 void SimpleTemporalProblem::dumpDistances()
 {
@@ -437,55 +413,3 @@ std::vector<Happening> SimpleTemporalProblem::getHappenings(bool useP3C)
     return happenings;
 }
 
-//int main(void) {
-//  enum { a_start = 0, a_end = 1,
-//	 b_start = 2, b_end = 3,
-//	 c_start = 4, c_end = 5};
-//
-//  std::vector<std::string> variable_names;
-//  variable_names.push_back("a-");
-//  variable_names.push_back("a+");
-//  variable_names.push_back("b-");
-//  variable_names.push_back("b+");
-//  variable_names.push_back("c-");
-//  variable_names.push_back("c+");
-//
-//  SimpleTemporalProblem problem(variable_names);
-//
-//  // assert that start time point of actions a, b, and c are non-negative
-//  problem.setUnboundedIntervalFromXZero(0, 0.0);
-//  problem.setUnboundedIntervalFromXZero(2, 0.0);
-//  problem.setUnboundedIntervalFromXZero(4, 0.0);
-//
-//  // assert that differences between start and end time points are exactly
-//  // the durations of the actions
-//  problem.setSingletonInterval(a_start, a_end, 10.0);
-//  problem.setSingletonInterval(b_start, b_end,  2.0);
-//  problem.setSingletonInterval(c_start, c_end, 13.0);
-//
-//  // assert that causal relationships are preserved
-//  problem.setUnboundedInterval(c_end, b_start, 0.0);
-//  problem.setUnboundedInterval(b_start, a_end, 0.0);
-//
-//
-//  std::cout << "Unsolved Simple Temporal Network:" << std::endl;
-//  std::cout << "=================================" << std::endl;
-//  problem.dump();
-//
-//  problem.solve();
-//  double h = problem.getMaximalTimePointInTightestSchedule();
-//
-//  std::cout << "Solved Simple Temporal Network:" << std::endl;
-//  std::cout << "===============================" << std::endl;
-//  problem.dump();
-//
-//  std::cout << "Corresponding happenings:" << std::endl;
-//  std::cout << "=========================" << std::endl;
-//  problem.dumpSolution();
-//
-//  std::cout << "Corresponding heuristic value:" << std::endl;
-//  std::cout << "==============================" << std::endl;
-//  std::cout << h << std::endl;
-//
-//  return 0;
-//}

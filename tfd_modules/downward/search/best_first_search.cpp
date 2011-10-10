@@ -51,8 +51,8 @@ void BestFirstSearchEngine::add_heuristic(Heuristic *heuristic,
         open_lists.push_back(OpenListInfo(heuristic, false));
     }
     if(use_preferred_operators) {
-        open_lists.push_back(OpenListInfo(heuristic, true));
         preferred_operator_heuristics.push_back(heuristic);
+        open_lists.push_back(OpenListInfo(heuristic, true));
     }
 }
 

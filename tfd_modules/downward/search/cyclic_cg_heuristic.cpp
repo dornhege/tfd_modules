@@ -3,6 +3,8 @@
 #include <cassert>
 #include <vector>
 #include <set>
+#include "plannerParameters.h"
+#include "scheduler.h"
 
 class CausalGraph;
 using namespace std;
@@ -13,6 +15,7 @@ LocalProblem::LocalProblem(CyclicCGHeuristic* _owner, int the_var_no,
     causal_graph_parents(NULL), start_value(the_start_value)
 {
 }
+
 
 double LocalTransition::get_direct_cost(const TimeStampedState& state)
 {
@@ -94,7 +97,8 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
                 LocalProblemNode *cond_node =
                     child_problem->get_node(prev_value);
                 if(!double_equals(cond_node->reached_by_wait_for, -1.0)) {
-                    // assert(cond_node->cost == 0.0);
+                    assert(!g_parameters.cg_heuristic_zero_cost_waiting_transitions
+                            || cond_node->cost == 0.0);  // If zero cost is on, this should be 0.0
                     assert(cond_node->cost < LocalProblem::QUITE_A_LOT);
                     g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(),
                         cond_node->reached_by_wait_for - EPS_TIME));
@@ -275,6 +279,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                     LocalProblemNode *child_node = g_HACK()->get_local_problem(
                         prev_var_no, value)->get_node(prev_value);
                     assert(child_node);
+                    assert(child_node->cost < LocalProblem::QUITE_A_LOT);
                     if(child_node->cost < LocalProblem::QUITE_A_LOT &&
                         double_equals(child_node->reached_by_wait_for, -1.0)) {
                         child_node->mark_helpful_transitions(state);
@@ -451,16 +456,17 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
         start->children_state[i] = state[var];
     }
     owner->add_to_queue(start);
+    // FIXME Patrick: Always on or only when cg_heuristic_zero_cost_waiting_transitions is false???
     if(!(double_equals(state[var_no], start_value))) {
         return;
     }
     for(int i = 0; i < state.scheduled_effects.size(); i++) {
         const ScheduledEffect &seffect = state.scheduled_effects[i];
         if(seffect.var == var_no) {
-            nodes[static_cast<int> (seffect.post)].cost
-                = seffect.time_increment;
-            //        	nodes[static_cast<int>(seffect.post)].cost = 0.0;
-            //        	g_HACK->add_to_queue(&nodes[static_cast<int>(seffect.post)]);
+            if(g_parameters.cg_heuristic_zero_cost_waiting_transitions)
+                nodes[static_cast<int>(seffect.post)].cost = 0.0;
+            else
+                nodes[static_cast<int>(seffect.post)].cost = seffect.time_increment;
             assert(seffect.time_increment > 0);
             assert(seffect.time_increment < LocalProblem::QUITE_A_LOT);
             nodes[static_cast<int>(seffect.post)].reached_by_wait_for = seffect.time_increment;
@@ -473,7 +479,7 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
     }
 }
 
-vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
+vector<TimedOp> LocalProblem::generate_causal_constraints(LocalProblemNode* goalNode, set<
         CausalConstraint>& constraints, vector<TimedOp>& neededOps,
         const TimeStampedState& state, set<const Operator*>& labels)
 {
@@ -526,7 +532,7 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
                     int var = preconds[j].prev_dtg->var;
                     LocalProblem* sub_problem = owner->get_local_problem(var,
                             static_cast<int> (actual_value));
-                    newOps = sub_problem->extract_subplan(
+                    newOps = sub_problem->generate_causal_constraints(
                             (sub_problem->get_node(
                                                    static_cast<int> (preconds[j].value))),
                             constraints, neededOps, state, labels);
@@ -595,7 +601,7 @@ vector<TimedOp> LocalProblem::extract_subplan(LocalProblemNode* goalNode, set<
             }
             indexOfLastMainTrans = indexOfMainTrans;
         } else {
-            cout << "SDKLSJSLDJKSLDJSLJSD" << endl;
+            cout << "Error: Owner was running" << endl;
         }
     }
     return returnOps;
@@ -1219,174 +1225,24 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
     goal_problem->initialize(0.0, 0, state);
 
     double heuristic = compute_costs(state);
-    double heuristicNew = 0.0;
-    //    double alternative_heuristic = 0.0;
+    double scheduledPlanMakespan = 0.0;
 
-    if(heuristic != DEAD_END) {
+    if(heuristic != DEAD_END && heuristic != 0) {
         goal_node->mark_helpful_transitions(state);
-        //        vector<pair<Operator*,double> > needed_ops;
-        //        goal_problem->extract_subplan2(goal_node,"", needed_ops, state);
     }
     if(heuristic != DEAD_END && !(mode == COST || mode == CEA)) {
-        set<CausalConstraint> constraints;
-        vector<TimedOp> needed_ops;
-        for(int i = 0; i < state.operators.size(); ++i) {
-            needed_ops.push_back(tr1::make_tuple(&state.operators[i],
-                        state.operators[i].time_increment, i));
-        }
-        set<const Operator*> labels;
-        goal_problem->extract_subplan(goal_node, constraints, needed_ops,
-                state, labels);
-
-        // constraints for running actions
-        for(int i = 0; i < state.operators.size(); ++i) {
-            for(int j = state.operators.size(); j < needed_ops.size(); ++j) {
-                if(tr1::get<0>(needed_ops[i])->isDisabledBy(tr1::get<0>(
-                                needed_ops[j])) || tr1::get<0>(needed_ops[i])->enables(
-                                tr1::get<0>(needed_ops[j]))) {
-                    //                    cout << "new constraint: " << tr1::get<0>(needed_ops[i])->get_name() << ", " << tr1::get<0>(needed_ops[j])->get_name() << endl;
-                    constraints.insert(make_pair(i, j));
-                }
-            }
-        }
-
-        // build and solve STN...
-        vector<string> variable_names;//(needed_ops.size()*2);
-        for(int i = 0; i < needed_ops.size(); ++i) {
-            variable_names.push_back(tr1::get<0>(needed_ops[i])->get_name()
-                    + "s");
-        }
-        for(int i = 0; i < needed_ops.size(); ++i) {
-            variable_names.push_back(tr1::get<0>(needed_ops[i])->get_name()
-                    + "e");
-        }
-        SimpleTemporalProblem stn(variable_names);
-
-        //        cout << "Ops:" << endl;
-        //        for(int i = 0; i < needed_ops.size(); ++i) {
-        //            const Operator* op = tr1::get<0>(needed_ops[i]);
-        //            if(op->is_applicable(state)) g_HACK->set_preferred(op);
-        //            cout << i << ": " <<  tr1::get<0>(needed_ops[i])->get_name() << ", duration: " << tr1::get<1>(needed_ops[i]) << endl;
-        ////            for(int j = i+1; j < needed_ops.size(); ++j) {
-        ////                if(tr1::get<0>(needed_ops[i])->get_name().compare(tr1::get<0>(needed_ops[j])->get_name()) == 0) {
-        ////                    stn.setSingletonInterval(i,j,0.0);
-        ////                }
-        ////            }
-        //        }
-
-        // assert that start time point of actions are non-negative
-        for(int i = 0; i < needed_ops.size(); ++i) {
-            stn.setUnboundedIntervalFromXZero(i, 0.0);
-            // assert that differences between start and end time points are exactly
-            // the durations of the actions
-            stn.setSingletonInterval(i, i + needed_ops.size(), tr1::get<1>(
-                        needed_ops[i]));
-        }
-
-        // assert that causal relationships are preserved
-        for(set<CausalConstraint>::iterator it = constraints.begin(); it
-                != constraints.end(); ++it) {
-            //            cout << "Adding constraint: " << it->first << " <<< " << it->second << endl;
-            stn.setUnboundedInterval(needed_ops.size() + it->first, it->second,
-                    EPSILON);
-        }
-
-        stn.setCurrentDistancesAsDefault();
-        bool isValid = stn.solveWithP3C();
-        assert(isValid);
-        //        stn.solve();
-        vector<Happening> happenings = stn.getHappenings(true);
-        //        for(int i = 0; i < happenings.size(); ++i) {
-        //            cout << happenings[i].first << ", " << happenings[i].second << endl;
-        //        }
-        //        cout << "-----------------" << endl;
-        //        stn.reset();
-        //        stn.solve();
-        //        happenings = stn.getHappenings(false);
-        //        for(int i = 0; i < happenings.size(); ++i) {
-        //            cout << happenings[i].first << ", " << happenings[i].second << endl;
-        //        }
-        //        cout << "XXXXXXXXXXXXXXXXX" << endl;
-        if(!stn.solution_is_valid()) {
-            cout << "Ops:" << endl;
-            for(int i = 0; i < needed_ops.size(); ++i) {
-                cout << i << ": " << tr1::get<0>(needed_ops[i])->get_name()
-                    << ", duration: " << tr1::get<1>(needed_ops[i]) << endl;
-            }
-            cout << "Constraints:" << endl;
-            set<CausalConstraint>::iterator it;
-            for(it = constraints.begin(); it != constraints.end(); ++it) {
-                cout << it->first << " <<< " << it->second << endl;
-            }
-        }
-
-        assert(stn.solution_is_valid());
-
-        //        vector<Happening> happenings = stn.getHappenings(true);
-        Plan plan;
-        for(int i = 0; i < happenings.size(); ++i) {
-            if(happenings[i].second < needed_ops.size()) {
-                plan.push_back(PlanStep(happenings[i].first, tr1::get<1>(
-                                needed_ops[happenings[i].second]), tr1::get<0>(
-                                    needed_ops[happenings[i].second]), &state));
-                if(double_equals(happenings[i].first, 0.0)) {
-                    //                    set_preferred(tr1::get<0>(needed_ops[happenings[i].second]));
-                }
-            }
-        }
-        //        cout << "Heuristic plan:" << endl;
-        //for(int i = 0; i < plan.size(); ++i) {
-        //   cout << plan[i].start_time << ": " << plan[i].op->get_name()<< " [" << plan[i].duration << "]" << endl;;
-        //}
-
-        //        cout << "Estimated Makespan: " << stn.getMaximalTimePointInTightestSchedule() << endl;
-        heuristicNew = stn.getMaximalTimePointInTightestSchedule(true);
-        //        heuristicNew = stn.getMaximalTimePointInTightestSchedule(false);
-        assert(heuristicNew >= 0.0);
-        //        heuristicNew += needed_ops.size();
-        //
-        //        cout << "Subplan extracted!" << endl;
-
+        scheduledPlanMakespan = computeScheduledPlanMakespan(state);
     }
 
-    //    if(!state.operators.empty() && (double_equals(heuristic,0.0))) {
-    //        assert(double_equals(heuristicNew, 0.0));
-    //        heuristic = 0.9;
-    //        heuristicNew = 0.9;
-    //    }
+    if(heuristic == DEAD_END)
+        return DEAD_END;
 
-    //    remove_transitions_for_running_ops(state);
-
-    //    cout << "h: " << heuristic << endl;
-    //
-    //
-    //    cout << "hNew: " << heuristicNew << endl;
-    //    cout << "waiting_time: " << g_HACK->get_waiting_time() << endl;
-
-    //    cout << "Final h: " << heuristic << endl;
-    //    cout << "alternative h: " << alternative_heuristic << endl;
-
-    if(double_equals(heuristic, -1.0)) {
-        return -1.0;
-    }
-
-    //    if(double_equals(heuristic,-1.0)) {
-    //        state.dump();
-    //    } else {
-    //        state.dump();
-    //    }
-
-    //    cout << "hNew: " << heuristicNew << endl;
-    //    cout << "hOld: " << heuristic << endl;
-    //    cout << "hret: " << heuristicNew + (heuristic / 5) << endl;
-    //    exit(0);
-    //    return heuristicNew + (heuristic / 5);
     if(mode == COST) {
         cout << "mode = COST" << endl;
         return heuristic;
     } else if(mode == REMAINING_MAKESPAN) {
         cout << "mode = RM" << endl;
-        return heuristicNew;
+        return scheduledPlanMakespan;
     } else if(mode == SUFFIX_MAKESPAN) {
         double longestRunningAction = 0.0;
         for(int i = 0; i < state.operators.size(); ++i) {
@@ -1394,15 +1250,15 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
                 longestRunningAction = state.operators[i].time_increment;
             }
         }
-        //        cout << "longestRunningAction: " << longestRunningAction << ", heuristicNew: " << heuristicNew << endl;
-        assert(longestRunningAction <= heuristicNew);
-        heuristicNew -= longestRunningAction;
-        if(!state.operators.empty() && (double_equals(heuristicNew, 0.0))) {
-            heuristicNew = 0.9;
+
+        assert(longestRunningAction <= scheduledPlanMakespan);
+        scheduledPlanMakespan -= longestRunningAction;
+        if(!state.operators.empty() && (double_equals(scheduledPlanMakespan, 0.0))) {
+            scheduledPlanMakespan = 0.9;
         }
-        return heuristicNew;
+        return scheduledPlanMakespan;
     } else if(mode == WEIGHTED) {
-        assert(!double_equals(heuristic, -1.0));
+        assert(heuristic != DEAD_END);
         if(get_waiting_time() - EPSILON > 0.0) {
             heuristic += get_waiting_time();
         }
@@ -1412,21 +1268,104 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
                 longestRunningAction = state.operators[i].time_increment;
             }
         }
-        assert(longestRunningAction <= heuristicNew);
-        heuristicNew -= longestRunningAction;
-        return heuristicNew + 0.2 * heuristic;
-    } else {
-        //        cout << "mode = CEA" << endl;
-        assert(mode == CEA);
-        assert(!double_equals(heuristic, -1.0));
-        //        assert(heuristic > 0.9);
-        if(get_waiting_time() - EPSILON > 0.0) {
-            heuristic += get_waiting_time();
-        }
-        return heuristic;
+        assert(longestRunningAction <= scheduledPlanMakespan);
+        scheduledPlanMakespan -= longestRunningAction;
+        return scheduledPlanMakespan + 0.2 * heuristic;
     }
-    //      return heuristicNew;
-    //    return alternative_heuristic;
+
+    assert(mode == CEA);
+    assert(heuristic != DEAD_END);
+    if(!state.operators.empty() && (heuristic == 0.0)) {
+        heuristic += 0.9;
+    }
+    if(get_waiting_time() - EPSILON > 0.0) {
+        heuristic += get_waiting_time();
+    }
+    return heuristic;
+}
+        
+double CyclicCGHeuristic::computeScheduledPlanMakespan(const TimeStampedState & state) const
+{
+    set<CausalConstraint> constraints;
+    vector<TimedOp> needed_ops;
+    for(int i = 0; i < state.operators.size(); ++i) {
+        needed_ops.push_back(tr1::make_tuple(&state.operators[i],
+                    state.operators[i].time_increment, i));
+    }
+    set<const Operator*> labels;
+    goal_problem->generate_causal_constraints(goal_node, constraints, needed_ops,
+            state, labels);
+
+    // constraints for running actions
+    for(int i = 0; i < state.operators.size(); ++i) {
+        for(int j = state.operators.size(); j < needed_ops.size(); ++j) {
+            if(tr1::get<0>(needed_ops[i])->isDisabledBy(tr1::get<0>(
+                            needed_ops[j])) || tr1::get<0>(needed_ops[i])->enables(
+                            tr1::get<0>(needed_ops[j]))) {
+                constraints.insert(make_pair(i, j));
+            }
+        }
+    }
+
+    // build and solve STN...
+    vector<string> variable_names;//(needed_ops.size()*2);
+    for(int i = 0; i < needed_ops.size(); ++i) {
+        variable_names.push_back(tr1::get<0>(needed_ops[i])->get_name()
+                + "s");
+    }
+    for(int i = 0; i < needed_ops.size(); ++i) {
+        variable_names.push_back(tr1::get<0>(needed_ops[i])->get_name()
+                + "e");
+    }
+    SimpleTemporalProblem stn(variable_names);
+
+    // assert that start time point of actions are non-negative
+    for(int i = 0; i < needed_ops.size(); ++i) {
+        stn.setUnboundedIntervalFromXZero(i, 0.0);
+        // assert that differences between start and end time points are exactly
+        // the durations of the actions
+        stn.setSingletonInterval(i, i + needed_ops.size(), tr1::get<1>(
+                    needed_ops[i]));
+    }
+
+    // assert that causal relationships are preserved
+    for(set<CausalConstraint>::iterator it = constraints.begin(); it
+            != constraints.end(); ++it) {
+        stn.setUnboundedInterval(needed_ops.size() + it->first, it->second,
+                EPSILON);
+    }
+
+    stn.setCurrentDistancesAsDefault();
+    bool isValid = stn.solveWithP3C();
+    assert(isValid);
+    vector<Happening> happenings = stn.getHappenings(true);
+    if(!stn.solution_is_valid()) {
+        cout << "Ops:" << endl;
+        for(int i = 0; i < needed_ops.size(); ++i) {
+            cout << i << ": " << tr1::get<0>(needed_ops[i])->get_name()
+                << ", duration: " << tr1::get<1>(needed_ops[i]) << endl;
+        }
+        cout << "Constraints:" << endl;
+        set<CausalConstraint>::iterator it;
+        for(it = constraints.begin(); it != constraints.end(); ++it) {
+            cout << it->first << " <<< " << it->second << endl;
+        }
+    }
+
+    assert(stn.solution_is_valid());
+
+    Plan plan;
+    for(int i = 0; i < happenings.size(); ++i) {
+        if(happenings[i].second < needed_ops.size()) {
+            plan.push_back(PlanStep(happenings[i].first, tr1::get<1>(
+                            needed_ops[happenings[i].second]), tr1::get<0>(
+                                needed_ops[happenings[i].second]), &state));
+        }
+    }
+    
+    double heuristicNew = stn.getMaximalTimePointInTightestSchedule(true);
+    assert(heuristicNew >= 0.0);
+    return heuristicNew;
 }
 
 void CyclicCGHeuristic::initialize_queue()
