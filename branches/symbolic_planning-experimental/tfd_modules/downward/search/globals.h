@@ -20,7 +20,6 @@ using namespace std;
 #include "tfd_modules/module_api/pddlModuleTypes.h"
 
 class AxiomEvaluator;
-class Cache;
 //class CausalGraph;
 class DomainTransitionGraph;
 class Operator;
@@ -106,8 +105,6 @@ extern AxiomEvaluator *g_axiom_evaluator;
 extern SuccessorGenerator *g_successor_generator;
 extern vector<DomainTransitionGraph *> g_transition_graphs;
 extern CausalGraph *g_causal_graph;
-extern Cache *g_cache;
-extern int g_cache_hits, g_cache_misses;
 
 class PlannerParameters;
 extern PlannerParameters g_parameters;

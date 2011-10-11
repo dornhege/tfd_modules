@@ -23,6 +23,7 @@ PlannerParameters::PlannerParameters()
     no_heuristic = false;
 
     cg_heuristic_zero_cost_waiting_transitions = false;
+    cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state = true;
 
     g_values = GTimestamp;
     g_weight = 0.5;
@@ -98,6 +99,8 @@ void PlannerParameters::dump() const
     cout << "No Heuristic: " << (no_heuristic ? "Enabled" : "Disabled") << endl;
     cout << "Cg Heuristic Zero Cost Waiting Transitions: "
         << (cg_heuristic_zero_cost_waiting_transitions ? "Enabled" : "Disabled") << endl;
+    cout << "Cg Heuristic Fire Waiting Transitions Only If Local Problems Matches State: "
+        << (cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state ? "Enabled" : "Disabled") << endl;
 
     cout << "GValues by: ";
     switch(g_values) {

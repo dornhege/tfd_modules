@@ -33,6 +33,7 @@ class PlannerParameters
       bool no_heuristic;                           ///< Use the no heuristic
 
       bool cg_heuristic_zero_cost_waiting_transitions;  ///< If false, scheduled effects are accounted
+      bool cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state;
  
       /// Possible definitions of "g"
       enum GValues {

@@ -74,7 +74,6 @@ set(preprocess_SOURCES
 set(search_HEADERS
    downward/search/axioms.h
    downward/search/best_first_search.h
-   downward/search/cache.h
    downward/search/causal_graph.h
    downward/search/closed_list.h
    downward/search/cyclic_cg_heuristic.h
@@ -96,7 +95,6 @@ set(search_HEADERS
 set(search_SOURCES
    downward/search/axioms.cpp
    downward/search/best_first_search.cpp
-   downward/search/cache.cpp
    downward/search/causal_graph.cpp
    downward/search/closed_list.cpp
    downward/search/cyclic_cg_heuristic.cpp

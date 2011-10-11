@@ -237,7 +237,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
                 // arithmetic/comparison axioms)
             } else {
                 // variable is a logic variable
-                queue.push_back(&axiom_literals[i][static_cast<int> (state[i])]);
+                queue.push_back(&axiom_literals[i][static_cast<int>(state[i])]);
             }
         } else if(g_axiom_layers[i] <= g_last_arithmetic_axiom_layer) {
             // derived variable corresponding to an arithmetic (sub)term.

@@ -71,7 +71,7 @@ struct PrePost
 
     bool does_fire(const TimeStampedState &state, const Operator *op) const {
         for(int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, op, NULL)) // FIXME
+            if(!cond_start[i].is_applicable(state, op))
                 return false;
         return true;
     }
@@ -97,7 +97,7 @@ struct ModuleEffect
     bool does_fire(const TimeStampedState &state, const Operator* op) const
     {
         for(int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, op, NULL)) // FIXME
+            if(!cond_start[i].is_applicable(state, op))
                 return false;
         return true;
     }
@@ -293,7 +293,7 @@ class TimeStampedState
     private:
         bool satisfies(const Prevail& cond) const
         {
-            return cond.is_applicable(*this, g_let_time_pass, NULL); // FIXME 
+            return cond.is_applicable(*this, g_let_time_pass);
         }
 
         bool satisfies(const vector<Prevail>& conds) const
