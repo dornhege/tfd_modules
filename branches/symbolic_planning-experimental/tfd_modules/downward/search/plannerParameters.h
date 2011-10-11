@@ -48,7 +48,13 @@ class PlannerParameters
       BestFirstSearchEngine::QueueManagementMode queueManagementMode;
 
       bool use_known_by_logical_state_only;         ///< Enable tss known filtering (might crop search space!)
+
+      /** when enabled: if two plans have the same makespan, consider one better 
+          if it has lower number of subgoals, otherwise same */
+      bool use_subgoals_to_break_makespan_ties;     
  
+      bool reschedule_plans;        ///< Use scheduler to reschedule found plans
+
       string plan_name;             ///< File prefix for outputting plans
       bool keep_original_plans;     ///< Store non-epsilonized plans as "...orig" files
       string planMonitorFileName;   ///< Filename for monitoring (if set, implies monitoring mode)
