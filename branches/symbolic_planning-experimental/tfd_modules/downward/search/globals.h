@@ -7,8 +7,6 @@
 #include <set>
 #include <string>
 #include "module.h"
-#include <tr1/unordered_map>
-#include <tr1/tuple>
 
 using namespace std;
 
@@ -16,8 +14,6 @@ using namespace std;
 #define EPS_TIME 0.001
 
 #include "causal_graph.h"
-#include "pddlModuleLoaderLDL.h"
-#include "tfd_modules/module_api/pddlModuleTypes.h"
 
 class AxiomEvaluator;
 //class CausalGraph;
@@ -28,11 +24,6 @@ class LogicAxiom;
 class NumericAxiom;
 class TimeStampedState;
 class SuccessorGenerator;
-class ConditionModule;
-class EffectModule;
-class CostModule;
-class InitModule;
-class Module;
 
 struct PlanStep
 {
@@ -68,13 +59,6 @@ const int REALLYSMALL = -9999999;
 void read_everything(istream &in);
 void dump_everything();
 void dump_DTGs();
-
-// MODULE STUFF
-bool compareContext(modules::plannerContextPtr p1,
-        modules::plannerContextPtr p2); // (*plannerContextCompareType)
-extern const TimeStampedState* g_modulecallback_state;
-bool getPreds(modules::PredicateList* & predicateList); // (*predicateCallbackType)
-bool getFuncs(modules::NumericalFluentList* & fluentList); // (*numericalFluentCallbackType)
 
 void check_magic(istream &in, string magic);
 
@@ -117,29 +101,6 @@ inline bool is_functional(int var)
 
 extern Operator *g_let_time_pass;
 extern Operator *g_wait_operator;
-
-extern map<int, ConditionModule*> g_condition_modules;
-extern vector<EffectModule *> g_effect_modules;
-extern map<int, CostModule*> g_cost_modules;
-extern vector<InitModule *> g_init_modules;
-
-typedef tr1::tuple<Module*, Module*, Module*> SubplanModuleSet;
-extern vector<SubplanModuleSet> g_subplan_modules;
-
-typedef pair<int, int> VarVal;
-typedef tr1::unordered_map<string, VarVal> PredicateMapping;
-typedef tr1::unordered_map<string, int> FunctionMapping;
-
-extern PredicateMapping g_pred_mapping;
-extern FunctionMapping g_func_mapping;
-
-extern modules::PredicateList g_pred_constants;
-extern modules::NumericalFluentList g_func_constants;
-
-//typedef pair<string,vector<string> > PredicateConstant;
-//extern vector<PredicateConstant> g_pred_constants;
-
-extern PDDLModuleLoader *g_module_loader;
 
 enum assignment_op
 {
