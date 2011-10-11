@@ -12,7 +12,6 @@ using namespace std;
 using namespace modules;
 
 #include "axioms.h"
-#include "cache.h"
 //#include "causal_graph.h"
 #include "domain_transition_graph.h"
 #include "operator.h"
@@ -487,7 +486,6 @@ void read_everything(istream &in)
     check_magic(in, "end_SG");
     g_causal_graph = new CausalGraph(in);
     DomainTransitionGraph::read_all(in);
-    // g_cache = new Cache;
 }
 
 void dump_everything()
@@ -532,8 +530,6 @@ AxiomEvaluator *g_axiom_evaluator;
 SuccessorGenerator *g_successor_generator;
 vector<DomainTransitionGraph *> g_transition_graphs;
 CausalGraph *g_causal_graph;
-Cache *g_cache;
-int g_cache_hits = 0, g_cache_misses = 0;
 
 PlannerParameters g_parameters;
 

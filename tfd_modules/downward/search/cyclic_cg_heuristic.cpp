@@ -456,9 +456,10 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
         start->children_state[i] = state[var];
     }
     owner->add_to_queue(start);
-    // FIXME Patrick: Always on or only when cg_heuristic_zero_cost_waiting_transitions is false???
-    if(!(double_equals(state[var_no], start_value))) {
-        return;
+    if(g_parameters.cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state) {
+        if(!(double_equals(state[var_no], start_value))) {
+            return;
+        }
     }
     for(int i = 0; i < state.scheduled_effects.size(); i++) {
         const ScheduledEffect &seffect = state.scheduled_effects[i];
@@ -1354,15 +1355,6 @@ double CyclicCGHeuristic::computeScheduledPlanMakespan(const TimeStampedState & 
 
     assert(stn.solution_is_valid());
 
-    Plan plan;
-    for(int i = 0; i < happenings.size(); ++i) {
-        if(happenings[i].second < needed_ops.size()) {
-            plan.push_back(PlanStep(happenings[i].first, tr1::get<1>(
-                            needed_ops[happenings[i].second]), tr1::get<0>(
-                                needed_ops[happenings[i].second]), &state));
-        }
-    }
-    
     double heuristicNew = stn.getMaximalTimePointInTightestSchedule(true);
     assert(heuristicNew >= 0.0);
     return heuristicNew;

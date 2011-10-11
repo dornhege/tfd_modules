@@ -216,7 +216,7 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
 {
     // query duration now (wasted call) just to check applicability: caching?
     double duration = get_duration(&state);
-    if(duration <= 0 || duration >= INFINITE_COST)
+    if(duration < 0 || duration >= INFINITE_COST)  // TODO Patrick zero cost actions OK?
         return false;
 
     for(int i = 0; i < pre_post_start.size(); i++)

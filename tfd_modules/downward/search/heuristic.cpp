@@ -6,7 +6,6 @@ using namespace std;
 Heuristic::Heuristic(bool use_caching)
 {
     use_cache = use_caching;
-    //    cout << "use_caching: " << use_caching << endl;
     heuristic = NOT_INITIALIZED;
 }
 
