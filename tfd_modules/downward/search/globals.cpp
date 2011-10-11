@@ -495,7 +495,7 @@ void dump_everything()
         cout << "  " << g_variable_name[i] << " (range "
             << g_variable_domain[i] << ")" << endl;
     cout << "Initial State:" << endl;
-    g_initial_state->dump();
+    g_initial_state->dump(true);
     dump_goal();
     cout << "Successor Generator:" << endl;
     g_successor_generator->dump();

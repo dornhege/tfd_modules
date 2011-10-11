@@ -383,7 +383,7 @@ class TimeStampedState
         {
             return state[index];
         }
-        void dump() const;
+        void dump(bool verbose) const;
 
         void scheduleEffect(ScheduledEffect effect);
 
@@ -391,8 +391,6 @@ class TimeStampedState
 
         bool is_consistent_now() const;
         bool is_consistent_when_progressed(TimedSymbolicStates* timedSymbolicStates) const;
-
-        bool operator<(const TimeStampedState &other) const;
 
         const double &get_timestamp() const
         {

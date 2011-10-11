@@ -373,7 +373,7 @@ void FullPlanTrace::dumpLastState() const
         ROS_WARN("%s: plan is empty.", __PRETTY_FUNCTION__);
         return;
     }
-    plan.back().state.dump();
+    plan.back().state.dump(true);
 }
 
 double FullPlanTrace::getLastTimestamp() const

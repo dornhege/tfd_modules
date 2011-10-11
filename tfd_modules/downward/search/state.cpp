@@ -313,118 +313,70 @@ double TimeStampedState::next_happening() const
     return result + timestamp;
 }
 
-void TimeStampedState::dump() const
+void TimeStampedState::dump(bool verbose) const
 {
-    cout << "State (" << timestamp << ")" << endl;
-    cout << " state:" << endl;
-    const int varsPerLine = 10;
-    unsigned int numCostVars = 0; // dont print cost vars, they are -4 anyways FIXME: do also for other module vars?
-    unsigned int numPrinted = 0;
-    for(int i = 0; i < state.size(); i++) {
-        if(g_variable_types[i] == costmodule) {
-            numCostVars++;
-        } else {
-            cout << "  " << g_variable_name[i] << ": " << state[i] << "    ";
-            numPrinted++;
-        }
-        if(g_variable_types[i] != costmodule) {
-            if(numPrinted % varsPerLine == (varsPerLine - 1)) {
-                cout << endl;
+    cout << "State (Timestamp: " << timestamp << ")" << endl;
+    if(verbose) {
+        cout << " logical state:" << endl;
+        const int varsPerLine = 10;
+        unsigned int numCostVars = 0; // dont print cost vars, they are -4 anyways FIXME: do also for other module vars?
+        unsigned int numPrinted = 0;
+        for(int i = 0; i < state.size(); i++) {
+            if(g_variable_types[i] == costmodule) {
+                numCostVars++;
+            } else {
+                cout << "  " << g_variable_name[i] << ": " << state[i] << "    ";
+                numPrinted++;
+            }
+            if(g_variable_types[i] != costmodule) {
+                if(numPrinted % varsPerLine == (varsPerLine - 1)) {
+                    cout << endl;
+                }
             }
         }
-    }
-    cout << "#Cost vars: " << numCostVars << endl;
+        cout << "#Cost vars: " << numCostVars << endl;
 
-    cout << endl;
-    cout << " scheduled effects:" << endl;
-    for(int i = 0; i < scheduled_effects.size(); i++) {
-        cout << "  <" << (scheduled_effects[i].time_increment + timestamp)
-            << ",<";
-        for(int j = 0; j < scheduled_effects[i].cond_overall.size(); j++) {
-            cout << g_variable_name[scheduled_effects[i].cond_overall[j].var]
-                << ": " << scheduled_effects[i].cond_overall[j].prev;
+        cout << endl;
+        cout << " scheduled effects:" << endl;
+        for(int i = 0; i < scheduled_effects.size(); i++) {
+            cout << "  <" << (scheduled_effects[i].time_increment + timestamp) << ",<";
+            for(int j = 0; j < scheduled_effects[i].cond_overall.size(); j++) {
+                cout << g_variable_name[scheduled_effects[i].cond_overall[j].var]
+                    << ": " << scheduled_effects[i].cond_overall[j].prev;
+            }
+            cout << ">,<";
+            for(int j = 0; j < scheduled_effects[i].cond_end.size(); i++) {
+                cout << g_variable_name[scheduled_effects[i].cond_end[j].var]
+                    << ": " << scheduled_effects[i].cond_end[j].prev;
+            }
+            cout << ">,<";
+            cout << g_variable_name[scheduled_effects[i].var] << " ";
+            if(is_functional(scheduled_effects[i].var)) {
+                cout << scheduled_effects[i].fop << " ";
+                cout << g_variable_name[scheduled_effects[i].var_post] << ">>" << endl;
+            } else {
+                cout << ":= ";
+                cout << scheduled_effects[i].post << ">>" << endl;
+            }
         }
-        cout << ">,<";
-        for(int j = 0; j < scheduled_effects[i].cond_end.size(); i++) {
-            cout << g_variable_name[scheduled_effects[i].cond_end[j].var]
-                << ": " << scheduled_effects[i].cond_end[j].prev;
+        cout << " persistent over-all conditions:" << endl;
+        for(int i = 0; i < conds_over_all.size(); i++) {
+            cout << "  <" << (conds_over_all[i].time_increment + timestamp) << ",<";
+            cout << g_variable_name[conds_over_all[i].var] << ":"
+                << conds_over_all[i].prev << ">>" << endl;
         }
-        cout << ">,<";
-        cout << g_variable_name[scheduled_effects[i].var] << " ";
-        if(is_functional(scheduled_effects[i].var)) {
-            cout << scheduled_effects[i].fop << " ";
-            cout << g_variable_name[scheduled_effects[i].var_post] << ">>"
-                << endl;
-        } else {
-            cout << ":= ";
-            cout << scheduled_effects[i].post << ">>" << endl;
+        cout << " persistent at-end conditions:" << endl;
+        for(int i = 0; i < conds_at_end.size(); i++) {
+            cout << "  <" << (conds_at_end[i].time_increment + timestamp) << ",<";
+            cout << g_variable_name[conds_at_end[i].var] << ":"
+                << conds_at_end[i].prev << ">>" << endl;
+        }
+        cout << " running operators:" << endl;
+        for(int i = 0; i < operators.size(); i++) {
+            cout << "  <" << (operators[i].time_increment + timestamp) << ",<";
+            cout << operators[i].get_name() << ">>" << endl;
         }
     }
-    cout << " persistent over-all conditions:" << endl;
-    for(int i = 0; i < conds_over_all.size(); i++) {
-        cout << "  <" << (conds_over_all[i].time_increment + timestamp) << ",<";
-        cout << g_variable_name[conds_over_all[i].var] << ":"
-            << conds_over_all[i].prev << ">>" << endl;
-    }
-    cout << " persistent at-end conditions:" << endl;
-    for(int i = 0; i < conds_at_end.size(); i++) {
-        cout << "  <" << (conds_at_end[i].time_increment + timestamp) << ",<";
-        cout << g_variable_name[conds_at_end[i].var] << ":"
-            << conds_at_end[i].prev << ">>" << endl;
-    }
-    cout << " running operators:" << endl;
-    for(int i = 0; i < operators.size(); i++) {
-        cout << "  <" << (operators[i].time_increment + timestamp) << ",<";
-        cout << operators[i].get_name() << ">>" << endl;
-    }
-}
-
-bool TimeStampedState::operator<(const TimeStampedState &other) const
-{
-    if(timestamp < other.timestamp)
-        return true;
-    if(timestamp > other.timestamp)
-        return false;
-    if(lexicographical_compare(state.begin(), state.end(),
-                other.state.begin(), other.state.end()))
-        return true;
-    if(lexicographical_compare(other.state.begin(), other.state.end(),
-                state.begin(), state.end()))
-        return false;
-    if(scheduled_effects.size() < other.scheduled_effects.size())
-        return true;
-    if(scheduled_effects.size() > other.scheduled_effects.size())
-        return false;
-    if(conds_over_all.size() < other.conds_over_all.size())
-        return true;
-    if(conds_over_all.size() > other.conds_over_all.size())
-        return false;
-    if(conds_at_end.size() < other.conds_at_end.size())
-        return true;
-    if(conds_at_end.size() > other.conds_at_end.size())
-        return false;
-    if(lexicographical_compare(scheduled_effects.begin(),
-                scheduled_effects.end(), other.scheduled_effects.begin(),
-                other.scheduled_effects.end()))
-        return true;
-    if(lexicographical_compare(other.scheduled_effects.begin(),
-                other.scheduled_effects.end(), scheduled_effects.begin(),
-                scheduled_effects.end()))
-        return false;
-    if(lexicographical_compare(conds_over_all.begin(), conds_over_all.end(),
-                other.conds_over_all.begin(), other.conds_over_all.end()))
-        return true;
-    if(lexicographical_compare(other.conds_over_all.begin(),
-                other.conds_over_all.end(), conds_over_all.begin(),
-                conds_over_all.end()))
-        return false;
-    if(lexicographical_compare(conds_at_end.begin(), conds_at_end.end(),
-                other.conds_at_end.begin(), other.conds_at_end.end()))
-        return true;
-    if(lexicographical_compare(other.conds_at_end.begin(),
-                other.conds_at_end.end(), conds_at_end.begin(), conds_at_end.end()))
-        return false;
-    return false;
 }
 
 void TimeStampedState::scheduleEffect(ScheduledEffect effect)
