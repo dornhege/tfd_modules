@@ -9,12 +9,12 @@
 #include "tfd_modules/module_api/pddlModuleTypes.h"
 #include <tr1/unordered_map>
 #include <tr1/tuple>
-#include "globals.h"
 #include <string.h>
 using namespace std;
 using namespace modules;
 
 class TimeStampedState;
+struct PlanStep;
 
 class Module
 {
@@ -70,6 +70,8 @@ class CostModule: public Module
         conditionCheckerType checkCost;
 
         CostModule(istream &in);
+        
+        virtual void dump();
 };
 
 class InitModule: public Module
@@ -84,6 +86,7 @@ class InitModule: public Module
 };
 
 // Module Interfacing functions and data
+void dump_modules();
 
 // modules
 extern const TimeStampedState* g_modulecallback_state;
@@ -95,6 +98,8 @@ extern vector<InitModule *> g_init_modules;
 // subplan generation
 typedef tr1::tuple<Module*, Module*, Module*> SubplanModuleSet;
 extern vector<SubplanModuleSet> g_subplan_modules;
+
+void handleSubplans(const vector<PlanStep> & plan);
 
 // callback interface
 typedef pair<int, int> VarVal;

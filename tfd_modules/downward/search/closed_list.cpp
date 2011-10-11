@@ -1,7 +1,3 @@
-// HACK so that this will compile as a top-level target.
-// This is to work around limitations of the Makefile wrt template stuff.
-
-// #ifdef CLOSED_LIST_H
 #include "closed_list.h"
 
 // #include "state.h"
@@ -10,7 +6,7 @@
 #include <cassert>
 using namespace std;
 
-/*
+/**
    Map-based implementation of a closed list.
 
    The closed list has two purposes:
@@ -24,7 +20,7 @@ using namespace std;
 
    The datatypes used for the closed list could easily be
    parameterized, but there is no such need presently.
-   */
+*/
 
 ClosedList::ClosedList()
 {
@@ -309,4 +305,33 @@ double ClosedList::trace_path(const TimeStampedState &entry,
     return ret;
 }
 
-// #endif
+double getSumOfSubgoals(const vector<PlanStep> &plan)
+{
+    double ret = 0.0;
+    for (int i = 0; i < plan.size(); ++i) {
+        ret += plan[i].duration;
+    }
+    return ret;
+}
+
+double getSumOfSubgoals(const PlanTrace &path)
+{
+    double ret = 0.0;
+    for (int i = 0; i < g_goal.size(); ++i) {
+        assert(g_variable_types[g_goal[i].first] == logical || g_variable_types[g_goal[i].first] == comparison);
+        //        cout << "Goal " << i << ": " << g_variable_name[g_goal[i].first] << " has to be " << g_goal[i].second << endl;
+        double actualIncrement = 0.0;
+        for (int j = path.size() - 1; j >= 0; --j) {
+            //            cout << "At timstamp " << path[j]->timestamp << " it is " << path[j]->state[g_goal[i].first] << endl;
+            if (double_equals(path[j]->state[g_goal[i].first], g_goal[i].second)) {
+                actualIncrement = path[j]->timestamp;
+            } else {
+                //                cout << "Goal " << i << " is satiesfied at timestamp " << actualIncrement << endl;
+                break;
+            }
+        }
+        ret += actualIncrement;
+    }
+    return ret;
+}
+

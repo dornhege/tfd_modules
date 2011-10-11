@@ -60,5 +60,7 @@ class ClosedList
         double getCostOfPath(const TimeStampedState &entry) const;
 };
 
-// #include "closed_list.cc" // HACK! Templates and the current Makefile don't mix well
+double getSumOfSubgoals(const vector<PlanStep> &plan);
+double getSumOfSubgoals(const PlanTrace &path);
+
 #endif

@@ -32,6 +32,10 @@ PlannerParameters::PlannerParameters()
 
     use_known_by_logical_state_only = false;
 
+    use_subgoals_to_break_makespan_ties = false;
+
+    reschedule_plans = false;
+
     plan_name = "sas_plan";
     keep_original_plans = true;
     planMonitorFileName = "";
@@ -133,6 +137,11 @@ void PlannerParameters::dump() const
     cout << "Known by logical state only filtering: "
         << (use_known_by_logical_state_only ? "Enabled" : "Disabled") << endl;
 
+    cout << "use_subgoals_to_break_makespan_ties: "
+        << (use_subgoals_to_break_makespan_ties ? "Enabled" : "Disabled") << endl;
+
+    cout << "Reschedule plans: " << (reschedule_plans ? "Enabled" : "Disabled") << endl;
+
     cout << "Plan name: \"" << plan_name << "\"" << endl;
     cout << "Plan monitor file: \"" << planMonitorFileName << "\"";
     if(planMonitorFileName.empty()) {
@@ -201,6 +210,7 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("use_known_by_logical_state_only",
             use_known_by_logical_state_only, use_known_by_logical_state_only);
 
+    nhPriv.param("reschedule_plans", reschedule_plans, reschedule_plans);
     nhPriv.param("plan_name", plan_name, plan_name);
 
     // Don't get planMonitorFileName from param server as that is an input
@@ -230,6 +240,7 @@ void PlannerParameters::printUsage() const
     printf("  Q [r|p|h] - queue mode, one of r - round robin, p - priority, h - hierarchical\n");
     printf("  K - use tss known filtering (might crop search space)!\n");
     printf("  n - no_heuristic\n");
+    printf("  r - reschedule_plans\n");
     printf("  p <plan file> - plan filename prefix\n");
     printf("  M v - monitoring: verify timestamps\n");
 }
@@ -295,6 +306,8 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
             } else if (*c == 'p') {
                 assert(i + 1 < argc);
                 plan_name = string(argv[++i]);
+            } else if (*c == 'r') {
+                reschedule_plans = true;
             } else if (*c == 'M') {
                 assert(i + 1 < argc);
                 const char *g = argv[++i];

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include "state.h"
+#include "globals.h"
 
 static const bool s_OutputPredMappings = false;
 
@@ -93,6 +94,15 @@ CostModule::CostModule(istream &in) :
     }
 }
 
+void CostModule::dump()
+{
+    std::cout << "CostModule" << std::endl;
+    Module::dump();
+    std::cout << "Variable: " << var << std::endl;
+
+    std::cout << "checkCost call is: " << (long)(checkCost) << std::endl;
+}
+
 InitModule::InitModule(istream &in)
 {
     string function_name, lib;
@@ -154,6 +164,17 @@ NumericalFluentList g_func_constants;
 PDDLModuleLoader *g_module_loader;
 
 // global interface functions
+
+void dump_modules()
+{
+    for(map<int, ConditionModule*>::iterator it =  g_condition_modules.begin();
+            it != g_condition_modules.end(); it++)
+        it->second->dump();
+    for(vector<EffectModule *>::iterator it =  g_effect_modules.begin(); it != g_effect_modules.end(); it++)
+        (*it)->dump();
+    for(map<int, CostModule*>::iterator it =  g_cost_modules.begin(); it != g_cost_modules.end(); it++)
+        it->second->dump();
+}
 
 bool compareContext(modules::plannerContextPtr p1,
         modules::plannerContextPtr p2)
@@ -356,6 +377,45 @@ bool getFuncs(NumericalFluentList* & fluentList)
         }
     }
     return true;
+}
+
+void handleSubplans(const vector<PlanStep> & plan)
+{
+    for (vector<SubplanModuleSet>::iterator it = g_subplan_modules.begin(); it
+            != g_subplan_modules.end(); it++) {
+        SubplanModuleSet sm = *it;
+        Module* generateSp = std::tr1::get<0>(sm);
+        Module* outputSp = std::tr1::get<1>(sm);
+        Module* execSubplan = std::tr1::get<2>(sm);
+
+        subplanGeneratorType genFn = g_module_loader->getSubplanGenerator(
+                generateSp->libCall);
+        outputSubplanType outputFn = g_module_loader->getOutputSubplan(
+                outputSp->libCall);
+        executeModulePlanType execFn = g_module_loader->getExecuteModulePlan(
+                execSubplan->libCall);
+        if (genFn == NULL || outputFn == NULL || execFn == NULL) {
+            cerr << "Error in loading subplan generators." << endl;
+            continue;
+        }
+
+        // make this temporal and another, read: better interface for outputting plans
+        modulePlanType subplan;
+        stringstream ss;
+        for (int i = 0; i < plan.size(); i++) {
+            const PlanStep& step = plan[i];
+            ParameterList pl;
+            // Just pass bogus as this should have been cached! warn somehow, pass "warn param"?
+            subplanType spt = genFn("blubb", pl, NULL, NULL, 0, new std::pair<
+                    const TimeStampedState*, const Operator*>(step.pred,
+                        step.op), compareContext);
+            ss << outputFn(spt) << endl << endl;
+            subplan.push_back(spt);
+        }
+        cout << "SubplanPlan:" << endl;
+        cout << ss.str() << endl;
+        execFn(subplan);
+    }
 }
 
 string read_name_and_params(istream &in)

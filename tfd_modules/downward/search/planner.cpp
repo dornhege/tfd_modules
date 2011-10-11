@@ -72,13 +72,6 @@ int main(int argc, char **argv)
 
     read_everything(cin);
 
-    /*
-       for(map<int, ConditionModule*>::iterator it =  g_condition_modules.begin(); it != g_condition_modules.end(); it++)
-       it->second->dump();
-       for(vector<EffectModule *>::iterator it =  g_effect_modules.begin(); it != g_effect_modules.end(); it++)
-       (*it)->dump();
-       */
-
     g_let_time_pass = new Operator(false);
     g_wait_operator = new Operator(true);
 
@@ -202,36 +195,6 @@ int main(int argc, char **argv)
     return 2;
 }
 
-double getSumOfSubgoals(const vector<PlanStep> &plan)
-{
-    double ret = 0.0;
-    for (int i = 0; i < plan.size(); ++i) {
-        ret += plan[i].duration;
-    }
-    return ret;
-}
-
-double getSumOfSubgoals(const PlanTrace &path)
-{
-    double ret = 0.0;
-    for (int i = 0; i < g_goal.size(); ++i) {
-        assert(g_variable_types[g_goal[i].first] == logical || g_variable_types[g_goal[i].first] == comparison);
-        //        cout << "Goal " << i << ": " << g_variable_name[g_goal[i].first] << " has to be " << g_goal[i].second << endl;
-        double actualIncrement = 0.0;
-        for (int j = path.size() - 1; j >= 0; --j) {
-            //            cout << "At timstamp " << path[j]->timestamp << " it is " << path[j]->state[g_goal[i].first] << endl;
-            if (double_equals(path[j]->state[g_goal[i].first], g_goal[i].second)) {
-                actualIncrement = path[j]->timestamp;
-            } else {
-                //                cout << "Goal " << i << " is satiesfied at timestamp " << actualIncrement << endl;
-                break;
-            }
-        }
-        ret += actualIncrement;
-    }
-    return ret;
-}
-
 /// Epsilonize the plan at filename
 /**
  * Uses a syscall to epsilonize_plan in tfd_modules package.
@@ -286,82 +249,48 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     const vector<PlanStep> &plan = engine.get_plan();
     const PlanTrace &path = engine.get_path();
 
-    const bool RESCHEDULE = false;
-
     PartialOrderLifter partialOrderLifter(plan, path);
 
-    Plan new_plan = plan;
-    if (RESCHEDULE)
-        new_plan = partialOrderLifter.lift();
+    Plan rescheduled_plan = plan;
+    if(g_parameters.reschedule_plans)
+        rescheduled_plan = partialOrderLifter.lift();
 
-    // Handle subplans
-    for (vector<SubplanModuleSet>::iterator it = g_subplan_modules.begin(); it
-            != g_subplan_modules.end(); it++) {
-        SubplanModuleSet sm = *it;
-        Module* generateSp = std::tr1::get<0>(sm);
-        Module* outputSp = std::tr1::get<1>(sm);
-        Module* execSubplan = std::tr1::get<2>(sm);
-
-        subplanGeneratorType genFn = g_module_loader->getSubplanGenerator(
-                generateSp->libCall);
-        outputSubplanType outputFn = g_module_loader->getOutputSubplan(
-                outputSp->libCall);
-        executeModulePlanType execFn = g_module_loader->getExecuteModulePlan(
-                execSubplan->libCall);
-        if (genFn == NULL || outputFn == NULL || execFn == NULL) {
-            cerr << "Error in loading subplan generators." << endl;
-            continue;
-        }
-
-        // make this temporal and another, read: better interface for outputting plans
-        modulePlanType subplan;
-        stringstream ss;
-        for (int i = 0; i < plan.size(); i++) {
-            const PlanStep& step = plan[i];
-            ParameterList pl;
-            // Just pass bogus as this should have been cached! warn somehow, pass "warn param"?
-            subplanType spt = genFn("blubb", pl, NULL, NULL, 0, new std::pair<
-                    const TimeStampedState*, const Operator*>(step.pred,
-                        step.op), compareContext);
-            ss << outputFn(spt) << endl << endl;
-            subplan.push_back(spt);
-        }
-        cout << "SubplanPlan:" << endl;
-        cout << ss.str() << endl;
-        execFn(subplan);
-    }
+    handleSubplans(plan);
 
     double makespan = 0;
-    for(int i = 0; i < new_plan.size(); i++) {
-        double end_time = new_plan[i].start_time + new_plan[i].duration;
+    for(int i = 0; i < rescheduled_plan.size(); i++) {
+        double end_time = rescheduled_plan[i].start_time + rescheduled_plan[i].duration;
         makespan = max(makespan, end_time);
     }
-
     double original_makespan = 0;
     for (int i = 0; i < plan.size(); i++) {
-        double end_time = plan[i].start_time + new_plan[i].duration;
+        double end_time = plan[i].start_time + rescheduled_plan[i].duration;
         original_makespan = max(original_makespan, end_time);
     }
 
-    //    double sumOfSubgoals = getSumOfSubgoals(path);
-    double sumOfSubgoals = getSumOfSubgoals(new_plan);
-
-    if(makespan > best_makespan)
-        return best_makespan;
-    if (double_equals(makespan, best_makespan)) {
-        //        cout << "Sum of goals: " << sumOfSubgoals << endl;
-        if (sumOfSubgoals < engine.bestSumOfGoals) {
-            cout
-                << "Found plan of equal makespan but with faster solved subgoals."
-                << endl;
-            cout << "Sum of subgoals = " << sumOfSubgoals << endl;
-            engine.bestSumOfGoals = sumOfSubgoals;
-        } else {
+    if(g_parameters.use_subgoals_to_break_makespan_ties) {
+        if(makespan > best_makespan)
             return best_makespan;
+
+        if(double_equals(makespan, best_makespan)) {
+            double sumOfSubgoals = getSumOfSubgoals(rescheduled_plan);
+            if(sumOfSubgoals < engine.bestSumOfGoals) {
+                cout
+                    << "Found plan of equal makespan but with faster solved subgoals."
+                    << endl;
+                cout << "Sum of subgoals = " << sumOfSubgoals << endl;
+                engine.bestSumOfGoals = sumOfSubgoals;
+            } else {
+                return best_makespan;
+            }
+        } else {
+            assert(makespan < best_makespan);
+            double sumOfSubgoals = getSumOfSubgoals(rescheduled_plan);
+            engine.bestSumOfGoals = sumOfSubgoals;
         }
     } else {
-        assert(makespan < best_makespan);
-        engine.bestSumOfGoals = sumOfSubgoals;
+        if(makespan >= best_makespan)
+            return best_makespan;
     }
 
     cout << "Plan:" << endl;
@@ -369,21 +298,20 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
         const PlanStep& step = plan[i];
         printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
     }
-
-    cout << "new Plan:" << endl;
-    for (int i = 0; i < new_plan.size(); i++) {
-        const PlanStep& step = new_plan[i];
-        fprintf(stderr, "%.8f: (%s) [%.8f]\n", step.start_time,
-                step.op->get_name().c_str(), step.duration);
+    if(g_parameters.reschedule_plans) {
+        cout << "Rescheduled Plan:" << endl;
+        for (int i = 0; i < rescheduled_plan.size(); i++) {
+            const PlanStep& step = rescheduled_plan[i];
+            fprintf(stderr, "%.8f: (%s) [%.8f]\n", step.start_time,
+                    step.op->get_name().c_str(), step.duration);
+        }
     }
     cout << "Solution with original makespan " << original_makespan
         << " found (ignoring no-moving-targets-rule)." << endl;
-    if (RESCHEDULE)
-        cout << "Solution was epsilonized and rescheduled to a makespan of "
-            << makespan << "." << endl;
+    if(g_parameters.reschedule_plans)
+        cout << "Solution was epsilonized and rescheduled to a makespan of " << makespan << "." << endl;
     else
-        cout << "Solution was epsilonized to a makespan of " << makespan << "."
-            << endl;
+        cout << "Solution was epsilonized to a makespan of " << makespan << "." << endl;
 
     // Determine filenames to write to
     FILE *file = 0;
@@ -420,8 +348,8 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
 
     // Actually write the plan
     plan_number++;
-    for(int i = 0; i < new_plan.size(); i++) {
-        const PlanStep& step = new_plan[i];
+    for(int i = 0; i < rescheduled_plan.size(); i++) {
+        const PlanStep& step = rescheduled_plan[i];
         fprintf(file, "%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
         if (best_file) {
             fprintf(best_file, "%.8f: (%s) [%.8f]\n", 
@@ -435,7 +363,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
             fclose(best_file);
     }
 
-    cout << "Plan length: " << new_plan.size() << " step(s)." << endl;
+    cout << "Plan length: " << rescheduled_plan.size() << " step(s)." << endl;
     cout << "Makespan   : " << makespan << endl;
 
     // Perform epsilonize
