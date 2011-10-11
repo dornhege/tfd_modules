@@ -80,7 +80,7 @@ void BestFirstSearchEngine::dump_transition() const
     cout << endl;
     if(current_predecessor != 0) {
         cout << "DEBUG: In step(), current predecessor is: " << endl;
-        current_predecessor->dump();
+        current_predecessor->dump(g_parameters.verbose);
     }
     cout << "DEBUG: In step(), current operator is: ";
     if(current_operator != 0) {
@@ -89,7 +89,7 @@ void BestFirstSearchEngine::dump_transition() const
         cout << "No operator before initial state." << endl;
     }
     cout << "DEBUG: In step(), current state is: " << endl;
-    current_state.dump();
+    current_state.dump(g_parameters.verbose);
     cout << endl;
 }
 
@@ -107,7 +107,7 @@ void BestFirstSearchEngine::dump_everything() const
         for (const OpenListEntry* it2 = begin; it2 != end; it2++) {
             cout << "OpenListEntry" << endl;
             cout << "state" << endl;
-            std::tr1::get<0>(*it2)->dump();
+            std::tr1::get<0>(*it2)->dump(true);
             cout << "op" << endl;
             std::tr1::get<1>(*it2)->dump();
             double h = std::tr1::get<2>(*it2);
