@@ -61,8 +61,7 @@ void navstack_init(int argc, char** argv)
 }
 
 double pathCost(const ParameterList & parameterList, 
-      predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-      int relaxed, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext)
+      predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    if(s_Debug) {        // prevent spamming ROS_DEBUG calls unless we really want debug
       // debugging raw planner calls

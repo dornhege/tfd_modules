@@ -7,11 +7,9 @@
 #include <vector>
 #include <set>
 #include "globals.h"
-#include "tfd_modules/module_api/pddlModuleTypes.h"
 #include "module.h"
 
 using namespace std;
-using namespace modules;
 
 class Operator;
 class TimeStampedState;
@@ -29,7 +27,7 @@ struct Prevail
     {
     }
 
-    bool is_applicable(const TimeStampedState & state, const Operator* op, bool allowRelaxed = false) const;
+    bool is_applicable(const TimeStampedState & state, bool allowRelaxed = false) const;
 
     void dump() const;
 
@@ -69,9 +67,9 @@ struct PrePost
 
     bool is_applicable(const TimeStampedState &state) const;
 
-    bool does_fire(const TimeStampedState &state, const Operator *op) const {
+    bool does_fire(const TimeStampedState &state) const {
         for(int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, op))
+            if(!cond_start[i].is_applicable(state))
                 return false;
         return true;
     }
@@ -94,10 +92,10 @@ struct ModuleEffect
     {
     }
 
-    bool does_fire(const TimeStampedState &state, const Operator* op) const
+    bool does_fire(const TimeStampedState &state) const
     {
         for(int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, op))
+            if(!cond_start[i].is_applicable(state))
                 return false;
         return true;
     }
@@ -293,7 +291,7 @@ class TimeStampedState
     private:
         bool satisfies(const Prevail& cond) const
         {
-            return cond.is_applicable(*this, g_let_time_pass);
+            return cond.is_applicable(*this);
         }
 
         bool satisfies(const vector<Prevail>& conds) const

@@ -1,5 +1,6 @@
 #include "search_statistics.h"
 #include "globals.h"
+#include <stdio.h>
 
 SearchStatistics::SearchStatistics()
 {

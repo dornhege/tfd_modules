@@ -97,24 +97,14 @@ class ScheduledOperator : public Operator
 {
     public:
         double time_increment;
-        const Operator* origin; ///< the operator this was constructed from
-        ScheduledOperator(double t, const Operator& op) : Operator(op), time_increment(t), origin(&op)
+        ScheduledOperator(double t, const Operator& op) : Operator(op), time_increment(t)
         {
         }
-        ScheduledOperator(double t) : Operator(true), time_increment(t), origin(NULL)
+        ScheduledOperator(double t) : Operator(true), time_increment(t)
         {
             if (time_increment >= HUGE_VAL) {
                 printf("WARNING: Created scheduled operator with time_increment %f\n", t);
             }
-        }
-
-        bool operator<(const ScheduledOperator &other) const
-        {
-            if (time_increment < other.time_increment)
-                return true;
-            if (time_increment > other.time_increment)
-                return false;
-            return origin < other.origin;
         }
 };
 

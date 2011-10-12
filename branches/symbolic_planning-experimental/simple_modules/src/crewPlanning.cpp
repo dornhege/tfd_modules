@@ -3,8 +3,8 @@
 #include <sys/time.h>
 #include <ros/ros.h>
 
-double available(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-      int relaxed, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext)
+double available(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
   PredicateList* list = new PredicateList();
   list->push_back(Predicate("available",parameterList));
@@ -15,10 +15,10 @@ double available(const ParameterList & parameterList, predicateCallbackType pred
      return INFINITE_COST;
 }
 
-int effectCall(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-      vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext)
+int effectCall(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
+        vector<double>& writtenVars)
 {
-   tookContext = false;
    NumericalFluentList* list = new NumericalFluentList();
    list->push_back(NumericalFluent("effectscalled",parameterList)); // lower case as PDDL is case insensitive
    numericalFluentCallback(list);

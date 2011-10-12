@@ -10,16 +10,16 @@ extern "C" {
 #endif
 
 /// These three are always true/false or 50:50
-double checkTrue(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
-double checkFalse(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
-double checkRandom(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
+double checkTrue(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
+double checkFalse(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
+double checkRandom(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 VERIFY_CONDITIONCHECKER_DEF(checkTrue);
 VERIFY_CONDITIONCHECKER_DEF(checkFalse);
 VERIFY_CONDITIONCHECKER_DEF(checkRandom);
 
 /// Basically: if 1st parameter has equal chars (e.g. car1) it's true - just to test param passing
-double checkParamEqualCharacterCount(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
+double checkParamEqualCharacterCount(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 VERIFY_CONDITIONCHECKER_DEF(checkParamEqualCharacterCount);
 
@@ -27,18 +27,18 @@ VERIFY_CONDITIONCHECKER_DEF(checkParamEqualCharacterCount);
 int dummyEffect(const ParameterList & parameterList,
           predicateCallbackType  predicateCallback,
           numericalFluentCallbackType numericalFluentCallback,
-	 vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext);
+	 vector<double>& writtenVars);
 
 int countIt(const ParameterList & parameterList,
           predicateCallbackType  predicateCallback,
           numericalFluentCallbackType numericalFluentCallback,
-	 vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext);
+	 vector<double>& writtenVars);
 
 VERIFY_APPLYEFFECT_DEF(dummyEffect);
 VERIFY_APPLYEFFECT_DEF(countIt);
 
 // simple cost module for 3 locations l1, l2, l3.
-double costDrive(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
+double costDrive(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 VERIFY_CONDITIONCHECKER_DEF(costDrive);
 

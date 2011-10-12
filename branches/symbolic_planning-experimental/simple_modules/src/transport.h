@@ -11,14 +11,16 @@ extern "C" {
 
 void init(int argc, char** argv);
 
-double can_load(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext);
+double can_load(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 VERIFY_CONDITIONCHECKER_DEF(can_load);
 
 //int effectCall(ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
   //    vector<double>& writtenVars);
 
-subplanType genSubplan(const string & operatorName, const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic, plannerContextPtr context, plannerContextCompareType contextComp);
+subplanType genSubplan(const string & operatorName, const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic);
 VERIFY_SUBPLANGENERATOR_DEF(genSubplan);
 
 /// For final plan output: Convert a subplan into a string.
