@@ -308,10 +308,6 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     }
     cout << "Solution with original makespan " << original_makespan
         << " found (ignoring no-moving-targets-rule)." << endl;
-    if(g_parameters.reschedule_plans)
-        cout << "Solution was epsilonized and rescheduled to a makespan of " << makespan << "." << endl;
-    else
-        cout << "Solution was epsilonized to a makespan of " << makespan << "." << endl;
 
     // Determine filenames to write to
     FILE *file = 0;
@@ -365,6 +361,10 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
 
     cout << "Plan length: " << rescheduled_plan.size() << " step(s)." << endl;
     cout << "Makespan   : " << makespan << endl;
+    if(g_parameters.reschedule_plans)
+        cout << "Solution was epsilonized and rescheduled to a makespan of " << makespan << "." << endl;
+    else
+        cout << "Solution was epsilonized to a makespan of " << makespan << "." << endl;
 
     // Perform epsilonize
     if(!plan_filename.empty()) {

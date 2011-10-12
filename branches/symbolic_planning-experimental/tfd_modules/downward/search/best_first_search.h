@@ -99,7 +99,7 @@ class BestFirstSearchEngine : public SearchEngine
         ~BestFirstSearchEngine();
         void add_heuristic(Heuristic *heuristic, bool use_estimates,
                 bool use_preferred_operators);
-        virtual void statistics(time_t & current_time) const;
+        virtual void statistics(time_t & current_time);
         virtual void initialize();
         SearchEngine::status fetch_next_state();
 

@@ -15,6 +15,11 @@ SearchStatistics::SearchStatistics()
         
     numberOfChildren = 0;
     numberOfChildrenWithSameG = 0;
+
+    lastDumpClosedListSize = 0;
+    lastDumpGeneratedStates = 0;
+    lastDumpTime = time(NULL);
+    startTime = lastDumpTime;
 }
 
 SearchStatistics::~SearchStatistics()
@@ -55,9 +60,21 @@ void SearchStatistics::finishExpansion()
     numberOfChildren = 0;
 }
 
-void SearchStatistics::dump(unsigned int closedListSize) const
+void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
 {
+    double dt = current_time - lastDumpTime;
+    double dTotal = current_time - startTime;
+
+    cout << "Expanded Nodes: " << closedListSize << " state(s)." << endl;
+    double dClosedList = closedListSize - lastDumpClosedListSize;
+    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dClosedList/dt, dt,
+            double(closedListSize)/dTotal);
+
     cout << "Generated Nodes: " << generated_states << " state(s)." << endl;
+    double dGeneratedNodes = generated_states - lastDumpGeneratedStates;
+    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dGeneratedNodes/dt, dt,
+            double(generated_states)/dTotal);
+
     cout << "Children with same g as parent: " << childsWithSameG << endl;
     cout << "Children with different g as parent: " << childsWithDifferentG << endl;
     cout << "Children with same f as parent: " << childsWithSameF << endl;
@@ -68,5 +85,9 @@ void SearchStatistics::dump(unsigned int closedListSize) const
     cout << "Parents with at most 1 children with same g: " << parentsWithAtMostOneChildWithSameG << endl;
     cout << "Average branching factor: " << (generated_states / (double) closedListSize) << endl;
     cout << "Average branching factor on zero cost edges: " << (childsWithSameG / (double) closedListSize) << endl;
+
+    lastDumpGeneratedStates = generated_states;
+    lastDumpClosedListSize = closedListSize;
+    lastDumpTime = current_time;
 }
 
