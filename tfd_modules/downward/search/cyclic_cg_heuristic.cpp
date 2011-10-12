@@ -28,20 +28,12 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
             assert(s_op);
             g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(), s_op->time_increment));
         } else if(g_variable_types[label->duration_variable] == costmodule) {
-            //FIXME: can we get relevant info in here
-            plannerContextPtr pc = NULL;
-            plannerContextCompareType pcct = compareContext;
-            bool tookContext = true;
             g_modulecallback_state = &state;
             predicateCallbackType pct = getPreds;
             numericalFluentCallbackType nct = getFuncs;
             ret = g_cost_modules[label->duration_variable]->checkCost(
-                    g_cost_modules[label->duration_variable]->params, pct, nct,
-                    1, pc, pcct, tookContext);
+                    g_cost_modules[label->duration_variable]->params, pct, nct, 1);
             //printf("Duration from module: %f\n", ret);
-            /*if(!tookContext) {
-              delete pcPtr;
-              }*/
             return ret;
         } else {
             LocalProblemNode *source = get_source();
@@ -231,22 +223,14 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             duration = s_op->time_increment;
         } else if(!(duration_variable == -1)) {
             if(g_variable_types[duration_variable] == costmodule) {
-                duration
+                duration    // FIXME Patrick remove unnecessary?
                     = reached_by->get_source()->children_state[reached_by->duration_var_local];
-                // FIXME: is it possible to get good cachble entries here?
-                plannerContextPtr pc = NULL;
-                plannerContextCompareType pcct = compareContext;
-                bool tookContext = true;
                 g_modulecallback_state = &state;
                 predicateCallbackType pct = getPreds;
                 numericalFluentCallbackType nct = getFuncs;
                 duration = g_cost_modules[duration_variable]->checkCost(
-                        g_cost_modules[duration_variable]->params, pct, nct, 1,
-                        pc, pcct, tookContext);
+                        g_cost_modules[duration_variable]->params, pct, nct, 1);
                 //printf("Duration from module: %f\n", duration);
-                /*if(!tookContext) {
-                  delete pcPtr;
-                  }*/
             } else {
                 duration = reached_by->get_source()->children_state[reached_by->duration_var_local];
             }
@@ -391,7 +375,7 @@ void LocalProblemDiscrete::build_nodes_for_variable(int var_no)
 
 void LocalProblemDiscrete::build_nodes_for_goal()
 {
-    // We have a small memory leak here. Could be fixed by
+    // TODO: We have a small memory leak here. Could be fixed by
     // making two LocalProblem classes with a virtual destructor.
     causal_graph_parents = new vector<int> ;
     for(int i = 0; i < g_goal.size(); i++)

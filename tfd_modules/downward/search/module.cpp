@@ -4,6 +4,7 @@
 #include <sstream>
 #include "state.h"
 #include "globals.h"
+#include "operator.h"
 
 static const bool s_OutputPredMappings = false;
 
@@ -174,35 +175,6 @@ void dump_modules()
         (*it)->dump();
     for(map<int, CostModule*>::iterator it =  g_cost_modules.begin(); it != g_cost_modules.end(); it++)
         it->second->dump();
-}
-
-bool compareContext(modules::plannerContextPtr p1,
-        modules::plannerContextPtr p2)
-{
-    if(p1 == NULL || p2 == NULL) {
-        cerr << __func__ << " WARNING: Received invalid plannerContextPtr for comparison!" << endl;
-        return true;
-    }
-    pair<const TimeStampedState*, const Operator*>* pair1 = static_cast<pair<
-        const TimeStampedState*, const Operator*> *> (p1);
-    pair<const TimeStampedState*, const Operator*>* pair2 = static_cast<pair<
-        const TimeStampedState*, const Operator*> *> (p2);
-    if (pair1->first == NULL || pair2->first == NULL)
-        return true;
-    if (pair1->second == NULL || pair2->second == NULL)
-        return true;
-
-    //FIXME: better to change to compared values, instead of pointers?
-    if (pair1->first < pair2->first)
-        return true;
-    else if (pair1->first > pair2->first)
-        return false;
-    if (pair1->second < pair2->second)
-        return true;
-    else if (pair1->second > pair2->second)
-        return false;
-    assert(pair1->first == pair2->first && pair1->second == pair2->second);
-    return false;
 }
 
 bool getPreds(PredicateList* & predicateList)
@@ -405,10 +377,7 @@ void handleSubplans(const vector<PlanStep> & plan)
         for (int i = 0; i < plan.size(); i++) {
             const PlanStep& step = plan[i];
             ParameterList pl;
-            // Just pass bogus as this should have been cached! warn somehow, pass "warn param"?
-            subplanType spt = genFn("blubb", pl, NULL, NULL, 0, new std::pair<
-                    const TimeStampedState*, const Operator*>(step.pred,
-                        step.op), compareContext);
+            subplanType spt = genFn(step.op->get_name(), pl, NULL, NULL, 0);
             ss << outputFn(spt) << endl << endl;
             subplan.push_back(spt);
         }

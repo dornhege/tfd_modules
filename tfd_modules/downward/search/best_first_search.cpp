@@ -131,12 +131,24 @@ SearchEngine::status BestFirstSearchEngine::step()
     }
     double makeSpan = maxTimeIncrement + current_state.timestamp;
 
-    if (makeSpan < bestMakespan && !closed_list.contains(current_state)) {
-        discard = false;
+    // when using subgoals we want to keep states with the same makespan as they might have better subgoals
+    if(g_parameters.use_subgoals_to_break_makespan_ties) {
+        if (makeSpan <= bestMakespan && !closed_list.contains(current_state)) {
+            discard = false;
+        }
+    } else {
+        if (makeSpan < bestMakespan && !closed_list.contains(current_state)) {
+            discard = false;
+        }
+    }
+
+    // throw away any states resulting from zero cost actions (can't handle)
+    if(current_predecessor && current_operator && current_operator != g_let_time_pass &&
+            current_operator->get_duration(current_predecessor) <= 0.0) {
+        discard = true;
     }
 
     if(!discard) {
-        // FIXME: What is the difference between parent_ptr and current_state?
         const TimeStampedState *parent_ptr = closed_list.insert(current_state,
                 current_predecessor, current_operator);
         assert(&current_state != current_predecessor);
@@ -153,6 +165,19 @@ SearchEngine::status BestFirstSearchEngine::step()
             if(check_goal())
                 return SOLVED;
             generate_successors(parent_ptr);
+        }
+    } else if ((current_operator == g_let_time_pass) &&
+            current_state.operators.empty() &&
+            makeSpan < bestMakespan) {
+        // arrived at same state by letting time pass
+        // e.g. when having an action with duration and only start effect
+        // the result would be discarded, check if we are at goal    
+        for(int i = 0; i < heuristics.size(); i++) {
+            heuristics[i]->evaluate(current_state);
+        }
+        if(!is_dead_end()) {
+            if(check_goal())
+                return SOLVED;
         }
     }
 
@@ -285,7 +310,7 @@ void BestFirstSearchEngine::reward_progress()
     // only, but it is also useful in single-heuristic mode, at least
     // in Schedule.
     //
-    // Test the impact of this, and find a better way of rewarding
+    // Future Work: Test the impact of this, and find a better way of rewarding
     // successful exploration. For example, reward only the open queue
     // from which the good state was extracted and/or the open queues
     // for the heuristic for which a new best value was found.
@@ -508,7 +533,7 @@ double BestFirstSearchEngine::getGm(const TimeStampedState *state) const
         const ScheduledOperator* op = &state->operators[i];
         double duration = 0.0;
         if (op && op != g_let_time_pass) {
-            duration = op->origin->get_duration(state);  // FIXME use origin
+            duration = op->get_duration(state);
         }
         if (duration > longestActionDuration) {
             longestActionDuration = duration;

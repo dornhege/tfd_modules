@@ -113,8 +113,6 @@ extern modules::PredicateList g_pred_constants;
 extern modules::NumericalFluentList g_func_constants;
 
 // callback functions
-bool compareContext(modules::plannerContextPtr p1,
-        modules::plannerContextPtr p2); // (*plannerContextCompareType)
 bool getPreds(modules::PredicateList* & predicateList); // (*predicateCallbackType)
 bool getFuncs(modules::NumericalFluentList* & fluentList); // (*numericalFluentCallbackType)
 

@@ -4,19 +4,19 @@
 using namespace std;
 #include <ros/ros.h>
 
-double checkTrue(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext)
+double checkTrue(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
    return true;
 }
 
-double checkFalse(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext)
+double checkFalse(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
    return false;
 }
 
-double checkRandom(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext)
+double checkRandom(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
    struct timeval tv;
@@ -25,7 +25,7 @@ double checkRandom(const ParameterList & parameterList, predicateCallbackType pr
    return (rand() % 2 == 0);
 }
 
-double checkParamEqualCharacterCount(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext)
+double checkParamEqualCharacterCount(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
    if(parameterList.empty())
@@ -40,7 +40,7 @@ double checkParamEqualCharacterCount(const ParameterList & parameterList, predic
 int countIt(const ParameterList & parameterList,
           predicateCallbackType  predicateCallback,
           numericalFluentCallbackType numericalFluentCallback,
-	 vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext)
+	 vector<double>& writtenVars)
 {
    ROS_DEBUG("Calling %s module", __func__);
    NumericalFluentList* nlf = new NumericalFluentList();
@@ -54,7 +54,7 @@ int countIt(const ParameterList & parameterList,
 int dummyEffect(const ParameterList & parameterList,
           predicateCallbackType  predicateCallback,
           numericalFluentCallbackType numericalFluentCallback,
-	 vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext)
+	 vector<double>& writtenVars)
 {
    ROS_DEBUG("Calling %s module", __func__);
    if(predicateCallback == NULL)
@@ -79,10 +79,9 @@ int dummyEffect(const ParameterList & parameterList,
 }
 
 
-double costDrive(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType, bool & tookContext)
+double costDrive(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
-   tookContext = false;
 
    string from = parameterList.at(0).value;
    string to = parameterList.at(1).value;

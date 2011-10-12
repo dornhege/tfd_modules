@@ -280,7 +280,7 @@ void DomainTransitionGraphSymb::extend_cyclic_effect(const PrePost& pre_post, ve
         assert(g_variable_types[var_no] == primitive_functional || g_variable_types[var_no] == logical);
         if(g_variable_types[var_no] == logical) {
             if(!double_equals(pre, post)) {
-                // condition_type is nonsense at this point (will not be needed later!)
+                // FIXME: condition_type is nonsense at this point (will not be needed later!)
                 cyclic_effect.push_back(LocalAssignment(
                     g_transition_graphs[var_no], ccg_parent,
                     post, end_cond));
@@ -288,7 +288,7 @@ void DomainTransitionGraphSymb::extend_cyclic_effect(const PrePost& pre_post, ve
         } else {
             assert(g_variable_types[var_no] == primitive_functional);
             translate_global_to_local(global_to_ccg_parent, var_post);
-            // condition_type is nonsense at this point (will not be needed later!)
+            // FIXME: condition_type is nonsense at this point (will not be needed later!)
             cyclic_effect.push_back(LocalAssignment(
                         g_transition_graphs[var_no], ccg_parent,
                         global_to_ccg_parent[var_post], fop, end_cond));

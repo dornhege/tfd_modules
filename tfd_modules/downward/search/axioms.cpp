@@ -5,7 +5,6 @@
 
 #include <deque>
 #include <iostream>
-#include <cassert>
 using namespace std;
 
 LogicAxiom::LogicAxiom(istream &in)
@@ -66,10 +65,7 @@ AxiomEvaluator::AxiomEvaluator()
     assert(g_first_logic_axiom_layer <= g_last_logic_axiom_layer);
     assert(g_first_logic_axiom_layer > -1 || g_last_logic_axiom_layer == -1);
     assert(g_first_logic_axiom_layer == -1 || g_last_logic_axiom_layer > -1);
-    cerr << "Arithm: " << g_last_arithmetic_axiom_layer << " Comparison: "
-        << g_comparison_axiom_layer << " 1st logic: "
-        << g_first_logic_axiom_layer << " last logic: "
-        << g_last_logic_axiom_layer << endl;
+
     // Initialize axioms by layer
     axioms_by_layer.resize(g_last_logic_axiom_layer + 2);
     for(int i = 0; i < max_axiom_layer + 2; i++)

@@ -6,8 +6,8 @@
 #define _PDDL_MODULE_TYPES_H_
 
 #define PDDL_MODULE_VERSION_MAJOR 0
-#define PDDL_MODULE_VERSION_MINOR 2
-#define PDDL_MODULE_VERSION_STRING "0.2"
+#define PDDL_MODULE_VERSION_MINOR 3
+#define PDDL_MODULE_VERSION_STRING "0.3"
 
 #include <math.h>
 #include <stdio.h>
@@ -98,37 +98,25 @@ typedef bool (*numericalFluentCallbackType)(NumericalFluentList* & numericalFlue
 
 /**** Begin Actual Module Calls ****/
 
-/// unique context of the current state and operator.
-typedef void* plannerContextPtr;
-
-/// isContextValid determines if a plannerContextPtr can be used for caching.
-inline bool isContextValid(plannerContextPtr context) { return context != NULL; }
-
-/// A context comparator to compare/map from a plannerContextPtr, that should be "less than".
-/**
- * Although this pointer is necessarily passed to each module call, the planner guarantees, that each plannerContextCompareType will be valid for comparing plannerContextPtrs.
- */
-typedef bool (*plannerContextCompareType)(plannerContextPtr p1, plannerContextPtr p2);
-
 /// Function pointer to call for a module before any module calls are performed - parameters are passed on from the problem definition file.
 typedef void (*moduleInitType)(int argc, char** argv);
  
 /// Semantic attachment for a condition (predicate).
 /**
  * \param [in] relaxed only produce relaxed solution, 0 - produce accurate result, 1 .. n produce an approximate result using method 1 .. n.
- * \param [in] context to a planner context, that can be used with contextComp - check with isContextValid before using this value!
- * \param [out] tookContext should be set to true, if the plannerContextPtr context was entered into a data structure (might be deleted otherwise)
  * \return the actual cost or INFINITE_COST when called as cost module, INFINITE_COST if false or 0 (a value smaller INFINITE_COST) if true, when called as conditionChecker 
  *    (i.e. cost modules can be used as condition checkers)
  */
-typedef double (*conditionCheckerType)(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext);
+typedef double (*conditionCheckerType)(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 /// Semantic attachment adding numerical effects.
 /**
  * \return ??? fragen wir das ab?
  */
-typedef int (*applyEffectType)(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-      vector<double>& writtenVars, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext);
+typedef int (*applyEffectType)(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
+        vector<double> & writtenVars);
 
 /**** Interface addition for extracting the plan from a module - irrelevant for the actual planning process  ****/
 
@@ -138,12 +126,10 @@ typedef void* subplanType;
 /// A Module should generate a subplanType for this operator.
 /**
  * All parameters will be the same as for previous calls to conditionCheckerType or applyEffectType.
- * The additional operatorName is only given as additional information and should not be interpreted.
- *
- * \param [in] context should be used to acquire a previously (during search) stored subplan to avoid the need to reprocess the plan.
- * \param [in] contextComp can be used to compare/map given contexts.
+ * The additional operatorName is only given as additional information.
  */
-typedef subplanType (*subplanGeneratorType)(const string & operatorName, const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic, plannerContextPtr context, plannerContextCompareType contextComp);
+typedef subplanType (*subplanGeneratorType)(const string & operatorName, const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic);
 //FIXME: do we need heuristic here?
 
 /// For final plan output: Convert a subplan into a string.

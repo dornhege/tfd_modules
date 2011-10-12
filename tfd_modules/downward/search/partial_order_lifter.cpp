@@ -454,7 +454,7 @@ void PartialOrderLifter::buildInstantPlan()
             findAllEffectCondVars(new_op, effect_cond_vars, start_action);
             actionsEndingAtGivenTime[endTime].push_back(&new_op);
 
-            double duration = new_op.origin->get_duration(stateBeforeHappening);
+            double duration = new_op.get_duration(stateBeforeHappening);
             instant_plan.push_back(InstantPlanStep(start_action, startTime,
                         duration, &new_op));
             instant_plan.back().effects = effects;

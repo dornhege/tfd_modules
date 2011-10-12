@@ -12,8 +12,7 @@ extern "C" {
 void navstack_init(int argc, char** argv);
 
 double pathCost(const ParameterList & parameterList, predicateCallbackType predicateCallback, 
-      numericalFluentCallbackType numericalFluentCallback,
-      int relaxed, plannerContextPtr context, plannerContextCompareType contextComp, bool & tookContext);
+      numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 VERIFY_CONDITIONCHECKER_DEF(pathCost);
 

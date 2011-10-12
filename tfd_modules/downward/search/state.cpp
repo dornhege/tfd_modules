@@ -32,14 +32,11 @@ void TimeStampedState::apply_module_effect(string internal_name)
     g_modulecallback_state = this;
     predicateCallbackType pct = getPreds;
     numericalFluentCallbackType nct = getFuncs;
-    // FIXME: can we to implement this correctly? Need to know the operator
-    //    plannerContextPtr pc = new pair<const TimeStampedState*,Operator*>(this,NULL);
-    //    plannerContextCompareType pcct= compareContext;
-    bool tookContext = true;
+
     EffectModule *module = g_effect_modules[index];
     vector<double> new_values = vector<double> (module->writtenVars.size());
     ParameterList &params = module->params;
-    module->applyEffect(params, pct, nct, new_values, NULL, NULL, tookContext);
+    module->applyEffect(params, pct, nct, new_values);
     for(int i = 0; i < new_values.size(); ++i) {
         state[module->writtenVars[i]] = new_values[i];
     }
@@ -63,7 +60,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         // at-start effects may not have any at-end conditions
         assert(pre_post.cond_end.size() == 0);
 
-        if(pre_post.does_fire(predecessor, &op)) {
+        if(pre_post.does_fire(predecessor)) {
             apply_effect(pre_post.var, pre_post.fop, pre_post.var_post,
                     pre_post.post);
         }
@@ -73,7 +70,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
         const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
         assert(mod_eff.cond_end.size() == 0);
-        if(mod_eff.does_fire(predecessor, &op)) {
+        if(mod_eff.does_fire(predecessor)) {
             apply_module_effect(mod_eff.module->internal_name);
         }
 
@@ -87,7 +84,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_pre_post_end().size(); i++) {
         const PrePost &eff = op.get_pre_post_end()[i];
-        if(eff.does_fire(predecessor, &op)) {
+        if(eff.does_fire(predecessor)) {
             scheduled_effects.push_back(ScheduledEffect(duration, eff));
         }
     }
@@ -98,7 +95,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_mod_effs_end().size(); i++) {
         const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
-        if(mod_eff.does_fire(predecessor, &op)) {
+        if(mod_eff.does_fire(predecessor)) {
             scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
                         mod_eff));
         }
@@ -128,7 +125,6 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // FIXME: time increments aller Komponenten des Zustands anpassen
     // assert(!double_equals(timestamp, next_happening()));
 
-    assert(this != &predecessor);
     initialize();
 }
 

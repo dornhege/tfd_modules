@@ -281,7 +281,7 @@ double ClosedList::trace_path(const TimeStampedState &entry,
         if(!info_helper || info_helper->predecessor == 0)
             break;
         const PredecessorInfo &info = *info_helper;
-        if(diff > EPSILON) {
+        if(diff > EPSILON && states.size() > 1) {
             for(int i = 0; i < path.size(); i++) {
                 path[i].start_time -= diff;
             }

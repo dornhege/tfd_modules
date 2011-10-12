@@ -10,8 +10,6 @@
 #include <tr1/tuple>
 #include "search_statistics.h"
 
-using namespace modules;
-
 class Heuristic;
 
 typedef std::tr1::tuple<const TimeStampedState *, const Operator *, double> OpenListEntry;

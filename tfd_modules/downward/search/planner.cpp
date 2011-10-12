@@ -46,8 +46,6 @@ int main(int argc, char **argv)
         cin.rdbuf(file.rdbuf());
         cerr.rdbuf(cout.rdbuf());
         argc--;
-    } else {
-        cout.rdbuf(cerr.rdbuf());
     }
 
     struct tms start, search_start, search_end;

@@ -11,31 +11,16 @@ Prevail::Prevail(istream &in)
     in >> var >> prev;
 }
 
-bool Prevail::is_applicable(const TimeStampedState &state, const Operator * op,
-        bool allowRelaxed) const
+bool Prevail::is_applicable(const TimeStampedState &state, bool allowRelaxed) const
 {
     assert(var >= 0 && var < g_variable_name.size());
     assert((prev >= 0 && prev < g_variable_domain[var]) || (g_variable_types[var] == module));
     if(g_variable_types[var] == module) {
-        assert(op != NULL);     // there should always be an operator unless 
-                                // called from LogicAxiom, where it should not be a module
-        if(op == NULL)
-            return false;
-
-        pair<const TimeStampedState*, const Operator*> * pcPtr = new pair<
-            const TimeStampedState*, const Operator*> (&state, op);
-        plannerContextPtr pc = pcPtr;
-        plannerContextCompareType pcct = compareContext;
         g_modulecallback_state = &state;
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
-        bool tookContext = true;
         double cost = g_condition_modules[var]->checkCondition(
-                g_condition_modules[var]->params, pct, nct, allowRelaxed, pc,
-                pcct, tookContext);
-        if(!tookContext) {
-            delete pcPtr;
-        }
+                g_condition_modules[var]->params, pct, nct, allowRelaxed);
         return cost < INFINITE_COST;
     } else {
         return double_equals(state[var], prev);
@@ -214,7 +199,7 @@ void Operator::dump() const
 bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
         TimedSymbolicStates* timedSymbolicStates) const
 {
-    // query duration now (wasted call) just to check applicability: caching?
+    // TODO: query duration now (wasted call) just to check applicability: caching?
     double duration = get_duration(&state);
     if(duration < 0 || duration >= INFINITE_COST)  // TODO Patrick zero cost actions OK?
         return false;
@@ -224,7 +209,7 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
             return false;
 
     for(int i = 0; i < prevail_start.size(); i++)
-        if(!prevail_start[i].is_applicable(state, this, allowRelaxed)) //FIXME: is this a temporaray??????????
+        if(!prevail_start[i].is_applicable(state, allowRelaxed))
             return false;
 
     // Make sure that there is no other operator currently running, that
@@ -385,22 +370,12 @@ double Operator::get_duration(const TimeStampedState* state, int relaxed) const
     assert(state != NULL);
 
     if(g_variable_types[duration_var] == costmodule) {
-        pair<const TimeStampedState*, const Operator*> * pcPtr = 
-            new pair<const TimeStampedState*, const Operator*> (state, this);
-        plannerContextPtr pc = pcPtr;
-        plannerContextCompareType pcct = compareContext;
-        bool tookContext = true;
         g_modulecallback_state = state;
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
         double duration = g_cost_modules[duration_var]->checkCost(
-                g_cost_modules[duration_var]->params, pct, nct, relaxed,
-                pc, pcct, tookContext);
+                g_cost_modules[duration_var]->params, pct, nct, relaxed);
         //printf("Duration from module: %f\n", duration);
-        if(!tookContext) {
-            delete pcPtr;
-        }
-
         return duration;
     }
 

@@ -74,11 +74,11 @@ bool checkLoading(deque<double> sizes, double cap)
   return itemSizes.empty();
 }
 
-double can_load(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int , plannerContextPtr , plannerContextCompareType, bool & tookContext)
+double can_load(const ParameterList & parameterList,
+       predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int )
 {
-   ROS_DEBUG("Calling module %s", __func__);
+  ROS_DEBUG("Calling module %s", __func__);
 
-  tookContext = false;
   static int count = 0;
   count++;
   //cout << "Count: " << count << endl;
@@ -206,7 +206,9 @@ void init(int argc, char** argv)
    printf("\n");
 }
 
-subplanType genSubplan(const string & operatorName, const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic, plannerContextPtr context, plannerContextCompareType contextComp) {
+subplanType genSubplan(const string & operatorName, const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int heuristic)
+{
    printf("Generating subplan for %s\n", operatorName.c_str());
    return strdup(operatorName.c_str());
 }
