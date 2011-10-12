@@ -54,12 +54,11 @@ void BestFirstSearchEngine::initialize()
     assert(!open_lists.empty());
 }
 
-void BestFirstSearchEngine::statistics(time_t & current_time) const
+void BestFirstSearchEngine::statistics(time_t & current_time)
 {
     cout << endl;
     cout << "Search Time: " << (current_time - start_time) << " sec." << endl;
-    cout << "Expanded Nodes: " << closed_list.size() << " state(s)." << endl;
-    search_statistics.dump(closed_list.size());
+    search_statistics.dump(closed_list.size(), current_time);
     cout << "OpenList sizes:";
     for(unsigned int i = 0; i < open_lists.size(); ++i) {
         cout << " " << open_lists[i].open.size();

@@ -1,6 +1,8 @@
 #ifndef SEARCH_STATISTICS_H
 #define SEARCH_STATISTICS_H
 
+#include <time.h>
+
 class SearchStatistics
 {
     public:
@@ -24,12 +26,18 @@ class SearchStatistics
         void finishExpansion();
     
         /// Output statistics
-        void dump(unsigned int closedListSize) const;
+        void dump(unsigned int closedListSize, time_t & current_time);
 
     private:
         // internal counters per expansion
         int numberOfChildren;
         int numberOfChildrenWithSameG;
+
+        /// Closed list size on the last dump call
+        int lastDumpClosedListSize;
+        int lastDumpGeneratedStates;
+        time_t lastDumpTime;
+        time_t startTime;
 };
 
 #endif
