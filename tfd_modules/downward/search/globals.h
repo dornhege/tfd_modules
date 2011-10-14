@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include "module.h"
+#include <cmath>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ struct PlanStep
     double start_time;
     double duration;
     const Operator* op;
-    const TimeStampedState* pred;
+    const TimeStampedState* pred;   ///< Optional pointer to the predecessor state
 
     PlanStep(double st, double dur, const Operator* o,
         const TimeStampedState* p) :
@@ -51,7 +52,10 @@ class PlanStepCompareStartTime
 typedef std::vector<PlanStep> Plan;
 typedef std::vector<TimeStampedState*> PlanTrace;
 
-bool double_equals(double a, double b);
+inline bool double_equals(double a, double b)
+{
+    return std::abs(a - b) < EPSILON;
+}
 
 const int REALLYBIG = 9999999;
 const int REALLYSMALL = -9999999;
