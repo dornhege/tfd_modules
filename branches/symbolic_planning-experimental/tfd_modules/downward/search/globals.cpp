@@ -23,11 +23,6 @@ void PlanStep::dump() const
         << endl;
 }
 
-bool double_equals(double a, double b)
-{
-    return std::abs(a - b) < EPSILON;
-}
-
 void check_magic(istream &in, string magic)
 {
     string word;

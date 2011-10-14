@@ -10,7 +10,7 @@
 
 struct TssHash
 {
-    std::size_t operator()(const TimeStampedState &/*tss*/) const;
+    std::size_t operator()(const TimeStampedState & tss) const;
 };
 
 bool prevailEquals(const Prevail &prev1, const Prevail &prev2);

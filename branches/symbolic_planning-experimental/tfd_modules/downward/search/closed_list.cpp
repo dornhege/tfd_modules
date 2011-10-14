@@ -36,6 +36,10 @@ std::size_t TssHash::operator()(const TimeStampedState &tss) const
     for(int i = 0; i < tss.state.size(); ++i) {
         ret += tss.state[i] * (i + 1);
     }
+    ret += tss.scheduled_effects.size() * (tss.state.size() + 1);
+    ret += tss.conds_over_all.size() * (tss.state.size() + 2);
+    ret += tss.conds_at_end.size() * (tss.state.size() + 3);
+
     return ret;
 }
 
@@ -93,16 +97,7 @@ bool scheduledEffectEquals(const ScheduledEffect &eff1, const ScheduledEffect &e
 
 bool TssEquals::operator()(const TimeStampedState &tss1, const TimeStampedState &tss2) const
 {
-    if(tss1.state.size() != tss2.state.size())
-        return false;
-    for(int i = 0; i < tss1.state.size(); ++i) {
-        if (!(g_variable_types[i] == primitive_functional
-                    || g_variable_types[i] == logical)) {
-            continue;
-        }
-        if (!double_equals(tss1.state[i], tss2.state[i]))
-            return false;
-    }
+    assert(tss1.state.size() == tss2.state.size());
     if(tss1.scheduled_effects.size() != tss2.scheduled_effects.size())
         return false;
     if(tss1.conds_over_all.size() != tss2.conds_over_all.size())
@@ -118,6 +113,16 @@ bool TssEquals::operator()(const TimeStampedState &tss1, const TimeStampedState 
     if(!equal(tss1.conds_at_end.begin(), tss1.conds_at_end.end(),
                 tss2.conds_at_end.begin(), scheduledConditionEquals))
         return false;
+
+    for(int i = 0; i < tss1.state.size(); ++i) {
+        if (!(g_variable_types[i] == primitive_functional
+                    || g_variable_types[i] == logical)) {
+            continue;
+        }
+
+        if (!double_equals(tss1.state[i], tss2.state[i]))
+            return false;
+    }
     return true;
 }
 
