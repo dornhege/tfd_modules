@@ -64,6 +64,14 @@ void BestFirstSearchEngine::statistics(time_t & current_time)
         cout << " " << open_lists[i].open.size();
     }
     cout << endl;
+    cout << "Heuristic Computations (per heuristic):";
+    unsigned long totalHeuristicComputations = 0;
+    for(unsigned int i = 0; i < heuristics.size(); ++i) {
+        Heuristic *heur = heuristics[i];
+        totalHeuristicComputations += heur->get_num_computations();
+        cout << " " << heur->get_num_computations();
+    }
+    cout << " Total: " << totalHeuristicComputations << endl;
     cout << "Best heuristic value: " << best_heuristic_values[0] << endl << endl;
     //    cout << "Best state:" << endl;
     //    const TimeStampedState &state = *best_states[0];
@@ -386,11 +394,13 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
         for(int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
+
+            // compute expected min makespan of this op
             double maxTimeIncrement = 0.0;
             for(int k = 0; k < parent_ptr->operators.size(); ++k) {
                 maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
             }
-            double duration = ops[j]->get_duration(parent_ptr, 1);
+            double duration = ops[j]->get_duration(parent_ptr, true);   // TODO lazy state eval flag?
             maxTimeIncrement = max(maxTimeIncrement, duration);
             double makeSpan = maxTimeIncrement + parent_ptr->timestamp;
             TimedSymbolicStates timedSymbolicStates;
@@ -412,10 +422,9 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 childG = getG(&tss, parent_ptr, ops[j]);
                 childF = childG + childH;
 
-                search_statistics.countChild(parentG, childG, parentF, childF);
-
                 double priority = g_parameters.lazy_evaluation ? parentF : childF;
                 open.push(std::tr1::make_tuple(parent_ptr, ops[j], priority));
+                search_statistics.countChild();
             }
         }
         TimeStampedState tss = parent_ptr->let_time_pass(false);
@@ -431,11 +440,10 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         childG = getG(&tss, parent_ptr, NULL);
         childF = childH + childG;
 
-        search_statistics.countChild(parentG, childG, parentF, childF);
-        search_statistics.finishExpansion();
-
         double priority = g_parameters.lazy_evaluation ? parentF : childF;
         open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
+        search_statistics.countChild();
+        search_statistics.finishExpansion();    // FIXME: Count this per open_list not total per parent
     }
 }
 

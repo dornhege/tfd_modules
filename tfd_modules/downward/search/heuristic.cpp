@@ -3,10 +3,11 @@
 
 using namespace std;
 
-Heuristic::Heuristic(bool use_caching)
+Heuristic::Heuristic(/*bool use_caching*/)
 {
-    use_cache = use_caching;
+    //use_cache = use_caching;
     heuristic = NOT_INITIALIZED;
+    num_computations = 0;
 }
 
 Heuristic::~Heuristic()
@@ -45,6 +46,7 @@ double Heuristic::evaluate(const TimeStampedState &state)
         initialize();
     preferred_operators.clear();
     heuristic = compute_heuristic(state);
+    num_computations++;
     assert(heuristic == DEAD_END || heuristic >= 0);
 
     if(heuristic == DEAD_END) {

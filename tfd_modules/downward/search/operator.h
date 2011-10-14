@@ -74,14 +74,14 @@ class Operator
          * This function will retrieve the duration and handle cost modules correctly.
          * The state pointer should keep on valid as it can be used for caching in modules.
          */
-        double get_duration(const TimeStampedState* state, int relaxed = 0) const;
+        double get_duration(const TimeStampedState* state, bool relaxed = false) const;
 
         /// Compute applicability of this operator in state.
         /**
          * \param [in] allowRelaxed if true, only relaxed module calls will be performed.
          * \param [out] timedSymbolicStates if not NULL the timedSymbolicStates will be computed
          */
-        bool is_applicable(const TimeStampedState & state, bool allowRelaxed,
+        bool is_applicable(const TimeStampedState & state, bool allowRelaxed = false,
             TimedSymbolicStates* timedSymbolicStates = NULL) const;
 
         bool isDisabledBy(const Operator* other) const;

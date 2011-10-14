@@ -364,7 +364,7 @@ bool Operator::writesOnSameVar(const vector<PrePost>& effs1, const vector<
     return false;
 }
 
-double Operator::get_duration(const TimeStampedState* state, int relaxed) const
+double Operator::get_duration(const TimeStampedState* state, bool relaxed) const
 {
     assert(duration_var >= 0);
     assert(state != NULL);

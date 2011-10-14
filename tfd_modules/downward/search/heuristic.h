@@ -30,8 +30,11 @@ class Heuristic
             std::vector<const Operator *> preferred_operators;
         };
 
-        bool use_cache;
-        std::map<TimeStampedState, EvaluationInfo> state_cache;
+        //bool use_cache;
+        //std::map<TimeStampedState, EvaluationInfo> state_cache;
+
+        unsigned long num_computations;     ///< For stats, how ofter was compute_heuristic called
+
     protected:
         enum
         {
@@ -44,7 +47,7 @@ class Heuristic
     public:
         inline void set_waiting_time(double time_increment);
         void set_preferred(const Operator *op);
-        Heuristic(bool use_cache = false);
+        Heuristic();
         virtual ~Heuristic();
 
         double evaluate(const TimeStampedState &state);
@@ -56,6 +59,7 @@ class Heuristic
         {
             return true;
         }
+        unsigned long get_num_computations() const { return num_computations; }
 };
 
 inline void Heuristic::set_waiting_time(double time_increment)

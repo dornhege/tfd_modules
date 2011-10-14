@@ -23,7 +23,7 @@
 #include <ros/ros.h>
 #endif
 
-#include <pddlModuleLoaderLDL.h>
+#include "pddlModuleLoaderLDL.h"
 
 using namespace std;
 
