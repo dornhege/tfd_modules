@@ -15,6 +15,7 @@
 #include <cassert>
 #include <deque>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -251,6 +252,7 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
     return ret;
 }
 
+// TODO check this and use as verify-timestamps version if we can produce the plan for output
 bool MonitorEngine::validatePlanOld(const vector<PlanStep>& plan)
 {
     TimeStampedState current = *g_initial_state;
@@ -271,13 +273,13 @@ bool MonitorEngine::validatePlanOld(const vector<PlanStep>& plan)
         cout << "Current time_stamp: " << current.timestamp << endl;
         cout << "Next op: " << plan[i].op->get_name() << " ";
         // replace with correct function
-        //      if(!plan[i].op->is_applicable(current)) {
-        //          cout << "is not applicable!" << endl;
-        return false;
-        //      } else {
-        //          cout << "is applicable!" << endl;
-        //          current = TimeStampedState(current,(*plan[i].op));
-        //     }
+        if(!plan[i].op->is_applicable(current)) {
+            cout << "is not applicable!" << endl;
+            return false;
+        } else {
+            cout << "is applicable!" << endl;
+            current = TimeStampedState(current,(*plan[i].op));
+        }
     }
 
     while (!current.operators.empty())

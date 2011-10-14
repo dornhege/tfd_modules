@@ -10,17 +10,11 @@ class SearchStatistics
         ~SearchStatistics();
 
         int generated_states;
-        int childsWithSameG;
-        int childsWithDifferentG;
-        int childsWithSameF;
-        int childsWithDifferentF;
         int parentsWithTwoOrMoreChilds;
-        int parentsWithTwoOrMoreChildsWithSameG;
         int parentsWithAtMostOneChild;
-        int parentsWithAtMostOneChildWithSameG;
 
         /// Count statistics for one generated child
-        void countChild(double parentG, double childG, double parentF, double childF);
+        void countChild();
 
         /// This should be called after the childs of one node have been expanded and counted to compute extra stats.
         void finishExpansion();
@@ -31,7 +25,6 @@ class SearchStatistics
     private:
         // internal counters per expansion
         int numberOfChildren;
-        int numberOfChildrenWithSameG;
 
         /// Closed list size on the last dump call
         int lastDumpClosedListSize;
