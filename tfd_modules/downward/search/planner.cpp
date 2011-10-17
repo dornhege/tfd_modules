@@ -78,6 +78,14 @@ int main(int argc, char **argv)
             != g_init_modules.end(); it++) {
         (*it)->execInit();
     }
+    if(g_parameters.lazy_state_module_evaluation < 0) {
+        if(g_condition_modules.empty() && g_cost_modules.empty())
+            g_parameters.lazy_state_module_evaluation = 0;
+        else
+            g_parameters.lazy_state_module_evaluation = 1;
+        cout << "Auto-Set Lazy State Module Evaluation to "
+            << (g_parameters.lazy_state_module_evaluation ? "Enabled" : "Disabled") << endl;
+    }
 
     FILE* timeDebugFile = NULL;
     if(!getTimesName(g_parameters.plan_name).empty()) {

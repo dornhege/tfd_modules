@@ -223,8 +223,6 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             duration = s_op->time_increment;
         } else if(!(duration_variable == -1)) {
             if(g_variable_types[duration_variable] == costmodule) {
-                duration    // FIXME Patrick remove unnecessary?
-                    = reached_by->get_source()->children_state[reached_by->duration_var_local];
                 g_modulecallback_state = &state;
                 predicateCallbackType pct = getPreds;
                 numericalFluentCallbackType nct = getFuncs;

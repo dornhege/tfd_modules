@@ -5,10 +5,6 @@
 SearchStatistics::SearchStatistics()
 {
     generated_states = 0;
-    parentsWithAtMostOneChild = 0;
-    parentsWithTwoOrMoreChilds = 0;
-        
-    numberOfChildren = 0;
 
     lastDumpClosedListSize = 0;
     lastDumpGeneratedStates = 0;
@@ -20,21 +16,27 @@ SearchStatistics::~SearchStatistics()
 {
 }
 
-void SearchStatistics::countChild()
+void SearchStatistics::countChild(int openListIndex)
 {
     generated_states++;
-    numberOfChildren++;
+    childrenPerOpenList[openListIndex]++;
 }
 
 void SearchStatistics::finishExpansion()
 {
-    if(numberOfChildren >= 2) {
-        parentsWithTwoOrMoreChilds++;
-    } else {
-        parentsWithAtMostOneChild++;
+    int numChildren = 0;
+    for(std::map<int, int>::iterator it = childrenPerOpenList.begin(); it != childrenPerOpenList.end(); it++) {
+        std::map<int, Statistics<double> >::iterator statIt = branchingFactors.find(it->first);
+        if(statIt == branchingFactors.end()) {
+            char* buf = new char[1024];
+            sprintf(buf, "Open List %d", it->first);
+            branchingFactors[it->first] = Statistics<double>(buf);
+        }
+        branchingFactors[it->first].addMeasurement(it->second); // count
+        numChildren += it->second;
+        it->second = 0; // reset for next expansion
     }
-
-    numberOfChildren = 0;
+    overallBranchingFactor.addMeasurement(numChildren);
 }
 
 void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
@@ -52,10 +54,14 @@ void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
     printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dGeneratedNodes/dt, dt,
             double(generated_states)/dTotal);
 
-    cout << "Parents with 2 or more children: " << parentsWithTwoOrMoreChilds << endl;
-    cout << "Parents with at most 1 children: " << parentsWithAtMostOneChild << endl;
-    cout << "Average branching factor: " << (generated_states / (double) closedListSize) << endl;
-    // TODO: also take the real branching factor in childs for each parent here (by queue/total)
+    cout << "Overall branching factor by list sizes: " << (generated_states / (double) closedListSize) << endl;
+    printf("Averaged overall branching factor: ");
+    overallBranchingFactor.print();
+    printf("Branching factors by open list:\n");
+    for(std::map<int, Statistics<double> >::iterator it = branchingFactors.begin();
+            it != branchingFactors.end(); it++) {
+        it->second.print();
+    }
 
     lastDumpGeneratedStates = generated_states;
     lastDumpClosedListSize = closedListSize;

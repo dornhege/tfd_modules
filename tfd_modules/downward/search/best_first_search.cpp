@@ -161,6 +161,9 @@ SearchEngine::status BestFirstSearchEngine::step()
                 current_predecessor, current_operator);
         assert(&current_state != current_predecessor);
 
+        // evaluate the current/parent state
+        // also do this for non/lazy-evaluation as the heuristics
+        // provide preferred operators!
         for(int i = 0; i < heuristics.size(); i++) {
             heuristics[i]->evaluate(current_state);
         }
@@ -235,26 +238,29 @@ bool BestFirstSearchEngine::is_dead_end()
 bool BestFirstSearchEngine::check_goal()
 {
     // Any heuristic reports 0 iff this is a goal state, so we can
-    // pick an arbitrary one.
+    // pick an arbitrary one. Heuristics are assumed to not miss a goal
+    // state and especially not to report a goal as dead end.
     Heuristic *heur = open_lists[0].heuristic;
-    if(!heur->is_dead_end() && heur->evaluate(current_state) == 0) {
+ 
+    // We actually need this silly !heur->is_dead_end() check because
+    // this state *might* be considered a non-dead end by the
+    // overall search even though heur considers it a dead end
+    // (e.g. if heur is the CG heuristic, but the FF heuristic is
+    // also computed and doesn't consider this state a dead end.
+    // If heur considers the state a dead end, it cannot be a goal
+    // state (heur will not be *that* stupid). We may not call
+    // get_heuristic() in such cases because it will barf.
+    if(!heur->is_dead_end() && heur->get_heuristic() == 0) {
         if(current_state.operators.size() > 0) {
             return false;
         }
+        // found goal
 
         if(!current_state.satisfies(g_goal)) {  // will assert...
             dump_everything();
         }
         assert(current_state.operators.empty() && current_state.satisfies(g_goal));
 
-        // We actually need this silly !heur->is_dead_end() check because
-        // this state *might* be considered a non-dead end by the
-        // overall search even though heur considers it a dead end
-        // (e.g. if heur is the CG heuristic, but the FF heuristic is
-        // also computed and doesn't consider this state a dead end.
-        // If heur considers the state a dead end, it cannot be a goal
-        // state (heur will not be *that* stupid). We may not call
-        // get_heuristic() in such cases because it will barf.
         Plan plan;
         PlanTrace path;
         closed_list.trace_path(current_state, plan, path);
@@ -354,6 +360,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 {
     vector<const Operator *> all_operators;
     g_successor_generator->generate_applicable_ops(*parent_ptr, all_operators);
+    // Filter ops that cannot be applicable just from the preprocess data (doesn't guarantee full applicability)
 
     vector<const Operator *> preferred_operators;
     for(int i = 0; i < preferred_operator_heuristics.size(); i++) {
@@ -363,88 +370,120 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         }
     }
 
-    // HACK!?!?! Entferne pref_ops aus normaler liste
+    vector<const Operator *> preferred_applicable_operators;
+    // all_operators contains a superset of applicable operators based on preprocess data
+    // this in not necessarily all operators in the task, but also doesn't guarantee applicablity, yet.
+    // Here we split this superset of operators in two:
+    // - preferred_applicable_operators will be those operators from all_operators that are preferred_operators
+    // - all_operators will be the rest (i.e. the non-preferred operators)
+    // preferred_applicable_operators thus contains all operators that are preferred and might be applicable,
+    // i.e. a subset of preferred_operators
+    // The preferred_operators to be used will thus be only the preferred_applicable_operators
     for(int k = 0; k < preferred_operators.size(); ++k) {
         for(int l = 0; l < all_operators.size(); ++l) {
             if(all_operators[l] == preferred_operators[k]) {
                 all_operators[l] = all_operators[all_operators.size() - 1];
                 all_operators.pop_back();
+                preferred_applicable_operators.push_back(preferred_operators[k]);
                 break;
             }
         }
     }
-
-    double parentG, parentH, parentF;
-    parentG = getG(parent_ptr, parent_ptr, NULL);
+    preferred_operators = preferred_applicable_operators;
 
     for(int i = 0; i < open_lists.size(); i++) {
         Heuristic *heur = open_lists[i].heuristic;
-        parentH = heur->evaluate(*parent_ptr);
-        if (parentH == -1) {
-            assert(false);
-            return;
-        }
-        parentF = parentG + parentH;
 
-        double childG, childH, childF;
+        double priority = -1;   // invalid
+        // lazy eval = compute priority by parent
+        if(g_parameters.lazy_evaluation) {
+            double parentG = getG(parent_ptr, parent_ptr, NULL);
+            double parentH = heur->get_heuristic();
+            assert(!heur->is_dead_end());
+            double parentF = parentG + parentH;
+            if(g_parameters.greedy)
+                priority = parentH;
+            else
+                priority = parentF;
+        }
 
         OpenList &open = open_lists[i].open;
         vector<const Operator *> & ops =
             open_lists[i].only_preferred_operators ? preferred_operators : all_operators;
 
+        // push successors from applicable ops
         for(int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
+
+            bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
 
             // compute expected min makespan of this op
             double maxTimeIncrement = 0.0;
             for(int k = 0; k < parent_ptr->operators.size(); ++k) {
                 maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
             }
-            double duration = ops[j]->get_duration(parent_ptr, true);   // TODO lazy state eval flag?
+            double duration = ops[j]->get_duration(parent_ptr, lazy_state_module_eval);
             maxTimeIncrement = max(maxTimeIncrement, duration);
-            double makeSpan = maxTimeIncrement + parent_ptr->timestamp;
+            double makespan = maxTimeIncrement + parent_ptr->timestamp;
+            bool betterMakespan = makespan < bestMakespan;
+            if(g_parameters.use_subgoals_to_break_makespan_ties && makespan == bestMakespan)
+                betterMakespan = true;
+
+            // Generate a child/Use an operator if
+            // - it is applicable
+            // - its minimum makespan is better than the best we had so far
+            // - if knownByLogicalStateOnly hasn't closed this state (when feature enabled)
+
+            // only compute tss if needed
             TimedSymbolicStates timedSymbolicStates;
-            // FIXME TODO: This should be true for allow_relaxed?
-            if (ops[j]->is_applicable(*parent_ptr, false, &timedSymbolicStates) &&
-                    makeSpan < bestMakespan &&
-                    (!knownByLogicalStateOnly(logical_state_closed_list,timedSymbolicStates))
-               ) {
-                TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j]);
-                if(g_parameters.lazy_evaluation) {
-                    childH = 42.0;   // set something != -1, this is NOT used below
-                } else {
-                    childH = heur->evaluate(tss);
-                }
-                if (childH == -1) {
-                    continue;
+            TimedSymbolicStates* tssPtr = NULL;
+            if(g_parameters.use_known_by_logical_state_only)
+                tssPtr = &timedSymbolicStates;
+            if(betterMakespan && ops[j]->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
+                    (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))
+                ) {
+                // non lazy eval = compute priority by child
+                if(!g_parameters.lazy_evaluation) {
+                    // need to compute the child to evaluate it
+                    TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j]);
+                    double childG = getG(&tss, parent_ptr, ops[j]);
+                    double childH = heur->evaluate(tss);
+                    if(heur->is_dead_end())
+                        continue;
+                    double childF = childG + childH;
+                    if(g_parameters.greedy)
+                        priority = childH;
+                    else
+                        priority = childF;
                 }
 
-                childG = getG(&tss, parent_ptr, ops[j]);
-                childF = childG + childH;
-
-                double priority = g_parameters.lazy_evaluation ? parentF : childF;
                 open.push(std::tr1::make_tuple(parent_ptr, ops[j], priority));
-                search_statistics.countChild();
+                search_statistics.countChild(i);
             }
         }
-        TimeStampedState tss = parent_ptr->let_time_pass(false);
-        if(g_parameters.lazy_evaluation) {
-            childH = 42.0;   // set something != -1, this is NOT used below
-        } else {
-            childH = heur->evaluate(tss);
-        }
-        if (childH == -1) {
-            return;
-        }
 
-        childG = getG(&tss, parent_ptr, NULL);
-        childF = childH + childG;
+        // Inserted all children, now insert one more child by letting time pass
 
-        double priority = g_parameters.lazy_evaluation ? parentF : childF;
+        // non lazy eval = compute priority by child
+        if(!g_parameters.lazy_evaluation) {
+            // compute child
+            TimeStampedState tss = parent_ptr->let_time_pass(false);
+            double childG = getG(&tss, parent_ptr, NULL);
+            double childH = heur->evaluate(tss);
+            if(heur->is_dead_end()) {
+                continue;
+            }
+
+            double childF = childH + childG;
+            if(g_parameters.greedy)
+                priority = childH;
+            else
+                priority = childF;
+        }
         open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
-        search_statistics.countChild();
-        search_statistics.finishExpansion();    // FIXME: Count this per open_list not total per parent
+        search_statistics.countChild(i);
     }
+    search_statistics.finishExpansion();
 }
 
 enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
@@ -467,17 +506,19 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     std::tr1::tuple<const TimeStampedState *, const Operator *, double> next =
         open_info->open.top();
     open_info->open.pop();
-
-    // tentative new current_predecessor and current_operator
-    // We need to recheck operator applicability in case a relaxed op (relaxed module calls)
-    // was inserted in the open queue
-    const TimeStampedState* state = std::tr1::get<0>(next);
-    const Operator* op = std::tr1::get<1>(next);
-
-    if (op != g_let_time_pass && !op->is_applicable(*state, false)) {
-        return fetch_next_state();
-    }
     open_info->priority++;
+
+    if(g_parameters.lazy_state_module_evaluation > 0) {
+        // tentative new current_predecessor and current_operator
+        // We need to recheck operator applicability in case a lazy evaluated op (relaxed module calls)
+        // was inserted in the open queue
+        const TimeStampedState* state = std::tr1::get<0>(next);
+        const Operator* op = std::tr1::get<1>(next);
+
+        if (op != g_let_time_pass && !op->is_applicable(*state, false)) {
+            return fetch_next_state();
+        }
+    }
 
     current_predecessor = std::tr1::get<0>(next);
     current_operator = std::tr1::get<1>(next);
