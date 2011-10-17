@@ -26,6 +26,14 @@ class PlannerParameters
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
       bool verbose;                 ///< Verbose outputs
 
+      int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
+
+      /// if true, is_applicable checks for valid duration from cost modules
+      /** if false the cost module for an applicable operator should always provide a valid cost
+       *  for applicable operators (possibly in conjunction with an appropriate (pre-)condition module)
+       */
+      bool use_cost_modules_for_applicability;
+
       bool cyclic_cg_heuristic;                    ///< Use cyclic_cg heuristic
       bool cyclic_cg_preferred_operators;          ///< Use cyclic_cg heuristic preferred operators
       bool makespan_heuristic;                     ///< Use makespan heuristic

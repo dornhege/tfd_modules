@@ -114,9 +114,9 @@ fi
 echo
 
 if [ ! -z $OUTPUT_LOG ]; then
-   rosrun tfd_modules tfd_search ayYl G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP} 2>&1 | tee "$OUTPUT_LOG"
+   rosrun tfd_modules tfd_search ayY G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP} 2>&1 | tee "$OUTPUT_LOG"
 else
-   rosrun tfd_modules tfd_search ayYl G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP}
+   rosrun tfd_modules tfd_search ayY G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP}
 fi
 
 # get retval from tfd_search, not from tee

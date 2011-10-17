@@ -15,6 +15,9 @@ PlannerParameters::PlannerParameters()
     greedy = false;
     lazy_evaluation = true;
     verbose = true;
+    
+    lazy_state_module_evaluation = -1;
+    use_cost_modules_for_applicability = true;
 
     cyclic_cg_heuristic = false;
     cyclic_cg_preferred_operators = false;
@@ -70,9 +73,6 @@ bool PlannerParameters::readParameters(int argc, char** argv)
         timeout_while_no_plan_found = 0;
         ret = false;
     }
-    if(!lazy_evaluation) {
-        cerr << "WARNING: Disabling lazy_evaluation is experimental at the moment." << endl;
-    }
     if(use_known_by_logical_state_only) {
         cerr << "WARNING: known by logical state only is experimental and might lead to incompleteness!" << endl;
     }
@@ -95,6 +95,12 @@ void PlannerParameters::dump() const
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
     cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
+    cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
+    if(lazy_state_module_evaluation < 0)
+        cout << " (auto)";
+    cout << endl;
+    cout << "Use cost modules for applicablity: "
+        << (use_cost_modules_for_applicability ? "Enabled" : "Disabled") << endl;
 
     cout << "Cyclic CG heuristic: " << (cyclic_cg_heuristic ? "Enabled" : "Disabled")
         << " \tPreferred Operators: " << (cyclic_cg_preferred_operators ? "Enabled" : "Disabled") << endl;
@@ -167,6 +173,9 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
 
+    nhPriv.param("lazy_state_module_evaluation", lazy_state_module_evaluation, lazy_state_module_evaluation);
+    nhPriv.param("use_cost_modules_for_applicability", use_cost_modules_for_applicability, use_cost_modules_for_applicability);
+
     nhPriv.param("cyclic_cg_heuristic", cyclic_cg_heuristic, cyclic_cg_heuristic);
     nhPriv.param("cyclic_cg_heuristic_preferred_operators", 
             cyclic_cg_preferred_operators, cyclic_cg_preferred_operators);
@@ -230,7 +239,7 @@ void PlannerParameters::printUsage() const
     printf("  T <timeout secs> - total timeout in seconds for anytime search (when no plan found)\n");
     printf("  m <monitor file> - monitor plan, validate a given plan\n");
     printf("  g - perform greedy search (follow heuristic)\n");
-    printf("  l - lazy evaluation (Use parent's f instead of child's)\n");
+    printf("  l - disable lazy evaluation (Lazy = use parent's f instead of child's)\n");
     printf("  v - disable verbose printouts\n");
     printf("  y - cyclic cg CEA heuristic\n");
     printf("  Y - cyclic cg CEA heuristic - preferred operators\n");
@@ -263,7 +272,7 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
             } else if (*c == 'g') {
                 greedy = true;
             } else if (*c == 'l') {
-                lazy_evaluation = true;
+                lazy_evaluation = false;
             } else if (*c == 'v') {
                 verbose = false;
             } else if (*c == 'y') {
