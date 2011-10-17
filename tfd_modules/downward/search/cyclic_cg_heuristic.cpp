@@ -17,7 +17,7 @@ LocalProblem::LocalProblem(CyclicCGHeuristic* _owner, int the_var_no,
 }
 
 
-double LocalTransition::get_direct_cost(const TimeStampedState& state)
+double LocalTransition::get_direct_cost()
 {
     double ret = 0.0;
     assert(label);
@@ -28,7 +28,6 @@ double LocalTransition::get_direct_cost(const TimeStampedState& state)
             assert(s_op);
             g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(), s_op->time_increment));
         } else if(g_variable_types[label->duration_variable] == costmodule) {
-            g_modulecallback_state = &state;
             predicateCallbackType pct = getPreds;
             numericalFluentCallbackType nct = getFuncs;
             ret = g_cost_modules[label->duration_variable]->checkCost(
@@ -61,7 +60,7 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
     if(g_HACK()->is_running(this, state)) {
         target_cost = 0.0;
     } else {
-        duration = get_direct_cost(state);
+        duration = get_direct_cost();
         target_cost = source->cost + duration;
         if(target->cost <= target_cost) {
             // Transition cannot find a shorter path to target.
@@ -110,7 +109,7 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
     try_to_fire();
 }
 
-void LocalTransitionDiscrete::on_condition_reached(int /*cond_no*/, double cost, const TimeStampedState&)
+void LocalTransitionDiscrete::on_condition_reached(int /*cond_no*/, double cost)
 {
     assert(unreached_conditions);
     --unreached_conditions;
@@ -178,7 +177,7 @@ void LocalProblemNodeDiscrete::on_expand(const TimeStampedState &state)
     }
     for(const_it_waiting_list it = waiting_list.begin(); it
             != waiting_list.end(); ++it) {
-        it->first->on_condition_reached(it->second, cost, state);
+        it->first->on_condition_reached(it->second, cost);
     }
     waiting_list.clear();
 
@@ -223,7 +222,6 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             duration = s_op->time_increment;
         } else if(!(duration_variable == -1)) {
             if(g_variable_types[duration_variable] == costmodule) {
-                g_modulecallback_state = &state;
                 predicateCallbackType pct = getPreds;
                 numericalFluentCallbackType nct = getFuncs;
                 duration = g_cost_modules[duration_variable]->checkCost(
@@ -486,7 +484,7 @@ vector<TimedOp> LocalProblem::generate_causal_constraints(LocalProblemNode* goal
                 if(trans->label && (labels.find(op) != labels.end())) {
                     //                    continue;
                 }
-                double duration = trans->get_direct_cost(state);
+                double duration = trans->get_direct_cost();
                 indexOfMainTrans = neededOps.size();
                 TimedOp newOp = tr1::make_tuple(op, duration, indexOfMainTrans);
                 neededOps.push_back(newOp);
@@ -549,7 +547,7 @@ vector<TimedOp> LocalProblem::generate_causal_constraints(LocalProblemNode* goal
 
             if(transIsOp) {
                 returnOps.push_back(tr1::make_tuple(trans->label->op,
-                            trans->get_direct_cost(state), indexOfMainTrans));
+                            trans->get_direct_cost(), indexOfMainTrans));
             }
             for(int k = 0; k < subplans.size(); ++k) {
                 returnOps.insert(returnOps.end(), subplans[k].begin(),
@@ -628,7 +626,7 @@ inline CyclicCGHeuristic* LocalProblemNode::g_HACK()
     return owner->owner;
 }
 
-void LocalProblemNodeComp::expand(LocalTransitionComp* trans, const TimeStampedState& state)
+void LocalProblemNodeComp::expand(LocalTransitionComp* trans)
 {
     LocalProblemComp *prob = dynamic_cast<LocalProblemComp*> (owner);
     LocalProblemNodeComp *target_node = &(prob->nodes[1 - prob->start_value]);
@@ -640,15 +638,15 @@ void LocalProblemNodeComp::expand(LocalTransitionComp* trans, const TimeStampedS
     //call transitions on the own waiting lists
     for(const_it_waiting_list it = target_node->waiting_list.begin(); it
             != target_node->waiting_list.end(); ++it) {
-        it->first->on_condition_reached(it->second, target_node->cost, state);
+        it->first->on_condition_reached(it->second, target_node->cost);
     }
     target_node->waiting_list.clear();
 }
 
-void LocalProblemNodeComp::fire(LocalTransitionComp* trans, const TimeStampedState& state)
+void LocalProblemNodeComp::fire(LocalTransitionComp* trans)
 {
     // we have to add the costs of the transition itself!
-    trans->target_cost += trans->get_direct_cost(state);
+    trans->target_cost += trans->get_direct_cost();
     if(trans->target_cost < trans->target->cost) {
         trans->target->cost = trans->target_cost;
         trans->target->bestTransition = trans;
@@ -661,7 +659,7 @@ void LocalProblemNodeComp::on_expand(const TimeStampedState &state)
 {
     if(opened) {
         if(bestTransition) {
-            bestTransition->source->expand(bestTransition, state);
+            bestTransition->source->expand(bestTransition);
         }
         return;
     }
@@ -684,7 +682,7 @@ void LocalProblemNodeComp::on_expand(const TimeStampedState &state)
     }
     if(!ready_transitions.empty()) {
         for(int i = 0; i < ready_transitions.size(); ++i) {
-            fire(ready_transitions[i], state);
+            fire(ready_transitions[i]);
         }
         assert(bestTransition);
         assert(bestTransition->target);
@@ -718,7 +716,7 @@ bool LocalProblemNodeComp::check_progress_of_transition(
     }
 }
 
-void LocalTransitionComp::on_condition_reached(int cond_no, double cost, const TimeStampedState& state)
+void LocalTransitionComp::on_condition_reached(int cond_no, double cost)
 {
     if(!source->opened || source->expanded || conds_satiesfied[cond_no] == true) {
         return;
@@ -730,7 +728,7 @@ void LocalTransitionComp::on_condition_reached(int cond_no, double cost, const T
         if(conds_satiesfied[i] == false)
             return;
     // we have to add the costs of the transition itself!
-    target_cost += get_direct_cost(state);
+    target_cost += get_direct_cost();
     target->cost = target_cost;
     target->bestTransition = this;
     source->bestTransition = this;
@@ -1199,6 +1197,11 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
 {
     if(state.satisfies(g_goal) && state.operators.empty())
         return 0.0;
+
+    // set the module callback state as the state we compute the heuristik for
+    // this is probably the best we can do
+    g_modulecallback_state = &state;
+
     initialize_queue();
     set_waiting_time(REALLYSMALL);
     goal_problem->base_priority = -1;
