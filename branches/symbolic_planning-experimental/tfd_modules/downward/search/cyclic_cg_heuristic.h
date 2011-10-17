@@ -51,7 +51,7 @@ class LocalTransition
         int duration_var_local;
         const ValueTransitionLabel *label;
         virtual LocalProblemNode* get_source() = 0;
-        virtual void on_condition_reached(int, double, const TimeStampedState&) = 0;
+        virtual void on_condition_reached(int, double) = 0;
         virtual void print_description() = 0;
         LocalTransition(ValueTransitionLabel *the_label) :
             label(the_label)
@@ -60,7 +60,7 @@ class LocalTransition
         virtual ~LocalTransition()
         {
         }
-        double get_direct_cost(const TimeStampedState& state);
+        double get_direct_cost();
 
         inline CyclicCGHeuristic* g_HACK();
 };
@@ -190,8 +190,7 @@ class LocalTransitionDiscrete: public LocalTransition
         }
 
         void on_source_expanded(const TimeStampedState &state);
-        virtual void on_condition_reached(int cond_no, double cost,
-                const TimeStampedState& state);
+        virtual void on_condition_reached(int cond_no, double cost);
         void try_to_fire();
         virtual void print_description();
 };
@@ -232,9 +231,9 @@ class LocalProblemNodeComp: public LocalProblemNode
 
         LocalProblemNodeComp(LocalProblemComp *owner_, int children_state_size,
                 int the_value, binary_op the_binary_op);
-        void fire(LocalTransitionComp* trans, const TimeStampedState& state);
+        void fire(LocalTransitionComp* trans);
         virtual void on_expand(const TimeStampedState &state);
-        void expand(LocalTransitionComp* trans, const TimeStampedState& state);
+        void expand(LocalTransitionComp* trans);
         bool is_satiesfied(int trans_index, LocalTransitionComp* trans,
                 const TimeStampedState &state);
         bool is_directly_satiesfied(const LocalAssignment &pre_cond);
@@ -269,8 +268,7 @@ class LocalTransitionComp: public LocalTransition
             conds_satiesfied.resize(label->precond.size());
         }
 
-        virtual void on_condition_reached(int cond_no, double cost,
-                const TimeStampedState& state);
+        virtual void on_condition_reached(int cond_no, double cost);
         virtual void print_description();
 };
 
