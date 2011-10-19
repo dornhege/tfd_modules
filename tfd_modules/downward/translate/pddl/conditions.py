@@ -562,7 +562,7 @@ class Term(object):
         else:
             return self.__class__(self.name,[arg.uniquify_variables(type_map, renamings)
                                              for arg in self.args])
-    def compile_objectfunctions_aux(self,used_variables):
+    def compile_objectfunctions_aux(self, used_variables, recurse_object_terms=True):
         return ([],[],self)
     def rename_variables(self, renamings):
         new_args = [renamings.get(arg, arg) for arg in self.args]
@@ -577,29 +577,35 @@ class FunctionTerm(Term):
     def __init__(self, name, args=[]):
         self.name = name
         self.args = args
-    def compile_objectfunctions_aux(self,used_variables):
+    def __str__(self):
+        return "%s(%s)" % (self.name, ", ".join(map(str, self.args)))
+    def compile_objectfunctions_aux(self, used_variables, recurse_object_terms=True):
     # could be done by postorder visit
         typed_vars = []
         conjunction_parts = []
         new_args = []
         for arg in self.args:
-            typed,parts,new_term = arg.compile_objectfunctions_aux(used_variables)
-            typed_vars += typed
-            conjunction_parts += parts
-            new_args.append(new_term)
+            if recurse_object_terms:
+                typed,parts,new_term = arg.compile_objectfunctions_aux(used_variables)
+                typed_vars += typed
+                conjunction_parts += parts
+                new_args.append(new_term)
     
         for counter in itertools.count(1):
             new_var_name = "?v" + str(counter)
             if new_var_name not in used_variables:
                 used_variables.append(new_var_name)
                 typed_vars.append(pddl_types.TypedObject(new_var_name, tasks.Task.FUNCTION_SYMBOLS[self.name]))
-                new_var =  Variable(new_var_name)
+                new_var = Variable(new_var_name)
                 break
 
-        pred_name = function_predicate_name(self.name)
-        new_args.append(new_var)
-        atom = Atom(pred_name,new_args)
-        conjunction_parts = [atom] + conjunction_parts
+        if recurse_object_terms:
+            pred_name = function_predicate_name(self.name)
+            new_args.append(new_var)
+            atom = Atom(pred_name,new_args)
+            conjunction_parts = [atom] + conjunction_parts
+        else:
+            conjunction_parts = [self] 
         return (typed_vars, conjunction_parts, new_var)
     
 class Variable(Term):

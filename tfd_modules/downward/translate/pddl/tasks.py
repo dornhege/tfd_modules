@@ -48,9 +48,6 @@ class Task(object):
                  = parse_domain(domain_pddl)
     task_name, task_domain_name, module_inits, objects, init, goal = parse_task(task_pddl)
 
-    #print "Parsed Task Functions:"
-    #print map(str, functions)
-  
     assert domain_name == task_domain_name
     objects = constants + objects
     init += [conditions.Atom("=", (conditions.parse_term(obj.name), conditions.parse_term(obj.name))) 
@@ -60,8 +57,6 @@ class Task(object):
   parse = staticmethod(parse)
 
   def dump(self):
-#    self.function_symbols = function_symbols
-#    self.function_administrator = DerivedFunctionAdministrator()
     print "Problem %s: %s [%s]" % (self.domain_name, self.task_name,
                                    self.requirements)
     print "Types:"
@@ -113,7 +108,7 @@ class Requirements(object):
         ":negative-preconditions", ":disjunctive-preconditions",
         ":existential-preconditions", ":universal-preconditions",
         ":quantified-preconditions", ":conditional-effects",
-        ":fluents", ":object-fluents", ":numeric-fluents",
+        ":fluents", ":object-fluents", ":numeric-fluents", ":action-costs",
         ":durative-actions", ":derived-predicates", ":duration-inequalities", ":modules"), req
   def __str__(self):
     return ", ".join(self.requirements)
@@ -148,9 +143,6 @@ class DerivedFunctionAdministrator(object):
             if key not in self.functions:
                 symbol = get_new_symbol(key)
                 self.functions[key] = axioms.NumericAxiom(symbol,[],None,[exp])
-                #print "Added function for constant: "
-                #self.functions[key].dump("  ")
-                #self.dump("    ")
             args = ()
         elif isinstance(exp,f_expression.AdditiveInverse):
             subexp = self.get_derived_function(exp.parts[0])
@@ -269,7 +261,7 @@ def parse_domain(domain_pddl):
                                 [pddl_types.TypedObject("?x", "object"),
                                  pddl_types.TypedObject("?y", "object")])]
     parse_domain_structure(pred,the_functions,the_axioms,the_actions,the_durative_actions,the_types,the_predicates)
-  
+
   for entry in iterator:
     parse_domain_structure(entry,the_functions,the_axioms,the_actions,the_durative_actions,the_types,the_predicates)
 
@@ -332,6 +324,6 @@ def parse_task(task_pddl):
 
   for entry in iterator:
     if entry[0] == ":metric" and entry[1]=="minimize":
-        if entry[2][0] == "total-time":
+        if entry[2][0] in ["total-time", "total-cost"] :
             continue
-    assert False, "Can only minimize total-time, got: " + str(entry)
+    assert False, "Can only minimize total-time or total-cost, got: " + str(entry)

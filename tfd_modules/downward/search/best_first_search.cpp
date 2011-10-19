@@ -103,7 +103,6 @@ void BestFirstSearchEngine::dump_transition() const
 void BestFirstSearchEngine::dump_everything() const
 {
     dump_transition();
-    cout << "DEBUG: closed List is: " << endl;
     cout << endl << endl;
     for (std::vector<OpenListInfo>::const_iterator it = open_lists.begin(); it
             != open_lists.end(); it++) {
@@ -440,8 +439,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             if(g_parameters.use_known_by_logical_state_only)
                 tssPtr = &timedSymbolicStates;
             if(betterMakespan && ops[j]->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
-                    (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))
-                ) {
+                    (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
                 // non lazy eval = compute priority by child
                 if(!g_parameters.lazy_evaluation) {
                     // need to compute the child to evaluate it
@@ -463,25 +461,27 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         }
 
         // Inserted all children, now insert one more child by letting time pass
+        // only allow let_time_pass if there are running operators (i.e. there is time to pass)
+        if(!parent_ptr->operators.empty()) {
+            // non lazy eval = compute priority by child
+            if(!g_parameters.lazy_evaluation) {
+                // compute child
+                TimeStampedState tss = parent_ptr->let_time_pass(false);
+                double childG = getG(&tss, parent_ptr, NULL);
+                double childH = heur->evaluate(tss);
+                if(heur->is_dead_end()) {
+                    continue;
+                }
 
-        // non lazy eval = compute priority by child
-        if(!g_parameters.lazy_evaluation) {
-            // compute child
-            TimeStampedState tss = parent_ptr->let_time_pass(false);
-            double childG = getG(&tss, parent_ptr, NULL);
-            double childH = heur->evaluate(tss);
-            if(heur->is_dead_end()) {
-                continue;
+                double childF = childH + childG;
+                if(g_parameters.greedy)
+                    priority = childH;
+                else
+                    priority = childF;
             }
-
-            double childF = childH + childG;
-            if(g_parameters.greedy)
-                priority = childH;
-            else
-                priority = childF;
+            open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
+            search_statistics.countChild(i);
         }
-        open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
-        search_statistics.countChild(i);
     }
     search_statistics.finishExpansion();
 }

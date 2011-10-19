@@ -27,7 +27,7 @@ def instantiate_groups(groups, task, reachable_facts):
     return [expand_group(group, task, reachable_facts) for group in groups]
 
 class GroupCoverQueue:
-    def __init__(self, groups, partial_encoding):
+    def __init__(self, groups, partial_encoding, unused_groups=[]):
         self.partial_encoding = partial_encoding
         if groups:
             self.max_size = max([len(group) for group in groups])
@@ -36,6 +36,9 @@ class GroupCoverQueue:
             for group in groups:
                 group = set(group) # Copy group, as it will be modified.
                 self.groups_by_size[len(group)].append(group)
+                for fact in group:
+                    self.groups_by_fact.setdefault(fact, []).append(group)
+            for group in unused_groups:
                 for fact in group:
                     self.groups_by_fact.setdefault(fact, []).append(group)
             self._update_top()
@@ -71,8 +74,6 @@ def choose_groups(groups, reachable_facts, partial_encoding=True):
         uncovered_facts.difference_update(group)
         result.append(group)
     print len(uncovered_facts), "uncovered facts"
-    #for fact in uncovered_facts:
-    #  print fact
     result += [[fact] for fact in uncovered_facts]
     return result
 

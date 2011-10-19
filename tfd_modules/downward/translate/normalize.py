@@ -551,10 +551,6 @@ def remove_arithmetic_expressions(task):
           else:
             dur1.append((op, task.function_administrator.get_derived_function(exp)))
         act.duration = [dur0, dur1]
-        #act.duration = ([(op,task.function_administrator.get_derived_function(exp))
-        #                    for (op,exp) in act.duration[0]],
-        #                [(op,task.function_administrator.get_derived_function(exp))
-        #                    for (op,exp) in act.duration[1]])
         for tempeff in act.effects:
             for eff in tempeff:
                 if isinstance(eff.peffect,pddl.FunctionAssignment):
@@ -637,7 +633,7 @@ def condition_to_rule_body(parameters, condition, fluent_preds = None):
                 yield part
       elif isinstance(part, pddl.ModuleCall):
         # FIXME: yield nothing for that?
-        # FIXME: 2 this might be wrong - need to check, if rules are used
+        # FIXME: this might be wrong - need to check, if rules are used
         # to build the task, then we would remove this wrongly
         # BUT this should be equivalent to TRUTH in the rule body
         # Alternativ: Make one of these "Atoms" (being true and holding module as "owner")

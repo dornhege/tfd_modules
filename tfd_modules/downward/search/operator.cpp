@@ -202,7 +202,7 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
 {
     if(g_parameters.use_cost_modules_for_applicability || (g_variable_types[duration_var] != costmodule)) {
         double duration = get_duration(&state, allowRelaxed);
-        if(duration < 0 || duration >= INFINITE_COST)  // FIXME zero cost actions OK?
+        if(duration < 0 || duration >= INFINITE_COST)
             return false;
     }
 

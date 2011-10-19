@@ -258,26 +258,12 @@ def compute_model(prog):
   # unifier.dump()
   queue = Queue([fact.atom for fact in prog.facts])
   print "Starting instantiation [%d rules]..." % len(rules)
-#  print "Init facts:"
-#  for fact in prog.facts:
-#    print fact
-#  print "init rules:"
-#  for rulex in rules:
-#    print rulex
   while queue:
     next_atom = queue.pop()
-    #print "Step: expanding", next_atom
     matches = unifier.unify(next_atom)
     for rule, cond_index in matches:
-     # print "Match:", rule, cond_index
       rule.update_index(next_atom, cond_index)
       rule.fire(next_atom, cond_index, queue.push)
-      #print "STEP"
-      #for atom in queue.queue:
-      #  print atom
-      #print "rule was"
-      #print rule
-      #print "stepend"
   return queue.queue
 
 if __name__ == "__main__":

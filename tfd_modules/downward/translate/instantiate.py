@@ -83,12 +83,6 @@ def instantiate(task, model):
 #  for fact in init_facts:
 #    print fact
 
-  #for module in task.modules:
-  #  module.instantiate()
-  #
-  # Isn't this obsolete as done somewhere else
-  # here we see our problem ...
-
   type_to_objects = get_objects_by_type(task.objects,task.types)
 
   instantiated_actions = []
@@ -97,10 +91,6 @@ def instantiate(task, model):
   instantiated_numeric_axioms = set()
   new_constant_numeric_axioms = set()
   instantiated_modules = set()
-  #print "Init Model Actions"
-  #for atom in model:
-  #  if isinstance(atom.predicate, pddl.DurativeAction):
-  #    atom.predicate.dump()
   for atom in model:
     if isinstance(atom.predicate, pddl.Action):
       action = atom.predicate
@@ -129,11 +119,6 @@ def instantiate(task, model):
                                        task, new_constant_numeric_axioms, instantiated_modules, type_to_objects)
       if inst_action:
         instantiated_durative_actions.append(inst_action)
-        #print "** instantiated **"
-        #inst_action.dump()
-        #print "** fluent facts"
-        #for fact in fluent_facts:
-        #    print fact
     elif isinstance(atom.predicate, pddl.Axiom):
       axiom = atom.predicate
       parameters = axiom.parameters

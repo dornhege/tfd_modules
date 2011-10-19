@@ -77,7 +77,7 @@ def parse_effect(alist,durative=False):
             condition = conditions.parse_condition(alist[1])
             effect = parse_cond_effect(alist[2])
         return ConditionalEffect(condition,effect)
-    elif tag == "at":
+    elif tag == "at" and durative:
         return parse_timed_effect(alist)
     elif tag == "change":
         assert durative
