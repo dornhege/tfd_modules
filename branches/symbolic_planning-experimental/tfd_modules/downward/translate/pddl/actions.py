@@ -105,6 +105,7 @@ class DurativeAction(object):
     def __init__(self, name, parameters, duration, conditions, effects):
         self.name = name
         self.parameters = parameters
+        self.orig_parameter_length = len(parameters)
         self.duration = duration
         self.condition = conditions
         assert len(effects)==2
@@ -130,7 +131,6 @@ class DurativeAction(object):
             duration_list = [duration_list]
         duration_start = []
         duration_end = []
-        #print duration_list
         for item in duration_list: # each item is a simple-duration-constraint
             duration = duration_start
             if item[0] == "at":
@@ -169,7 +169,12 @@ class DurativeAction(object):
         return DurativeAction(name, parameters, (duration_start,duration_end), condition, effect)
     parse = staticmethod(parse)
     def dump(self):
-        print "%s(%s)" % (self.name, ", ".join(map(str, self.parameters)))
+        if self.orig_parameter_length != len(self.parameters):
+            print "%s(%s, (%s))" % (self.name, 
+                              ", ".join(map(str, self.parameters[0:self.orig_parameter_length])), 
+                              ", ".join(map(str, self.parameters[self.orig_parameter_length:])))
+        else:
+            print "%s(%s)" % (self.name, ", ".join(map(str, self.parameters)))
         if len(self.duration[0]) > 0:
             print "duration (values from start):"
             for (op, val) in self.duration[0]:
@@ -227,15 +232,6 @@ class DurativeAction(object):
                 else:
                   inst_duration[dura].append((op,pne.instantiate(var_mapping, fluent_functions, 
                       init_function_vals, task, new_axiom)))
-            
-            #print "inst dura", inst_duration
-            #print "new_modules", [str(x) for x in new_modules]
-#            inst_duration = [[(op,pne.instantiate(var_mapping, fluent_functions, 
-#                                              init_function_vals, task, new_axiom)) 
-#                                              for op,pne in self.duration[0]],
-#                            [(op,pne.instantiate(var_mapping, fluent_functions, 
-#                                              init_function_vals, task, new_axiom)) 
-#                                              for op,pne in self.duration[1]]]
         except ValueError, e:
             print "dropped action %s" % name
             print "Error: %s" % e

@@ -226,8 +226,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
         if(g_axiom_layers[i] == -1) {
             // non-derived variable
             const variable_type& vt = g_variable_types[i];
-            if (!(vt == comparison) && (!vt == logical)) {
-                //	    if(is_functional(i) || (g_variable_types[i] == module) || (g_variable_types[i] == costmodule)) 
+            if (vt != comparison && vt != logical) {
                 // variable is functional
                 // do nothing (should have been handled by
                 // arithmetic/comparison axioms)

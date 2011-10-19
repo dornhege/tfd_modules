@@ -162,6 +162,7 @@ def translate_strips_conditions_aux(conditions, dictionary, ranges, comparison_a
                         ##      However, *do* what we do here if this is a binary
                         ##      variable, because this happens to be the most
                         ##      common case.
+                        ##      Also see glass-is-half-empty domain for a small test case
                         val = ranges[var] - 1
                     if condition.get(var) not in (None, val):
                         # Conflicting conditions on this variable: Operator invalid.
@@ -442,6 +443,10 @@ def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, r
                 # to the effect variable
                 # example: temporal effect 1 6 0 0 0 6 -1 1
                 #          becomes 0 0 0 6 0 1 
+                # NOTE: this changes the applicability of the action, because we 
+                # introduce a "write operation" on the variable in the case, where 
+                # the original conditional effect does not trigger (hence not 
+                # affecting the variable)
                 if len(eff_condition_lists) == 1: # only one conditon
                     eff_condition = eff_condition_lists[0]
                     if (eff_condition[1] == [] and eff_condition[2] == [] and

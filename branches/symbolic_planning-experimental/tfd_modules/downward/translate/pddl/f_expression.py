@@ -34,7 +34,7 @@ def parse_expression(exp, durative=False):
             else:
                 assert len(args) == 2
                 return Difference(args)
-    elif isFloat(exp):  #exp.replace(".","").isdigit():
+    elif isFloat(exp):
         return NumericConstant(string.atof(exp))
     elif exp == "?duration":
         return DurationVariable()
@@ -89,12 +89,13 @@ class FunctionalExpression(object):
         for part in self.parts:
             result |= part.primitive_numeric_expressions()
         return result
-    def compile_objectfunctions_aux(self,used_variables):
+    def compile_objectfunctions_aux(self,used_variables, recurse_object_terms=True):
         typed_vars = []
         conjunction_parts = []
         new_parts = []
         for part in self.parts:
-            typed,parts,new_part = part.compile_objectfunctions_aux(used_variables)
+            typed,parts,new_part = part.compile_objectfunctions_aux(used_variables,
+                                                                    recurse_object_terms)
             typed_vars += typed
             conjunction_parts += parts
             new_parts.append(new_part)
@@ -197,7 +198,7 @@ class NumericConstant(FunctionalExpression):
         return self
     def change_parts(self, parts):
         return self
-    def compile_objectfunctions_aux(self,used_variables):
+    def compile_objectfunctions_aux(self, used_variables, recurse_object_terms=True):
         return ([],[],self)
     def remove_duration_variable(self, action, time, duration, pnes):
         return self
@@ -230,12 +231,13 @@ class PrimitiveNumericExpression(FunctionalExpression):
         return self
     def primitive_numeric_expressions(self):
         return set([self])
-    def compile_objectfunctions_aux(self,used_variables):
+    def compile_objectfunctions_aux(self, used_variables, recurse_object_terms=True):
         typed_vars = []
         conjunction_parts = []
         new_args = []
         for term in self.args:
-            typed,parts,new_term = term.compile_objectfunctions_aux(used_variables)
+            typed,parts,new_term = term.compile_objectfunctions_aux(used_variables,
+                                                                    recurse_object_terms)
             typed_vars += typed
             conjunction_parts += parts
             new_args.append(new_term)
@@ -324,7 +326,7 @@ class DurationVariable(FunctionalExpression):
         return self
     def change_parts(self, parts):
         return self
-    def compile_objectfunctions_aux(self,used_variables):
+    def compile_objectfunctions_aux(self, used_variables, recurse_object_terms=True):
         return ([],[],self)
     def remove_duration_variable(self, action, time, duration, pnes):
         if time == 0:

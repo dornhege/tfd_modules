@@ -310,6 +310,7 @@ def filter_unreachable_propositions(sas_task, mutex_key, translation_key):
     renaming.apply_to_translation_key(translation_key)
     renaming.apply_to_mutex_key(mutex_key)
     print "%d propositions removed." % renaming.num_removed_values
+
 def constrain_end_effect_conditions(sas_task):
     pre_by_operator_and_var = dict(); 
     start_eff_by_operator_and_var = dict(); 
