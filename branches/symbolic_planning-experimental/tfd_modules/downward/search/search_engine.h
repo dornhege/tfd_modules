@@ -13,8 +13,9 @@ class SearchEngine
     public:
         enum status
         {
-            FAILED,                 ///< No plan could be found at all
             SOLVED,                 ///< Found a plan
+            FAILED,                 ///< No plan could be found at all, explored search space
+            SOLVED_COMPLETE,        ///< explored search space, but found a plan earlier
             IN_PROGRESS,            ///< Still searching
             FAILED_TIMEOUT,         ///< No plan found, ran into timeout
             SOLVED_TIMEOUT          ///< Found a plan, but not explored search space
