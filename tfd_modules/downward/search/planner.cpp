@@ -138,21 +138,26 @@ int main(int argc, char **argv)
         times(&search_end);
         search_end_walltime = getCurrentTime();
         if(engine->found_solution()) {
-            best_makespan = save_plan(*engine, best_makespan, plan_number, g_parameters.plan_name);
-            // write plan length and search time to file
-            if(timeDebugFile && search_result == SearchEngine::SOLVED) {    // don't write info for timeout
-                int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
-                int total_ms = (search_end.tms_utime - start.tms_utime) * 10;
-                double search_time = 0.001 * (double)search_ms;
-                double total_time = 0.001 * (double)total_ms;
-                double search_time_wall = search_end_walltime - search_start_walltime;
-                double total_time_wall = search_end_walltime - start_walltime;
+            if(search_result == SearchEngine::SOLVED) {
+                // FIXME only save_plan if return value is SOLVED, otherwise no new plan was found
+                best_makespan = save_plan(*engine, best_makespan, plan_number, g_parameters.plan_name);
+                // write plan length and search time to file
+                if(timeDebugFile && search_result == SearchEngine::SOLVED) {    // don't write info for timeout
+                    int search_ms = (search_end.tms_utime - search_start.tms_utime) * 10;
+                    int total_ms = (search_end.tms_utime - start.tms_utime) * 10;
+                    double search_time = 0.001 * (double)search_ms;
+                    double total_time = 0.001 * (double)total_ms;
+                    double search_time_wall = search_end_walltime - search_start_walltime;
+                    double total_time_wall = search_end_walltime - start_walltime;
 
-                fprintf(timeDebugFile, "%f %f %f %f %f\n", best_makespan, search_time, total_time, 
-                        search_time_wall, total_time_wall);
-                fflush(timeDebugFile);
+                    fprintf(timeDebugFile, "%f %f %f %f %f\n", best_makespan, search_time, total_time, 
+                            search_time_wall, total_time_wall);
+                    fflush(timeDebugFile);
+                }
+                engine->bestMakespan = best_makespan;
             }
-            engine->bestMakespan = best_makespan;
+            // to continue searching we need to be in anytime search and the ret value is SOLVED
+            // all other possibilities are either a timeout or completely explored search space
             if(g_parameters.anytime_search) {
                 if (search_result == SearchEngine::SOLVED) {
                     engine->fetch_next_state();
@@ -190,6 +195,7 @@ int main(int argc, char **argv)
         case SearchEngine::FAILED_TIMEOUT:
             return 137;
         case SearchEngine::SOLVED:
+        case SearchEngine::SOLVED_COMPLETE:
             return 0;
         case SearchEngine::FAILED:
             assert (!engine->found_at_least_one_solution());

@@ -492,7 +492,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     if(!open_info) {
         if(found_at_least_one_solution()) {
             cout << "Completely explored state space -- best plan found!" << endl;
-            return SOLVED;
+            return SOLVED_COMPLETE;
         }
         
         if(g_parameters.verbose) {
