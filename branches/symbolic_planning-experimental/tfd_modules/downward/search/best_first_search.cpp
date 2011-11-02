@@ -462,7 +462,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
         // Inserted all children, now insert one more child by letting time pass
         // only allow let_time_pass if there are running operators (i.e. there is time to pass)
-        if(!parent_ptr->operators.empty()) {
+        if(!g_parameters.insert_let_time_pass_only_when_running_operators_not_empty || !parent_ptr->operators.empty()) {
             // non lazy eval = compute priority by child
             if(!g_parameters.lazy_evaluation) {
                 // compute child
