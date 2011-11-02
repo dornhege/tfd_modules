@@ -15,7 +15,9 @@ PlannerParameters::PlannerParameters()
     greedy = false;
     lazy_evaluation = true;
     verbose = true;
-    
+
+    insert_let_time_pass_only_when_running_operators_not_empty = false;
+
     lazy_state_module_evaluation = -1;
     use_cost_modules_for_applicability = true;
 
@@ -25,8 +27,8 @@ PlannerParameters::PlannerParameters()
     makespan_heuristic_preferred_operators = false;
     no_heuristic = false;
 
-    cg_heuristic_zero_cost_waiting_transitions = false;
-    cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state = true;
+    cg_heuristic_zero_cost_waiting_transitions = true;
+    cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state = false;
 
     g_values = GTimestamp;
     g_weight = 0.5;

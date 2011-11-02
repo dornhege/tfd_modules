@@ -25,6 +25,7 @@ class PlannerParameters
       bool greedy;                  ///< Perform greedy search
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
       bool verbose;                 ///< Verbose outputs
+      bool insert_let_time_pass_only_when_running_operators_not_empty;
 
       int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
 
