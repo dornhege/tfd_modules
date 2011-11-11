@@ -61,7 +61,7 @@
 	    :condition (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
-            (at start (can-navigate ?s ?g))
+            (at start (or (can-navigate ?s ?g) (can-navigate ?g ?s)))
             )
 	    :effect
 	    (and 
