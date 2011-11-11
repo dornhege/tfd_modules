@@ -1,18 +1,22 @@
-; initial state at start loc
-(define (problem p01)
+; first grasp_location reached, object detection done - success
+(define (problem p05)
   (:domain tidyup-grasp)
   (:moduleoptions )
-  (:objects l0 - location right_arm - arm bottle - movable_object bottlepos - pose
+  (:objects right_arm - arm bottle - movable_object bottlepos - pose
     lg0 lg1 lg2 - grasp_location)
   (:init 
-      (at-base l0)
-      (can-navigate l0 lg0)
-      (can-navigate l0 lg1)
-      (can-navigate l0 lg2)
+      (at-base lg1)
+      (can-navigate lg1 lg0)
+      (can-navigate lg1 lg2)
 
       (at-object bottle bottlepos)
 
       (handFree right_arm)
+
+      (detected-objects lg1)
+
+      (know-pose bottle)
+      (graspable-from bottle lg1)
 
       (= (x l0) 0.0)
       (= (y l0) 0.0)
