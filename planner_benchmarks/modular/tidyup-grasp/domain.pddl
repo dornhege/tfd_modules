@@ -58,7 +58,11 @@
     (:durative-action drive-base
 	    :parameters (?s - location ?g - location)
         :duration (= ?duration 1.0)
-	    :condition (and (at start (at-base ?s)) (at start (not (= ?s ?g))) (at start (can-navigate ?s ?g)) )
+	    :condition (and
+            (at start (at-base ?s))
+            (at start (not (= ?s ?g)))
+            (at start (can-navigate ?s ?g))
+            )
 	    :effect
 	    (and 
             (at start (not (at-base ?s)))
@@ -70,8 +74,13 @@
     (:durative-action grasp
 	    :parameters (?l - grasp_location ?o - movable_object ?op - pose ?a - arm)
         :duration (= ?duration 1.0)
-	    :condition (and (at start (know-pose ?o)) (at start (at-object ?o ?op)) 
-            (at start (at-base ?l)) (at start (graspable-from ?o ?l)) (at start (handFree ?a)) )
+	    :condition (and
+            (at start (know-pose ?o))
+            (at start (at-object ?o ?op)) 
+            (at start (at-base ?l))
+            (at start (graspable-from ?o ?l))
+            (at start (handFree ?a))
+            )
 	    :effect
 	    (and 
             (at end (not (handFree ?a)))
