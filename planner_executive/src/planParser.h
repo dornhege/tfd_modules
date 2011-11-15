@@ -2,7 +2,7 @@
 #define PLAN_PARSER_H
 
 #include <iostream>
-#include "plan.h"
+#include "continual_planning_executive/plan.h"
 
 class PlanParser
 {

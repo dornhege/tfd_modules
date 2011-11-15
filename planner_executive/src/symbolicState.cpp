@@ -1,4 +1,4 @@
-#include "symbolicState.h"
+#include "continual_planning_executive/symbolicState.h"
 #include <sstream>
 #include <ros/ros.h>
 

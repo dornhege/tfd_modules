@@ -2,8 +2,8 @@
 #define PLANNER_INTERFACE_H
 
 #include <string>
-#include "plan.h"
-#include "symbolicState.h"
+#include "continual_planning_executive/plan.h"
+#include "continual_planning_executive/symbolicState.h"
 
 /// Interfacing class for calling a symbolic planner.
 class PlannerInterface

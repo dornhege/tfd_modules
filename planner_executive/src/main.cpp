@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ros/ros.h>
 
-#include "symbolicState.h"
+#include "continual_planning_executive/symbolicState.h"
 #include "stateCreatorROSNavigation.h"
 #include "plannerTFDM.h"
 #include "hardcoded_facts/geometryPoses.h"
