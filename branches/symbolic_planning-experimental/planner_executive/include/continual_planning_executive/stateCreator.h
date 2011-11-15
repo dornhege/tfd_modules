@@ -15,8 +15,8 @@ using std::string;
 class StateCreator
 {
     public:
-        StateCreator();
-        ~StateCreator();
+        StateCreator() {}
+        ~StateCreator() {}
 
         virtual bool fillState(SymbolicState & state) = 0;
 };

@@ -1,9 +1,9 @@
 #ifndef PLAN_EXECUTOR_INTERFACE_H
 #define PLAN_EXECUTOR_INTERFACE_H
 
-#include "symbolicState.h"
-#include "plan.h"
-#include "actionExecutorInterface.h"
+#include "continual_planning_executive/symbolicState.h"
+#include "continual_planning_executive/plan.h"
+#include "continual_planning_executive/actionExecutorInterface.h"
 
 class PlanExecutorInterface
 {

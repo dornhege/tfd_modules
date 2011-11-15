@@ -26,7 +26,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 set(planner_executive_SRCS
    src/symbolicState.cpp
-   src/stateCreator.cpp
    src/stateCreatorROSNavigation.cpp
    src/plan.cpp
    src/planParser.cpp
@@ -35,8 +34,7 @@ set(planner_executive_SRCS
    src/planExecutorInterface.cpp
    src/planExecutorROSNavigation.cpp
    src/actionExecutorROSNavigation.cpp
-   src/domainParser.cpp
-   src/actionExecutorInterface.cpp)
+   src/domainParser.cpp)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()

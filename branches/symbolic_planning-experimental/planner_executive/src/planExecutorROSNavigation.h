@@ -2,7 +2,7 @@
 #define PLAN_EXECUTOR_R_O_S_NAVIGATION_H
 
 #include "planExecutorInterface.h"
-#include "symbolicState.h"
+#include "continual_planning_executive/symbolicState.h"
 
 class PlanExecutorROSNavigation : public PlanExecutorInterface
 {

@@ -10,8 +10,8 @@
 class ActionExecutorInterface
 {
     public:
-        ActionExecutorInterface();
-        ~ActionExecutorInterface();
+        ActionExecutorInterface() {}
+        ~ActionExecutorInterface() {}
 
         virtual bool canExecute(const DurativeAction & a) const = 0;
 

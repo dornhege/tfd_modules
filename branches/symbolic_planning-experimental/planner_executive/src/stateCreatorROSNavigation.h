@@ -1,7 +1,7 @@
 #ifndef STATE_CREATOR_R_O_S_NAVIGATION_H
 #define STATE_CREATOR_R_O_S_NAVIGATION_H
 
-#include "stateCreator.h"
+#include "continual_planning_executive/stateCreator.h"
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
