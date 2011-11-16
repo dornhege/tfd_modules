@@ -1,0 +1,17 @@
+<package>
+  <description brief="planner_navigation_actions">
+
+     planner_navigation_actions
+
+  </description>
+  <author>dornroot</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planner_navigation_actions</url>
+  <depend package="roscpp"/>
+  <depend package="pluginlib"/>
+  <depend package="continual_planning_executive"/>
+
+</package>
+
+
