@@ -26,7 +26,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 set(planner_executive_SRCS
    src/symbolicState.cpp
-   src/stateCreatorROSNavigation.cpp
    src/plan.cpp
    src/planParser.cpp
    src/plannerInterface.cpp

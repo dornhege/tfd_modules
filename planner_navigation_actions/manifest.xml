@@ -12,6 +12,10 @@
   <depend package="pluginlib"/>
   <depend package="continual_planning_executive"/>
 
+  <export>
+      <continual_planning_executive plugin="${prefix}/planner_navigation_actions_plugins.xml" />
+  </export>
+
 </package>
 
 

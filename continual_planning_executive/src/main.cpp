@@ -4,7 +4,6 @@
 
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
-#include "stateCreatorROSNavigation.h"
 #include "plannerTFDM.h"
 #include "hardcoded_facts/geometryPoses.h"
 #include "planExecutorROSNavigation.h"
@@ -179,7 +178,6 @@ bool init()
    s_Planner->setTimeout(60.0);
 
    // state creators
-   s_StateCreators.push_back(new StateCreatorROSNavigation());
    if(!loadStateCreators(nhPriv))
        return false;
 
