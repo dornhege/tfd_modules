@@ -5,7 +5,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
-class StateCreatorROSNavigation : public StateCreator
+class StateCreatorROSNavigation : public continual_planning_executive::StateCreator
 {
    public:
       StateCreatorROSNavigation();

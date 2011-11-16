@@ -1,19 +1,24 @@
 #include <stdio.h>
 #include <ros/ros.h>
+#include <vector>
 
 #include "continual_planning_executive/symbolicState.h"
+#include "continual_planning_executive/stateCreator.h"
 #include "stateCreatorROSNavigation.h"
 #include "plannerTFDM.h"
 #include "hardcoded_facts/geometryPoses.h"
 #include "planExecutorROSNavigation.h"
+#include <pluginlib/class_loader.h>
 
-static StateCreatorROSNavigation* s_StateCreator = NULL;
+static std::vector<continual_planning_executive::StateCreator*> s_StateCreators;
 static PlannerTFDM* s_Planner = NULL;
 static PlanExecutorROSNavigation* s_PlanExecutor = NULL;
 
 static SymbolicState s_CurrentState;
 static SymbolicState s_Goal;
 static Plan s_CurrentPlan;
+
+static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
 
 // constantly do the following:
 // estimate current state
@@ -77,7 +82,11 @@ Plan monitorAndReplan(const SymbolicState & current, const SymbolicState & goal,
 
 bool estimateCurrentState(SymbolicState & state)
 {
-   bool ret = s_StateCreator->fillState(state);
+    bool ret = true;
+    for(std::vector<continual_planning_executive::StateCreator*>::iterator it = s_StateCreators.begin();
+           it != s_StateCreators.end(); it++) {
+        ret &= (*it)->fillState(state);
+    }
    ROS_INFO_STREAM("Current state is: " << state);
    return ret;
 }
@@ -113,18 +122,54 @@ bool continualPlanningLoop()
    return true;
 }
 
+bool loadStateCreators(ros::NodeHandle & nh)
+{
+    try {
+        // create here with new as it can't go out of scope
+        s_StateCreatorLoader 
+            = new pluginlib::ClassLoader<continual_planning_executive::StateCreator>
+            ("continual_planning_executive", "continual_planning_executive::StateCreator");
+    } catch(pluginlib::PluginlibException & ex) {
+        // possible reason for failure: no known plugins
+        ROS_ERROR("Could not instantiate class loader for continual_planning_executive::StateCreator - are there plugins registered? Error: %s", ex.what());
+        return false;
+    }
+        
+    XmlRpc::XmlRpcValue xmlRpc;
+    if(!nh.getParam("state_creators", xmlRpc)) {
+        ROS_ERROR("No state_creators defined.");
+        return false;
+    } 
+    if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+        ROS_ERROR("state_creators param should be a list.");
+        return false;
+    }
+    for(int i = 0; i < xmlRpc.size(); i++) {
+        if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
+            ROS_ERROR("state_creators entry %d is not of type string.", i);
+            return false;
+        }
+        std::string state_creator_name = xmlRpc[i];
+        ROS_DEBUG("Loading state creator %s", state_creator_name.c_str());
+        try {
+            continual_planning_executive::StateCreator* sc = s_StateCreatorLoader->createClassInstance(state_creator_name);
+            s_StateCreators.push_back(sc);
+        } catch(pluginlib::PluginlibException & ex) {
+            ROS_ERROR("Failed to load StateCreator instance for: %s. Error: %s.",
+                    state_creator_name.c_str(), ex.what());
+            return false;
+        }
+    }
+    return true;
+}
+
 bool init()
 {
    ros::NodeHandle nhPriv("~");
-   // get domain, goal
+   // get domain
    std::string domainFile;
    if(!nhPriv.getParam("domain_file", domainFile)) {
       ROS_ERROR("Could not get ~domain_file parameter.");
-      return false;
-   }
-   std::string goalLocationsFile;
-   if(!nhPriv.getParam("goal_locations", goalLocationsFile)) {
-      ROS_ERROR("Could not get ~goal_locations parameter.");
       return false;
    }
 
@@ -133,7 +178,17 @@ bool init()
    s_Planner->setModuleOptions("(navstack_init@libplanner_modules_pr2.so)");
    s_Planner->setTimeout(60.0);
 
+   // state creators
+   s_StateCreators.push_back(new StateCreatorROSNavigation());
+   if(!loadStateCreators(nhPriv))
+       return false;
+
    // init/goal
+   std::string goalLocationsFile;
+   if(!nhPriv.getParam("goal_locations", goalLocationsFile)) {
+      ROS_ERROR("Could not get ~goal_locations parameter.");
+      return false;
+   }
    GeometryPoses goalLocations;
    if(!goalLocations.load(goalLocationsFile)) {
       ROS_ERROR("Could not load goal locations from \"%s\".", goalLocationsFile.c_str());
@@ -154,15 +209,12 @@ bool init()
       s_CurrentState.setBooleanPredicate("explored", np.first.c_str(), false);
       s_Goal.setBooleanPredicate("explored", np.first.c_str(), true);
    }
-
    ROS_INFO_STREAM("Goal initialized to:\n" << s_Goal);
-
-   s_StateCreator = new StateCreatorROSNavigation();
 
    s_PlanExecutor = new PlanExecutorROSNavigation(&s_CurrentState);
    s_PlanExecutor->createActionExecutors();
    
-   return (s_StateCreator != NULL && s_Planner != NULL);
+   return (s_Planner != NULL);
 }
 
 int main(int argc, char** argv)

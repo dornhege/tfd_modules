@@ -6,6 +6,9 @@
 #include <string>
 using std::string;
 
+namespace continual_planning_executive
+{
+
 /// Base interface for creating/estimating SymbolicStates from the world.
 /**
  * StateCreators are specific to a certain domain.
@@ -27,6 +30,8 @@ inline string makeNamedId(string name, int id)
     snprintf(buf, name.length() + 19, "%s%d", name.c_str(), id);
     return string(buf);
 }
+
+};
 
 #endif
 
