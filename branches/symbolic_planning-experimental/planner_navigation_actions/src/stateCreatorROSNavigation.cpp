@@ -1,4 +1,11 @@
-#include "stateCreatorROSNavigation.h"
+#include "planner_navigation_actions/stateCreatorROSNavigation.h"
+#include <pluginlib/class_list_macros.h>
+
+PLUGINLIB_DECLARE_CLASS(planner_navigation_actions, state_creator_ros_navigation,
+        planner_navigation_actions::StateCreatorROSNavigation, continual_planning_executive::StateCreator)
+
+namespace planner_navigation_actions
+{
 
 StateCreatorROSNavigation::StateCreatorROSNavigation()
 {
@@ -91,4 +98,6 @@ bool StateCreatorROSNavigation::fillState(SymbolicState & state)
 
    return true;
 }
+
+};
 

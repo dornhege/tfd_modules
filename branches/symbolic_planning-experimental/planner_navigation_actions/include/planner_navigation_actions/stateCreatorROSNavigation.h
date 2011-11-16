@@ -5,6 +5,9 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
+namespace planner_navigation_actions
+{
+
 class StateCreatorROSNavigation : public continual_planning_executive::StateCreator
 {
    public:
@@ -17,6 +20,8 @@ class StateCreatorROSNavigation : public continual_planning_executive::StateCrea
       tf::TransformListener _tf;
 
       double _goalTolerance;
+};
+
 };
 
 #endif

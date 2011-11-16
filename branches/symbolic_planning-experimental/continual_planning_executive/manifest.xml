@@ -16,5 +16,9 @@
   <depend package="actionlib"/>
   <depend package="pluginlib"/>
 
+  <export>
+    <cpp cflags="-I${prefix}/include" />
+  </export>
+
 </package>
 
