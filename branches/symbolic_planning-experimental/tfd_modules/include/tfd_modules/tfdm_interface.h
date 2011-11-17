@@ -15,6 +15,7 @@ namespace tfd_modules
 
             /**
              * \param [in] options there should be only one entry: the moduleoptions
+             * TODO: This is actually a list of moduleoptions
              */
             virtual void initialize(const std::string & domainFile, const std::vector<std::string> & options);
 
