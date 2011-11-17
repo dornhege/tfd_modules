@@ -9,7 +9,6 @@
 
   <depend package="roscpp"/>
   <depend package="rospy"/>
-  <depend package="tfd_modules"/>
   <depend package="pluginlib"/>
 
   <export>

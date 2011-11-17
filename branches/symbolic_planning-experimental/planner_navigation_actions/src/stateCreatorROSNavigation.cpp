@@ -11,7 +11,7 @@ StateCreatorROSNavigation::StateCreatorROSNavigation()
 {
    ros::NodeHandle nhPriv("~");
    nhPriv.param("goal_tolerance", _goalTolerance, 0.5);
-   ROS_INFO("Tolerance for accepting goals set to %f.", _goalTolerance);
+   ROS_INFO("Tolerance for accepting nav goals set to %f.", _goalTolerance);
 }
 
 StateCreatorROSNavigation::~StateCreatorROSNavigation()

@@ -5,18 +5,19 @@
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
-#include "plannerTFDM.h"
+#include "continual_planning_executive/plannerInterface.h"
 #include "planExecutor.h"
 #include <pluginlib/class_loader.h>
 
 static std::vector<continual_planning_executive::StateCreator*> s_StateCreators;
-static PlannerTFDM* s_Planner = NULL;
+static continual_planning_executive::PlannerInterface* s_Planner = NULL;
 static PlanExecutor s_PlanExecutor;
 
 static SymbolicState s_CurrentState;
 static SymbolicState s_Goal;
 static Plan s_CurrentPlan;
 
+static pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>* s_PlannerLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>* s_ActionExecutorLoader = NULL;
@@ -73,11 +74,13 @@ Plan monitorAndReplan(const SymbolicState & current, const SymbolicState & goal,
 
    // REPLAN
    Plan plan;
-   PlannerInterface::PlannerResult result = s_Planner->plan(current, goal, plan);
-   if(result == PlannerInterface::PR_SUCCESS || result == PlannerInterface::PR_SUCCESS_TIMEOUT) {
+   continual_planning_executive::PlannerInterface::PlannerResult result = s_Planner->plan(current, goal, plan);
+   if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS
+           || result == continual_planning_executive::PlannerInterface::PR_SUCCESS_TIMEOUT) {
       ROS_INFO("Planning successfull.");
    } else {
-      ROS_WARN("Planning failed, result: %s", PlannerInterface::PlannerResultStr(result).c_str());
+      ROS_WARN("Planning failed, result: %s",
+              continual_planning_executive::PlannerInterface::PlannerResultStr(result).c_str());
    }
    return plan;
 }
@@ -146,6 +149,10 @@ bool loadStateCreators(ros::NodeHandle & nh)
         ROS_ERROR("state_creators param should be a list.");
         return false;
     }
+    if(xmlRpc.size() == 0) {
+        ROS_ERROR("state_creators list is empty.");
+        return false;
+    }
     for(int i = 0; i < xmlRpc.size(); i++) {
         if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
             ROS_ERROR("state_creators entry %d is not of type string.", i);
@@ -185,6 +192,10 @@ bool loadGoalCreators(ros::NodeHandle & nh)
     } 
     if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
         ROS_ERROR("goal_creators param should be a list.");
+        return false;
+    }
+    if(xmlRpc.size() == 0) {
+        ROS_ERROR("goal_creators list is empty.");
         return false;
     }
     for(int i = 0; i < xmlRpc.size(); i++) {
@@ -233,6 +244,10 @@ bool loadActionExecutors(ros::NodeHandle & nh)
         ROS_ERROR("action_executors param should be a list.");
         return false;
     }
+    if(xmlRpc.size() == 0) {
+        ROS_ERROR("action_executors list is empty.");
+        return false;
+    }
     for(int i = 0; i < xmlRpc.size(); i++) {
         if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
             ROS_ERROR("action_executors entry %d is not of type string.", i);
@@ -252,34 +267,90 @@ bool loadActionExecutors(ros::NodeHandle & nh)
     return true;
 }
 
+bool loadPlanner(ros::NodeHandle & nh)
+{
+    try {
+        // create here with new as it can't go out of scope
+        s_PlannerLoader
+            = new pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>
+            ("continual_planning_executive", "continual_planning_executive::PlannerInterface");
+    } catch(pluginlib::PluginlibException & ex) {
+        // possible reason for failure: no known plugins
+        ROS_ERROR("Could not instantiate class loader for continual_planning_executive::PlannerInterface - are there plugins registered? Error: %s", ex.what());
+        return false;
+    }
+
+    std::string planner_name;
+    if(!nh.getParam("planner", planner_name)) {
+        ROS_ERROR("No planner defined!");
+        return false;
+    }
+    ROS_DEBUG("Loading planner %s", planner_name.c_str());
+    try {
+        s_Planner = s_PlannerLoader->createClassInstance(planner_name);
+    } catch(pluginlib::PluginlibException & ex) {
+        ROS_ERROR("Failed to load Planner instance for: %s. Error: %s.",
+                planner_name.c_str(), ex.what());
+        return false;
+    }
+
+    std::vector<std::string> plannerOptions;
+    XmlRpc::XmlRpcValue xmlRpc;
+    if(!nh.getParam("planner_options", xmlRpc)) {
+        ROS_INFO("No planner_options defined.");
+    } else {
+        if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+            ROS_ERROR("planner_options param should be a list.");
+            return false;
+        }
+        for(int i = 0; i < xmlRpc.size(); i++) {
+            if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
+                ROS_ERROR("planner_options entry %d is not of type string.", i);
+                return false;
+            }
+            plannerOptions.push_back(xmlRpc[i]);
+            ROS_DEBUG("Adding planner option \"%s\"", plannerOptions.back().c_str());
+        }
+    } 
+
+    // get domain
+    std::string domainFile;
+    if(!nh.getParam("domain_file", domainFile)) {
+        ROS_ERROR("Could not get ~domain_file parameter.");
+        return false;
+    }
+
+    s_Planner->initialize(domainFile, plannerOptions);
+    s_Planner->setTimeout(60.0);
+
+    return true;
+}
+
 bool init()
 {
-   ros::NodeHandle nhPriv("~");
-   // get domain
-   std::string domainFile;
-   if(!nhPriv.getParam("domain_file", domainFile)) {
-      ROS_ERROR("Could not get ~domain_file parameter.");
-      return false;
-   }
+    ros::NodeHandle nhPriv("~");
 
-   // planner interface
-   s_Planner = new PlannerTFDM(domainFile);
-   s_Planner->setModuleOptions("(navstack_init@libplanner_modules_pr2.so)");
-   s_Planner->setTimeout(60.0);
+    // planner
+    if(!loadPlanner(nhPriv))
+        return false;
+    ROS_INFO("Loaded planner.");
 
-   // state creators
-   if(!loadStateCreators(nhPriv))
-       return false;
+    // state creators
+    if(!loadStateCreators(nhPriv))
+        return false;
+    ROS_INFO("Loaded state creators.");
 
-   // goal
-   if(!loadGoalCreators(nhPriv))
-       return false;
+    // goal
+    if(!loadGoalCreators(nhPriv))
+        return false;
+    ROS_INFO("Loaded goal creators.");
 
-   // actions
-   if(!loadActionExecutors(nhPriv))
-       return false;
- 
-   return (s_Planner != NULL && !s_StateCreators.empty());
+    // actions
+    if(!loadActionExecutors(nhPriv))
+        return false;
+    ROS_INFO("Loaded action executors.");
+
+    return (s_Planner != NULL && !s_StateCreators.empty());
 }
 
 int main(int argc, char** argv)
