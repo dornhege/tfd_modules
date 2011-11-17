@@ -4,20 +4,22 @@
 
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
+#include "continual_planning_executive/goalCreator.h"
 #include "plannerTFDM.h"
-#include "hardcoded_facts/geometryPoses.h"
-#include "planExecutorROSNavigation.h"
+#include "planExecutor.h"
 #include <pluginlib/class_loader.h>
 
 static std::vector<continual_planning_executive::StateCreator*> s_StateCreators;
 static PlannerTFDM* s_Planner = NULL;
-static PlanExecutorROSNavigation* s_PlanExecutor = NULL;
+static PlanExecutor s_PlanExecutor;
 
 static SymbolicState s_CurrentState;
 static SymbolicState s_Goal;
 static Plan s_CurrentPlan;
 
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
+static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
+static pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>* s_ActionExecutorLoader = NULL;
 
 // constantly do the following:
 // estimate current state
@@ -47,7 +49,8 @@ bool needReplanning(const SymbolicState & current, const SymbolicState & goal, c
       return true;
    }
 
-   // FIXME call monitoring and check for assertions
+   // TODO call monitoring and check for assertions
+
    if(current.booleanEquals(lastReplanState))
          return false;
    
@@ -116,7 +119,7 @@ bool continualPlanningLoop()
 
    // TODO: just send and remember actions
    // supervise those while running and estimating state.
-   s_PlanExecutor->executeBlocking(s_CurrentPlan);
+   s_PlanExecutor.executeBlocking(s_CurrentPlan, s_CurrentState);
 
    return true;
 }
@@ -162,6 +165,93 @@ bool loadStateCreators(ros::NodeHandle & nh)
     return true;
 }
 
+bool loadGoalCreators(ros::NodeHandle & nh)
+{
+    try {
+        // create here with new as it can't go out of scope
+        s_GoalCreatorLoader
+            = new pluginlib::ClassLoader<continual_planning_executive::GoalCreator>
+            ("continual_planning_executive", "continual_planning_executive::GoalCreator");
+    } catch(pluginlib::PluginlibException & ex) {
+        // possible reason for failure: no known plugins
+        ROS_ERROR("Could not instantiate class loader for continual_planning_executive::GoalCreator - are there plugins registered? Error: %s", ex.what());
+        return false;
+    }
+
+    XmlRpc::XmlRpcValue xmlRpc;
+    if(!nh.getParam("goal_creators", xmlRpc)) {
+        ROS_ERROR("No goal_creators defined.");
+        return false;
+    } 
+    if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+        ROS_ERROR("goal_creators param should be a list.");
+        return false;
+    }
+    for(int i = 0; i < xmlRpc.size(); i++) {
+        if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
+            ROS_ERROR("goal_creators entry %d is not of type string.", i);
+            return false;
+        }
+        std::string goal_creator_name = xmlRpc[i];
+        ROS_DEBUG("Loading goal creator %s", goal_creator_name.c_str());
+        try {
+            continual_planning_executive::GoalCreator* gc = s_GoalCreatorLoader->createClassInstance(goal_creator_name);
+            if(!gc->fillStateAndGoal(s_CurrentState, s_Goal)) {
+                ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
+                return false;
+            }
+        } catch(pluginlib::PluginlibException & ex) {
+            ROS_ERROR("Failed to load GoalCreator instance for: %s. Error: %s.",
+                    goal_creator_name.c_str(), ex.what());
+            return false;
+        }
+    }
+   
+    ROS_INFO_STREAM("Goal initialized to:\n" << s_Goal);
+    return true;
+}
+
+bool loadActionExecutors(ros::NodeHandle & nh)
+{
+    try {
+        // create here with new as it can't go out of scope
+        s_ActionExecutorLoader
+            = new pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>
+            ("continual_planning_executive", "continual_planning_executive::ActionExecutorInterface");
+    } catch(pluginlib::PluginlibException & ex) {
+        // possible reason for failure: no known plugins
+        ROS_ERROR("Could not instantiate class loader for continual_planning_executive::ActionExecutorInterface - are there plugins registered? Error: %s", ex.what());
+        return false;
+    }
+        
+    XmlRpc::XmlRpcValue xmlRpc;
+    if(!nh.getParam("action_executors", xmlRpc)) {
+        ROS_ERROR("No action_executors defined.");
+        return false;
+    } 
+    if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+        ROS_ERROR("action_executors param should be a list.");
+        return false;
+    }
+    for(int i = 0; i < xmlRpc.size(); i++) {
+        if(xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString) {
+            ROS_ERROR("action_executors entry %d is not of type string.", i);
+            return false;
+        }
+        std::string action_executor_name = xmlRpc[i];
+        ROS_DEBUG("Loading action_executor %s", action_executor_name.c_str());
+        try {
+            continual_planning_executive::ActionExecutorInterface* ae = s_ActionExecutorLoader->createClassInstance(action_executor_name);
+            s_PlanExecutor.addActionExecutor(ae);
+        } catch(pluginlib::PluginlibException & ex) {
+            ROS_ERROR("Failed to load ActionExecutor instance for: %s. Error: %s.",
+                    action_executor_name.c_str(), ex.what());
+            return false;
+        }
+    }
+    return true;
+}
+
 bool init()
 {
    ros::NodeHandle nhPriv("~");
@@ -181,45 +271,22 @@ bool init()
    if(!loadStateCreators(nhPriv))
        return false;
 
-   // init/goal
-   std::string goalLocationsFile;
-   if(!nhPriv.getParam("goal_locations", goalLocationsFile)) {
-      ROS_ERROR("Could not get ~goal_locations parameter.");
-      return false;
-   }
-   GeometryPoses goalLocations;
-   if(!goalLocations.load(goalLocationsFile)) {
-      ROS_ERROR("Could not load goal locations from \"%s\".", goalLocationsFile.c_str());
-      return false;
-   }
-   const std::map<std::string, geometry_msgs::Pose> & goalPoses = goalLocations.getPoses();
-   forEach(const GeometryPoses::NamedPose & np, goalPoses) {
-      s_CurrentState.addObject(np.first, "target");
-      s_Goal.addObject(np.first, "target");
+   // goal
+   if(!loadGoalCreators(nhPriv))
+       return false;
 
-      s_CurrentState.setNumericalFluent("x", np.first, np.second.position.x);
-      s_CurrentState.setNumericalFluent("y", np.first, np.second.position.y);
-      s_CurrentState.setNumericalFluent("z", np.first, np.second.position.z);
-      s_CurrentState.setNumericalFluent("qx", np.first, np.second.orientation.x);
-      s_CurrentState.setNumericalFluent("qy", np.first, np.second.orientation.y);
-      s_CurrentState.setNumericalFluent("qz", np.first, np.second.orientation.z);
-      s_CurrentState.setNumericalFluent("qw", np.first, np.second.orientation.w);
-      s_CurrentState.setBooleanPredicate("explored", np.first.c_str(), false);
-      s_Goal.setBooleanPredicate("explored", np.first.c_str(), true);
-   }
-   ROS_INFO_STREAM("Goal initialized to:\n" << s_Goal);
-
-   s_PlanExecutor = new PlanExecutorROSNavigation(&s_CurrentState);
-   s_PlanExecutor->createActionExecutors();
-   
-   return (s_Planner != NULL);
+   // actions
+   if(!loadActionExecutors(nhPriv))
+       return false;
+ 
+   return (s_Planner != NULL && !s_StateCreators.empty());
 }
 
 int main(int argc, char** argv)
 {
    ROS_INFO("Planner Executive started.");
 
-   ros::init(argc, argv, "planner_executive");
+   ros::init(argc, argv, "continual_planning_executive");
 
    ros::NodeHandle nh;
 

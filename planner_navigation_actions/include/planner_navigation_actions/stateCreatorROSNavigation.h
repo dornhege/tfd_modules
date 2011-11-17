@@ -8,19 +8,19 @@
 namespace planner_navigation_actions
 {
 
-class StateCreatorROSNavigation : public continual_planning_executive::StateCreator
-{
-   public:
-      StateCreatorROSNavigation();
-      ~StateCreatorROSNavigation();
+    class StateCreatorROSNavigation : public continual_planning_executive::StateCreator
+    {
+        public:
+            StateCreatorROSNavigation();
+            ~StateCreatorROSNavigation();
 
-      virtual bool fillState(SymbolicState & state);
+            virtual bool fillState(SymbolicState & state);
 
-   protected:
-      tf::TransformListener _tf;
+        protected:
+            tf::TransformListener _tf;
 
-      double _goalTolerance;
-};
+            double _goalTolerance;
+    };
 
 };
 

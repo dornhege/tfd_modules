@@ -30,9 +30,7 @@ set(planner_executive_SRCS
    src/planParser.cpp
    src/plannerInterface.cpp
    src/plannerTFDM.cpp
-   src/planExecutorInterface.cpp
-   src/planExecutorROSNavigation.cpp
-   src/actionExecutorROSNavigation.cpp
+   src/planExecutor.cpp
    src/domainParser.cpp)
 
 #uncomment if you have defined messages

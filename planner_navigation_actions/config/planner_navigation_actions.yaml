@@ -2,3 +2,5 @@ state_creators:
     - planner_navigation_actions/state_creator_ros_navigation
 action_executors:
     - planner_navigation_actions/action_executor_ros_navigation
+goal_creators:
+    - planner_navigation_actions/goal_creator_ros_navigation

@@ -1,16 +1,21 @@
-#include "planExecutorInterface.h"
+#include "planExecutor.h"
 #include <iostream>
 
-PlanExecutorInterface::PlanExecutorInterface()
+PlanExecutor::PlanExecutor()
 {
     _onlyExecuteActionAtZeroTime = true;
 }
 
-PlanExecutorInterface::~PlanExecutorInterface()
+PlanExecutor::~PlanExecutor()
 {
 }
 
-bool PlanExecutorInterface::executeBlocking(const Plan & p)
+void PlanExecutor::addActionExecutor(continual_planning_executive::ActionExecutorInterface* ae)
+{
+    _actionExecutors.push_back(ae);
+}
+
+bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
 {
     bool actionExectued = false;
     forEach(const DurativeAction & da, p.actions) {
@@ -18,8 +23,8 @@ bool PlanExecutorInterface::executeBlocking(const Plan & p)
             continue;
 
         bool count = 0;
-        forEach(ActionExecutorInterface* ai, _actionExecutors) {
-            if(ai->canExecute(da))
+        forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+            if(ai->canExecute(da, currentState))
                 count++;
         }
         if(count == 0) {
@@ -28,9 +33,9 @@ bool PlanExecutorInterface::executeBlocking(const Plan & p)
         if(count > 1) {
             std::cerr << "WARNING: " << count << " ActionExecutors for action: " << da << std::endl;
         }
-        forEach(ActionExecutorInterface* ai, _actionExecutors) {
-            if(ai->canExecute(da)) {
-                if(ai->executeBlocking(da))
+        forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+            if(ai->canExecute(da, currentState)) {
+                if(ai->executeBlocking(da, currentState))
                     actionExectued = true;
             }
         }

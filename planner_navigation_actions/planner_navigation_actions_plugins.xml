@@ -1,5 +1,11 @@
-<library path="lib/libplannerNavigationStateCreators">
+<library path="lib/libplannerNavigationActions">
     <class name="planner_navigation_actions/state_creator_ros_navigation" type="planner_navigation_actions::StateCreatorROSNavigation" base_class_type="continual_planning_executive::StateCreator">
-        <description>Creates a state that fills the current location of the robot</description>
+        <description>Creates a state that fills the current location of the robot.</description>
+    </class>
+    <class name="planner_navigation_actions/action_executor_ros_navigation" type="planner_navigation_actions::ActionExecutorROSNavigation" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves the base.</description>
+    </class>
+    <class name="planner_navigation_actions/goal_creator_ros_navigation" type="planner_navigation_actions::GoalCreatorROSNavigation" base_class_type="continual_planning_executive::GoalCreator">
+        <description>Goal initialized from hardcoded goal locations.</description>
     </class>
 </library>
