@@ -1,0 +1,14 @@
+<package>
+  <description brief="navigation_simple_bringup">
+     navigation_simple_bringup
+  </description>
+  <author>dornhege</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/navigation_simple_bringup</url>
+
+  <depend package="std_msgs"/>
+
+</package>
+
+

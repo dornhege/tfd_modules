@@ -321,7 +321,7 @@ bool loadPlanner(ros::NodeHandle & nh)
     }
 
     s_Planner->initialize(domainFile, plannerOptions);
-    s_Planner->setTimeout(60.0);
+    s_Planner->setTimeout(600.0);
 
     return true;
 }
