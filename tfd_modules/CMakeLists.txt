@@ -136,3 +136,16 @@ IF(${ROS_BUILD_TYPE} MATCHES Rel)
    rosbuild_add_compile_flags(tfd_search "-O3")
 ENDIF(${ROS_BUILD_TYPE} MATCHES Rel)
 
+
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+
+# needed: otherwise boost signals name clash
+ADD_DEFINITIONS(-DQT_NO_KEYWORDS)
+
+rosbuild_add_library(tfdm_interface
+    interface/tfdm_interface.cpp
+    interface/domainParser.cpp
+    interface/planParser.cpp)
+target_link_libraries(tfdm_interface ${QT_LIBRARIES})
+

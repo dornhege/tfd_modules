@@ -27,11 +27,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(planner_executive_SRCS
    src/symbolicState.cpp
    src/plan.cpp
-   src/planParser.cpp
-   src/plannerInterface.cpp
-   src/plannerTFDM.cpp
-   src/planExecutor.cpp
-   src/domainParser.cpp)
+   src/planExecutor.cpp)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()

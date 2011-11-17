@@ -8,9 +8,15 @@
   <url>http://ros.org/wiki/tfd_modules</url>
 
   <depend package="roscpp" />
+  <depend package="pluginlib" />
+
+  <depend package="continual_planning_executive" />
+
+  <rosdep name="qt4" />
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl" />
+    <continual_planning_executive plugin="${prefix}/tfdm_interface_plugin.xml" />
   </export>
 
 </package>
