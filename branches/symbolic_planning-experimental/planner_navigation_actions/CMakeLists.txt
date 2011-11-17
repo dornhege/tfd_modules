@@ -22,7 +22,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
-rosbuild_add_library(plannerNavigationStateCreators src/stateCreatorROSNavigation.cpp)
+rosbuild_add_library(plannerNavigationActions
+    src/stateCreatorROSNavigation.cpp
+    src/actionExecutorROSNavigation.cpp
+    src/goalCreatorROSNavigation.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
