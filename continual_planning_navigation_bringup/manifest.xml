@@ -1,0 +1,14 @@
+<package>
+  <description brief="continual_planning_navigation_bringup">
+     continual_planning_navigation_bringup
+  </description>
+  <author>dornhege</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/continual_planning_navigation_bringup</url>
+
+  <depend package="std_msgs"/>
+
+</package>
+
+
