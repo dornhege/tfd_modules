@@ -25,9 +25,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 set(planner_executive_SRCS
-   src/symbolicState.cpp
-   src/plan.cpp
-   src/planExecutor.cpp)
+    src/continualPlanning.cpp
+    src/symbolicState.cpp
+    src/plan.cpp
+    src/planExecutor.cpp)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()

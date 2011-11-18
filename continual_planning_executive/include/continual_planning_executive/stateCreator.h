@@ -19,7 +19,7 @@ namespace continual_planning_executive
     {
         public:
             StateCreator() {}
-            ~StateCreator() {}
+            virtual ~StateCreator() {}
 
             virtual bool fillState(SymbolicState & state) = 0;
     };

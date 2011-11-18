@@ -49,7 +49,7 @@ class SymbolicState
         friend std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);
 
         SymbolicState();
-        ~SymbolicState();
+        virtual ~SymbolicState();
 
         typedef multimap<string,string>::iterator TypedObjectIterator;
         typedef multimap<string,string>::const_iterator TypedObjectConstIterator;
