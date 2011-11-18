@@ -247,7 +247,7 @@ bool init()
 
 int main(int argc, char** argv)
 {
-   ROS_INFO("Planner Executive started.");
+   ROS_INFO("Continual Planning Executive started.");
 
    ros::init(argc, argv, "continual_planning_executive");
 

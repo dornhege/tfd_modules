@@ -4,6 +4,3 @@ action_executors:
     - planner_navigation_actions/action_executor_ros_navigation
 goal_creators:
     - planner_navigation_actions/goal_creator_ros_navigation
-planner: tfd_modules/tfdm_interface
-planner_options:
-    - (navstack_init@libplanner_modules_pr2.so)
