@@ -76,7 +76,7 @@ namespace planner_navigation_actions
             return true;
         }
 
-        ROS_INFO("Could not reach target!");
+        ROS_INFO("Could not reach target! State: %s.", _actionClient->getState().toString().c_str());
         return false;
     }
 

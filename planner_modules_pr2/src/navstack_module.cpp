@@ -13,7 +13,7 @@ using std::pair; using std::make_pair;
 #include <tf/transform_listener.h>
 
 /**
- * Dummy module implementation for ROS navigation domain.
+ * Simple module implementation for ROS navigation stack.
  *
  * Directly queries the move_base_node/make_plan service for each
  * cost request by the planner.
@@ -35,19 +35,24 @@ static map< pair<string,string>, double> s_PathCostCache;
 
 void navstack_init(int argc, char** argv)
 {
-   ROS_ASSERT(argc == 2);
+   ROS_ASSERT(argc == 3);
   
+   // get world frame
    ros::NodeHandle nhPriv("~");
    std::string tfPrefix = tf::getPrefixParam(nhPriv);
    s_WorldFrame = tf::resolve(tfPrefix, argv[1]);
    ROS_INFO("World frame is: %s", s_WorldFrame.c_str());
 
-   // init service query
-   s_NodeHandle = new ros::NodeHandle();
-
-   nhPriv.param("goal_tolerance", s_GoalTolerance, s_GoalTolerance);
+   // get goal tolerance
+   char* checkPtr;
+   s_GoalTolerance = strtod(argv[2], &checkPtr);
+   if(checkPtr == argv[2]) {    // conversion error!
+        ROS_ERROR("%s: Could not convert argument for goal tolerance: %s", __func__, argv[2]);
+   }
    ROS_INFO("Goal Tolerance is: %f.", s_GoalTolerance);
 
+   // init service query
+   s_NodeHandle = new ros::NodeHandle();
    while(!ros::service::waitForService("move_base_node/make_plan", ros::Duration(3.0))) {
       ROS_ERROR("Service move_base_node/make_plan not available - waiting.");
    }

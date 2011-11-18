@@ -8,8 +8,6 @@
 
 DOMAIN=$1
 PROBLEM=$2
-PLANFILE=$3
-TIMEOUT=$4
 
 shift
 shift
@@ -17,8 +15,7 @@ shift
 OUTPUT_DIR="."
 echo Output Dir $OUTPUT_DIR
 
-#ROS_PARAMS=$*
-ROS_PARAMS=
+ROS_PARAMS=$*
 echo ROS parameters: $ROS_PARAMS
 echo
 
@@ -45,9 +42,9 @@ fi
 
 echo
 
-rosrun tfd_modules tfd_search p $PLANFILE t $TIMEOUT T $TIMEOUT $ROS_PARAMS < ${OUTPUT_DIR}/output
+rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output
 
-# get retval from tfd_search, not from tee
+# get retval from tfd_search, not from tee (if used)
 RETVAL=${PIPESTATUS[0]}
 
 if [ $RETVAL != 0 ]; then

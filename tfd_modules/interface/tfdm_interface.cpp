@@ -24,6 +24,12 @@ namespace tfd_modules
     {
     }
 
+    void TFDMInterface::setTimeout(double secs)
+    {
+        ros::param::set("tfd_modules/timeout_if_plan_found", secs);
+        ros::param::set("tfd_modules/timeout_while_no_plan_found", secs);
+    }
+
     void TFDMInterface::initialize(const std::string & domainFile, const std::vector<std::string> & options)
     {
         _domainFile = domainFile;
@@ -34,8 +40,11 @@ namespace tfd_modules
         _domainName = _domain.getName();
         //_domain.dumpTree();
 
-        ROS_ASSERT(options.size() == 1);
-        setModuleOptions(options.front());
+        std::stringstream ss;
+        for(std::vector<std::string>::const_iterator it = options.begin(); it != options.end(); it++) {
+            ss << *it << " ";
+        }
+        setModuleOptions(ss.str());
     }
 
     continual_planning_executive::PlannerInterface::PlannerResult TFDMInterface::plan(
@@ -82,10 +91,13 @@ namespace tfd_modules
         string curPlan = planNamePrefix + ".best";
         remove(curPlan.c_str());
 
+        // set plan name
+        ros::param::set("tfd_modules/plan_name", planNamePrefix);
         // Determine the planner call command
         std::stringstream plannerCmdStr;
         plannerCmdStr << "rosrun tfd_modules tfd_plan " << domain << " " << problem;
-        plannerCmdStr << " " << planNamePrefix << " " << _timeout;
+        plannerCmdStr << " __name:=tfd_modules";
+
         // Later: other features for optional debugging???
         std::string plannerCmd = plannerCmdStr.str();
 

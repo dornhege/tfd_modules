@@ -14,12 +14,14 @@ namespace tfd_modules
             ~TFDMInterface();
 
             /**
-             * \param [in] options there should be only one entry: the moduleoptions
-             * TODO: This is actually a list of moduleoptions
+             * \param [in] options a list of module inits
              */
             virtual void initialize(const std::string & domainFile, const std::vector<std::string> & options);
 
             virtual PlannerResult plan(const SymbolicState & init, const SymbolicState & goal, Plan & plan);
+ 
+            virtual void setTimeout(double secs);
+
 
             /// Use this name for writing problem files.
             void setProblemFileName(const std::string & file) {

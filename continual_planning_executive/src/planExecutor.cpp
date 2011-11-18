@@ -1,4 +1,5 @@
 #include "planExecutor.h"
+#include <ros/ros.h>
 #include <iostream>
 
 PlanExecutor::PlanExecutor()
@@ -35,8 +36,12 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
         }
         forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
             if(ai->canExecute(da, currentState)) {
-                if(ai->executeBlocking(da, currentState))
+                if(ai->executeBlocking(da, currentState)) {
                     actionExectued = true;
+                    ROS_INFO_STREAM("Successfully executed action: \"" << da << "\"");
+                } else {
+                    ROS_WARN_STREAM("Action execution failed for action: \"" << da << "\"");
+                }
             }
         }
     }
