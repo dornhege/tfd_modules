@@ -27,8 +27,9 @@ void* ModuleLoaderLDL::getFunction(string fnString)
    } else { // need to open the lib
       libHandle = dlopen(libName.c_str(), RTLD_NOW);
       if(libHandle == NULL) {
-         fprintf(stderr, "Opening library %s failed\n", libName.c_str());
+         fprintf(stderr, "Opening library %s failed.\n", libName.c_str());
          fputs(dlerror(), stderr);
+         fprintf(stderr, "\n");
          return NULL;
       }
       _openLibs[libName] = libHandle;

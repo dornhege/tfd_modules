@@ -37,8 +37,8 @@ ConditionModule::ConditionModule(istream &in) :
     g_variable_types[var] = module;
     checkCondition = g_module_loader->getConditionChecker(libCall);
     if (checkCondition == NULL) {
-        printf("Failed to load ConditionModule at \"%s\".", libCall.c_str());
-        assert(false);
+        printf("Failed to load ConditionModule at \"%s\".\n", libCall.c_str());
+        assert(checkCondition != NULL);
     }
 }
 
@@ -65,8 +65,8 @@ EffectModule::EffectModule(istream &in) :
     }
     applyEffect = g_module_loader->getApplyEffect(libCall);
     if (applyEffect == NULL) {
-        printf("Failed to load EffectModule at \"%s\".", libCall.c_str());
-        assert(false);
+        printf("Failed to load EffectModule at \"%s\".\n", libCall.c_str());
+        assert(applyEffect != NULL);
     }
 }
 
@@ -90,8 +90,8 @@ CostModule::CostModule(istream &in) :
     assert(g_variable_types[var] == costmodule);
     checkCost = g_module_loader->getCostChecker(libCall);
     if (checkCost == NULL) {
-        printf("Failed to load CostModule at \"%s\".", libCall.c_str());
-        assert(false);
+        printf("Failed to load CostModule at \"%s\".\n", libCall.c_str());
+        assert(checkCost != NULL);
     }
 }
 
@@ -121,8 +121,8 @@ InitModule::InitModule(istream &in)
 
     initModule = g_module_loader->getModuleInit(libCall);
     if (initModule == NULL) {
-        printf("Failed to load InitModule at \"%s\".", libCall.c_str());
-        assert(false);
+        printf("Failed to load InitModule at \"%s\".\n", libCall.c_str());
+        assert(initModule != NULL);
     }
 }
 

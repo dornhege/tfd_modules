@@ -18,9 +18,9 @@ void PlanExecutor::addActionExecutor(continual_planning_executive::ActionExecuto
 
 bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
 {
-    bool actionExectued = false;
+    int actionsExectued = 0;
     forEach(const DurativeAction & da, p.actions) {
-        if(_onlyExecuteActionAtZeroTime && da.startTime > 0.0001)
+        if(_onlyExecuteActionAtZeroTime && da.startTime > 0.01)
             continue;
 
         bool count = 0;
@@ -36,8 +36,9 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
         }
         forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
             if(ai->canExecute(da, currentState)) {
+                ROS_INFO_STREAM("Trying to execute action: \"" << da << "\"");
                 if(ai->executeBlocking(da, currentState)) {
-                    actionExectued = true;
+                    actionsExectued++;
                     ROS_INFO_STREAM("Successfully executed action: \"" << da << "\"");
                 } else {
                     ROS_WARN_STREAM("Action execution failed for action: \"" << da << "\"");
@@ -46,6 +47,9 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
         }
     }
 
-    return actionExectued;
+    if(actionsExectued > 1)
+        ROS_WARN("Executed %d actions in one step.", actionsExectued);
+
+    return actionsExectued > 0;
 }
 

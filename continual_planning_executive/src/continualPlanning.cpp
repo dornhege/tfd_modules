@@ -30,7 +30,9 @@ bool ContinualPlanning::loop()
 
     // TODO: just send and remember actions
     // supervise those while running and estimating state.
-    _planExecutor.executeBlocking(_currentPlan, _currentState);
+    if(!_planExecutor.executeBlocking(_currentPlan, _currentState)) {
+        ROS_WARN_STREAM("No action was executed for current plan:\n" << _currentPlan);
+    }
 
     return true;
 }
