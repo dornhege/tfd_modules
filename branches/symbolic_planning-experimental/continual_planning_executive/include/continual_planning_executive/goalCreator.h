@@ -19,7 +19,7 @@ namespace continual_planning_executive
     {
         public:
             GoalCreator() {}
-            ~GoalCreator() {}
+            virtual ~GoalCreator() {}
 
             /// Create the goal by filling the goal state, certain aspects for the goal might be added to the current state.
             virtual bool fillStateAndGoal(SymbolicState & currentState, SymbolicState & goalState) = 0;

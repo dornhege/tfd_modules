@@ -15,7 +15,7 @@ namespace continual_planning_executive
     {
         public:
             ActionExecutorInterface() {}
-            ~ActionExecutorInterface() {}
+            virtual ~ActionExecutorInterface() {}
 
             /// An action executor should return true, if it can execute the action
             /**

@@ -23,7 +23,7 @@ namespace continual_planning_executive
 
             /// Construct an interface for the planner.
             PlannerInterface() {}
-            ~PlannerInterface() {}
+            virtual ~PlannerInterface() {}
 
             /// Initialize the planner
             /**
@@ -40,7 +40,7 @@ namespace continual_planning_executive
             static std::string PlannerResultStr(enum PlannerResult pr);
     };
 
-    std::string PlannerInterface::PlannerResultStr(enum PlannerResult pr)
+    inline std::string PlannerInterface::PlannerResultStr(enum PlannerResult pr)
     {
         switch(pr) {
             case PR_SUCCESS:
