@@ -6,13 +6,13 @@
   <include file="$(find pr2_gazebo)/pr2.launch"/>
 
   <!-- load map -->
-  <node pkg="map_server" type="map_server" args="$(find navigation_simple_bringup)/launch/simple_office.yaml" respawn="true" name="map1" />
+  <node pkg="map_server" type="map_server" args="$(find continual_planning_navigation_bringup)/launch/simple_office.yaml" respawn="true" name="map1" />
 
   <!-- Tuck Arms For Navigation -->
   <node pkg="pr2_tuckarm" type="tuck_arms.py" args="b" output="screen" name="tuck_arms"/>
 
   <!-- nav-stack -->
-  <include file="$(find pr2_2dnav_gazebo)/2dnav-stack-amcl.launch" />
+  <include file="$(find pr2_2dnav)/pr2_2dnav.launch" />
 
   <!-- for visualization -->
   <include file="$(find pr2_navigation_global)/rviz/rviz_move_base.launch"/>
