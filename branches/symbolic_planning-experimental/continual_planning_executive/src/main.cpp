@@ -29,7 +29,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
         ROS_ERROR("Could not instantiate class loader for continual_planning_executive::StateCreator - are there plugins registered? Error: %s", ex.what());
         return false;
     }
-        
+
     XmlRpc::XmlRpcValue xmlRpc;
     if(!nh.getParam("state_creators", xmlRpc)) {
         ROS_ERROR("No state_creators defined.");
@@ -107,7 +107,7 @@ bool loadGoalCreators(ros::NodeHandle & nh)
             return false;
         }
     }
-   
+
     ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning._goal);
     return true;
 }
@@ -124,7 +124,7 @@ bool loadActionExecutors(ros::NodeHandle & nh)
         ROS_ERROR("Could not instantiate class loader for continual_planning_executive::ActionExecutorInterface - are there plugins registered? Error: %s", ex.what());
         return false;
     }
-        
+
     XmlRpc::XmlRpcValue xmlRpc;
     if(!nh.getParam("action_executors", xmlRpc)) {
         ROS_ERROR("No action_executors defined.");
@@ -247,40 +247,40 @@ bool init()
 
 int main(int argc, char** argv)
 {
-   ROS_INFO("Continual Planning Executive started.");
+    ROS_INFO("Continual Planning Executive started.");
 
-   ros::init(argc, argv, "continual_planning_executive");
+    ros::init(argc, argv, "continual_planning_executive");
 
-   ros::NodeHandle nh;
+    ros::NodeHandle nh;
 
-   if(!init()) {
-      ROS_FATAL("Init failed.");
-      return 1;
-   }
+    if(!init()) {
+        ROS_FATAL("Init failed.");
+        return 1;
+    }
 
-   ros::Rate loopSleep(5);
-   while(ros::ok()) {
-      ros::spinOnce();
+    ros::Rate loopSleep(5);
+    while(ros::ok()) {
+        ros::spinOnce();
 
-      if(!s_ContinualPlanning.loop()) {
-         break;
-      }
+        if(!s_ContinualPlanning.loop()) {
+            break;
+        }
 
-      loopSleep.sleep();
-   }
+        loopSleep.sleep();
+    }
 
-   if(s_ContinualPlanning.isGoalFulfilled()) {
-      if(ros::ok())
-         ROS_INFO("Continual planning ended.\nGoal reached by agent!");
-      else
-         printf("Continual planning ended.\nGoal reached by agent!\n");
-   } else {
-      if(ros::ok())
-         ROS_ERROR("Continual planning ended.\nGoal was not reached.");
-      else
-         printf("Continual planning ended.\nGoal was not reached.\n");
-   }
+    if(s_ContinualPlanning.isGoalFulfilled()) {
+        if(ros::ok())
+            ROS_INFO("Continual planning ended.\nGoal reached by agent!");
+        else
+            printf("Continual planning ended.\nGoal reached by agent!\n");
+    } else {
+        if(ros::ok())
+            ROS_ERROR("Continual planning ended.\nGoal was not reached.");
+        else
+            printf("Continual planning ended.\nGoal was not reached.\n");
+    }
 
-   return 0;
+    return 0;
 }
 
