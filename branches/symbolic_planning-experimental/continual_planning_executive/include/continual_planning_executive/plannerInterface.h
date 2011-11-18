@@ -22,7 +22,7 @@ namespace continual_planning_executive
             };
 
             /// Construct an interface for the planner.
-            PlannerInterface() : _timeout(30.0) {}
+            PlannerInterface() {}
             ~PlannerInterface() {}
 
             /// Initialize the planner
@@ -35,12 +35,9 @@ namespace continual_planning_executive
             /// Execute the planner to produce a plan from init to goal.
             virtual PlannerResult plan(const SymbolicState & init, const SymbolicState & goal, Plan & plan) = 0;
 
-            void setTimeout(double secs) { _timeout = secs; }
+            virtual void setTimeout(double secs) = 0;
 
             static std::string PlannerResultStr(enum PlannerResult pr);
-
-        protected:
-            double _timeout;
     };
 
     std::string PlannerInterface::PlannerResultStr(enum PlannerResult pr)
