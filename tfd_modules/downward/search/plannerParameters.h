@@ -65,7 +65,8 @@ class PlannerParameters
       bool reschedule_plans;        ///< Use scheduler to reschedule found plans
 
       string plan_name;             ///< File prefix for outputting plans
-      bool keep_original_plans;     ///< Store non-epsilonized plans as "...orig" files
+      bool epsilonize_plans;        ///< Add epsilon steps in between plan steps.
+      bool keep_original_plans;     ///< Store non-epsilonized plans as "...orig" files (if epsilonize_plans on)
       string planMonitorFileName;   ///< Filename for monitoring (if set, implies monitoring mode)
 
       bool monitoring_verify_timestamps;     ///< During monitoring only accept the monitored plan if the timestamps match the original one.

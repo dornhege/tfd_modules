@@ -29,7 +29,7 @@ bool PlanParser::parsePlan(std::istream & is, Plan & plan_)
     memset(buf, 0, 4096);
     while(!is.eof()) {
         is.getline(buf, 4095);
-        printf("%s\n", buf);
+        //printf("%s\n", buf);
         if(strlen(buf) == 0)    //skip empty line
             continue;
 
