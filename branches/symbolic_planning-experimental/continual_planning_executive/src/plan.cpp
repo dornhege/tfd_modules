@@ -1,4 +1,5 @@
 #include "continual_planning_executive/plan.h"
+#include <math.h>
 
 Plan::Plan()
 {
@@ -53,13 +54,21 @@ bool DurativeAction::operator==(const DurativeAction & a) const
 
 void Plan::removeAction(const DurativeAction & a)
 {
+    double earliestTime = HUGE_VAL;
     vector<DurativeAction>::iterator it = actions.begin();
     while(it != actions.end()) {
         if(*it == a) {
             it = actions.erase(it);
         } else {
+            if(it->startTime < earliestTime)
+                earliestTime = it->startTime;
             it++;
         }
+    }
+
+    // shift all actions by the earliest time in the plan to make the first action to be at 0.0 again
+    for(it = actions.begin(); it != actions.end(); it++) {
+        it->startTime -= earliestTime;
     }
 }
 
