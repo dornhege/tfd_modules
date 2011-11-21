@@ -1,6 +1,7 @@
 #include "continualPlanning.h"
 #include <ros/ros.h>
 #include <iomanip>
+#include <iostream>
 
 ContinualPlanning::ContinualPlanning() : _planner(NULL)
 {
