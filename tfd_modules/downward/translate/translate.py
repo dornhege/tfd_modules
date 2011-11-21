@@ -522,7 +522,7 @@ def translate_strips_axioms(axioms, strips_to_sas, ranges, comp_axioms):
 
 def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, actions, 
                    durative_actions, axioms, num_axioms, num_axioms_by_layer, 
-                   max_num_layer, num_axiom_map, const_num_axioms,
+                   max_num_layer, num_axiom_map, const_num_axioms, oplinit, objects,
                    modules, module_inits, subplan_generators, init_constant_predicates, init_constant_numerics):
 
     axioms, axiom_init, axiom_layer_dict = axiom_rules.handle_axioms(
@@ -633,7 +633,7 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
       cost_modules.append(sas_tasks.SASConditionModule(mod.modulecall, sas_params, mod_var))
 
     return sas_tasks.SASTask(variables, init, goal, operators, 
-                             temp_operators, axioms, sas_num_axioms, comp_axioms[1], condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, subplan_generators, 
+                             temp_operators, axioms, sas_num_axioms, comp_axioms[1], oplinit, objects, condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, subplan_generators, 
                              init_constant_predicates, init_constant_numerics)
 
 def unsolvable_sas_task(msg):
@@ -646,6 +646,8 @@ def unsolvable_sas_task(msg):
     axioms = []
     num_axioms = []
     comp_axioms = []
+    objects = []
+    oplinit = []
     condition_modules = []
     effect_modules = []
     cost_modules = []
@@ -655,7 +657,7 @@ def unsolvable_sas_task(msg):
     init_cons_pred = []
     init_cons_numer = []
     return sas_tasks.SASTask(variables, init, goal, operators,
-            temp_operators, axioms, num_axioms, comp_axioms, condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, subplan_generators,
+            temp_operators, axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, subplan_generators,
             init_cons_pred, init_cons_numer)
 
 def pddl_to_sas(task):
@@ -693,7 +695,7 @@ def pddl_to_sas(task):
     sas_task = translate_task(strips_to_sas, module_effects_to_sas, ranges, task.init, goal_list,
                               actions, durative_actions, axioms, num_axioms,
                               num_axioms_by_layer, max_num_layer, num_axiom_map,
-                              const_num_axioms, modules, task.module_inits, task.subplan_generators, init_constant_predicates, init_constant_numerics)
+                              const_num_axioms, task.oplinit, task.objects, modules, task.module_inits, task.subplan_generators, init_constant_predicates, init_constant_numerics)
 
     mutex_key = build_mutex_key(strips_to_sas, mutex_groups)
 

@@ -17,7 +17,7 @@ bool Prevail::is_applicable(const TimeStampedState &state, bool allowRelaxed) co
     assert(var >= 0 && var < g_variable_name.size());
     assert((prev >= 0 && prev < g_variable_domain[var]) || (g_variable_types[var] == module));
     if(g_variable_types[var] == module) {
-        g_modulecallback_state = &state;
+        g_setModuleCallbackState(&state);
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
         double cost = g_condition_modules[var]->checkCondition(
@@ -372,7 +372,7 @@ double Operator::get_duration(const TimeStampedState* state, bool relaxed) const
     assert(state != NULL);
 
     if(g_variable_types[duration_var] == costmodule) {
-        g_modulecallback_state = state;
+        g_setModuleCallbackState(state);
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
         double duration = g_cost_modules[duration_var]->checkCost(

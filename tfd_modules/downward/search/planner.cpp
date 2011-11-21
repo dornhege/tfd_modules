@@ -78,6 +78,14 @@ int main(int argc, char **argv)
             != g_init_modules.end(); it++) {
         (*it)->execInit();
     }
+
+    // init opl callback interface
+    if (g_oplinit != NULL)
+    {
+        g_OplModuleCallback = g_oplinit->execInit(g_objects, g_pred_mapping, g_func_mapping, g_pred_constants, g_func_constants);
+        g_OplModuleCallback->setCurrentState(g_initial_state);
+    }
+
     if(g_parameters.lazy_state_module_evaluation < 0) {
         if(g_condition_modules.empty() && g_cost_modules.empty())
             g_parameters.lazy_state_module_evaluation = 0;

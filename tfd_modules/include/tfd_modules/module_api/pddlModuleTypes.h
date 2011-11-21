@@ -15,6 +15,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include "typedefs.h"
 using std::string;
 using std::vector;
 

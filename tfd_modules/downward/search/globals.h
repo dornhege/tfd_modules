@@ -86,6 +86,7 @@ extern vector<int> g_axiom_layers;
 extern vector<double> g_default_axiom_values;
 extern vector<variable_type> g_variable_types;
 extern TimeStampedState *g_initial_state;
+extern ObjectStringList g_objects;
 extern vector<pair<int, double> > g_goal;
 extern vector<Operator> g_operators;
 extern vector<Axiom*> g_axioms;
