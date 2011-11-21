@@ -117,11 +117,6 @@ extern vector<SubplanModuleSet> g_subplan_modules;
 
 void handleSubplans(const vector<PlanStep> & plan);
 
-// callback interface
-typedef pair<int, int> VarVal;
-typedef tr1::unordered_map<string, VarVal> PredicateMapping;
-typedef tr1::unordered_map<string, int> FunctionMapping;
-
 extern PredicateMapping g_pred_mapping;
 extern FunctionMapping g_func_mapping;
 
