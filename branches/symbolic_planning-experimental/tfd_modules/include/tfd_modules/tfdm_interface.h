@@ -19,6 +19,8 @@ namespace tfd_modules
             virtual void initialize(const std::string & domainFile, const std::vector<std::string> & options);
 
             virtual PlannerResult plan(const SymbolicState & init, const SymbolicState & goal, Plan & plan);
+            
+            virtual PlannerResult monitor(const SymbolicState & init, const SymbolicState & goal, const Plan & plan);
  
             virtual void setTimeout(double secs);
 
@@ -38,7 +40,12 @@ namespace tfd_modules
             }
 
         protected:
-            PlannerResult callPlanner(const std::string & domain, const std::string & problem, const std::string & planNamePrefix);
+            bool writeProblem(const SymbolicState & init, const SymbolicState & goal) const;
+
+            PlannerResult callPlanner(const std::string & domain, const std::string & problem,
+                   const std::string & planNamePrefix);
+            PlannerResult callMonitoring(const std::string & domain, const std::string & problem,
+                   const std::string & planNamePrefix);
 
         protected:
             std::string _domainFile;

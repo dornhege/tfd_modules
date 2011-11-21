@@ -14,19 +14,17 @@
 // check that curState + curPlan will lead to goal
 // if not:
 //    replan
-
-
 // executros
 //  check/keep running actions
 //  preempt if conflicting? planner always assumes no running actions?
 //  should never decide: oops s.th. changed lets redo everything
 //  -- make monitoring nice/safe
-
+//
 //  Plan monitoring does not work, if move_base/make_plan fails during movement
 //  also: Execution failures should trigger replan somehow: i.e. drive to gap -> fail -> replan
 //  probably need partial/subgoal plan then to get away and make new situation
-
-// cehck contiplan paper
+//
+// check contiplan paper
 
 
 /// The continual planning loop.
@@ -37,6 +35,12 @@ class ContinualPlanning
         friend bool loadGoalCreators(ros::NodeHandle & nh);
         friend bool loadActionExecutors(ros::NodeHandle & nh);
         friend bool loadPlanner(ros::NodeHandle & nh);
+
+        enum ReplanningTriggerMethod {
+            ReplanAlways,
+            ReplanIfLogicalStateChanged,
+            ReplanByMonitoring
+        };
 
         ContinualPlanning();
         ~ContinualPlanning();
@@ -56,8 +60,10 @@ class ContinualPlanning
 
         /// Return a plan that reaches the goal.
         /**
-         * This might either be a copy TODO CHECK COPY PLAN of the current plan if that
-         * reaches the goal or a new plan. TODO bool success?
+         * This might either be a copy of the current plan if that
+         * reaches the goal or a new plan.
+         *
+         * \return a new plan that reaches _goal or an empty plan, if no plan could be found
          */
         Plan monitorAndReplan() const;
 
@@ -73,6 +79,7 @@ class ContinualPlanning
         SymbolicState _goal;
         Plan _currentPlan;
 
+        ReplanningTriggerMethod _replanningTrigger;
 };
 
 #endif

@@ -14,6 +14,10 @@ class DurativeAction
         vector<string> parameters;
         double duration;
         double startTime;
+
+        /// for sorting/inserting in sets
+        bool operator<(const DurativeAction & a) const;
+        bool operator==(const DurativeAction & a) const;
 };
 
 std::ostream & operator<<(std::ostream & os, const DurativeAction & a);
@@ -25,6 +29,8 @@ class Plan
         ~Plan();
 
         bool empty() const { return actions.empty(); }
+
+        void removeAction(const DurativeAction & a);
 
         vector<DurativeAction> actions;
 };

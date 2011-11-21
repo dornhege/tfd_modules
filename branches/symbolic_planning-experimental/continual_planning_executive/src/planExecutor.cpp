@@ -16,7 +16,8 @@ void PlanExecutor::addActionExecutor(continual_planning_executive::ActionExecuto
     _actionExecutors.push_back(ae);
 }
 
-bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
+bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
+                std::set<DurativeAction> & executedActions)
 {
     int actionsExectued = 0;
     forEach(const DurativeAction & da, p.actions) {
@@ -43,6 +44,8 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState)
                 } else {
                     ROS_WARN_STREAM("Action execution failed for action: \"" << da << "\"");
                 }
+                // FIXME: insert even if failed as we tried and the action is "used up"
+                executedActions.insert(da);
             }
         }
     }
