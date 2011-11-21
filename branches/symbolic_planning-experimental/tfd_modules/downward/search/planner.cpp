@@ -132,8 +132,6 @@ int main(int argc, char **argv)
         engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
 
     double best_makespan = REALLYBIG;
-
-
     times(&search_start);
     search_start_walltime = getCurrentTime();
     int plan_number = 1;

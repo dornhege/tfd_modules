@@ -150,6 +150,8 @@ void PlannerParameters::dump() const
         << (use_subgoals_to_break_makespan_ties ? "Enabled" : "Disabled") << endl;
 
     cout << "Reschedule plans: " << (reschedule_plans ? "Enabled" : "Disabled") << endl;
+    cout << "Epsilonize plans: " << (epsilonize_plans ? "Enabled" : "Disabled") << endl;
+    cout << "Keep original plans: " << (keep_original_plans ? "Enabled" : "Disabled") << endl;
 
     cout << "Plan name: \"" << plan_name << "\"" << endl;
     cout << "Plan monitor file: \"" << planMonitorFileName << "\"";
