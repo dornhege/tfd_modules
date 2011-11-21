@@ -33,7 +33,20 @@ namespace continual_planning_executive
             virtual void initialize(const std::string & domainFile, const std::vector<std::string> & options) = 0;
 
             /// Execute the planner to produce a plan from init to goal.
+            /**
+             * \param [in] init the initial state
+             * \param [in] goal the (partial) goal state
+             * \param [out] plan  the created plan
+             */
             virtual PlannerResult plan(const SymbolicState & init, const SymbolicState & goal, Plan & plan) = 0;
+            
+            /// Monitor the current plan by checking if app(init, plan) reaches goal.
+            /**
+             * \param [in] init the initial state
+             * \param [in] goal the (partial) goal state
+             * \param [in] plan  the plan to monitor
+             */
+            virtual PlannerResult monitor(const SymbolicState & init, const SymbolicState & goal, const Plan & plan) = 0;
 
             virtual void setTimeout(double secs) = 0;
 

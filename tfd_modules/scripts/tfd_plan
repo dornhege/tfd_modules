@@ -54,7 +54,7 @@ if [ $RETVAL != 0 ]; then
       exit 137
    fi
    echo "SEARCH UNSUCCESSFULL"
-	exit 41
+   exit 41
 else
 	echo "SEARCH SUCCESSFULL"
 fi

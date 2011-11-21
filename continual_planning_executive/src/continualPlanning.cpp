@@ -3,6 +3,7 @@
 
 ContinualPlanning::ContinualPlanning() : _planner(NULL)
 {
+    _replanningTrigger = ReplanByMonitoring;
 }
 
 ContinualPlanning::~ContinualPlanning()
@@ -22,16 +23,21 @@ bool ContinualPlanning::loop()
     Plan newPlan = monitorAndReplan();
     if(newPlan.empty()) {
         ROS_ERROR("Empty plan returned by monitorAndReplan.");
-        return false;           // can't do anything
+        return false;           // not at goal and no plan -> can't do anything besides fail
     }
 
     // exec plan
     _currentPlan = newPlan;
 
-    // TODO: just send and remember actions
-    // supervise those while running and estimating state.
-    if(!_planExecutor.executeBlocking(_currentPlan, _currentState)) {
+    // TODO_TP: just send and remember actions
+    //          supervise those while running and estimating state.
+    std::set<DurativeAction> executedActions;
+    if(!_planExecutor.executeBlocking(_currentPlan, _currentState, executedActions)) {
         ROS_WARN_STREAM("No action was executed for current plan:\n" << _currentPlan);
+    }
+    // remove executedActions from plan
+    for(std::set<DurativeAction>::iterator it = executedActions.begin(); it != executedActions.end(); it++) {
+        _currentPlan.removeAction(*it);
     }
 
     return true;
@@ -85,18 +91,40 @@ bool ContinualPlanning::needReplanning() const
         return true;
     }
 
-    // TODO call monitoring and check for assertions
+    switch(_replanningTrigger) {
+        case ReplanAlways:
+            return true;
+            break;
+        case ReplanIfLogicalStateChanged:
+            if(_currentState.booleanEquals(lastReplanState))
+                return false;
 
-    // TODO parametrize replanning method and state comp method
-    if(_currentState.booleanEquals(lastReplanState))
-        return false;
+            ROS_INFO("state changed since last replanning.");
+            lastReplanState = _currentState;
+            return true;
+            break;
+        case ReplanByMonitoring:
+            // check that: app(currentState, currentPlan) reaches goal
+            {
+                // TODO remove executed actions from plan somewhere (is there a TODO for that)
+                continual_planning_executive::PlannerInterface::PlannerResult result = 
+                    _planner->monitor(_currentState, _goal, _currentPlan);
+                if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS) {
+                    return false;   // success = _currentPlan leads to goal -> no replanning
+                } else if(result == continual_planning_executive::PlannerInterface::PR_FAILURE_UNREACHABLE) {
+                    return true;
+                } else {
+                    ROS_WARN("Unexpected monitoring result: %s",
+                            continual_planning_executive::PlannerInterface::PlannerResultStr(result).c_str());
+                    // there should be no timeouts in monitoring
+                    if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS_TIMEOUT)
+                        return false;
+                    return true;
+                }
+            }
+            break;
+    }
 
-    ROS_INFO("state changed since last replanning.");
-    lastReplanState = _currentState;
-
-    // later: app(current, currentPlan) != goal ==== monitoring
-
-    // yeah...
     return true;
 }
 

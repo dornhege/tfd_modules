@@ -31,7 +31,7 @@ namespace continual_planning_executive
              */
             virtual bool executeBlocking(const DurativeAction & a, SymbolicState & currentState) = 0;
 
-            // TODO non blocking call with progress ala action lib for temporal/parallel execution
+            // TODO_TP non blocking call with progress ala action lib for temporal/parallel execution
     };
 
     /// Split a named id (e.g. robot0) in name and id (robot, 0).

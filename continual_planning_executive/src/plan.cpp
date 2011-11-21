@@ -8,6 +8,61 @@ Plan::~Plan()
 {
 }
 
+bool DurativeAction::operator<(const DurativeAction & a) const
+{
+    if(name < a.name)
+        return true;
+    else if(name > a.name)
+        return false;
+
+    if(duration < a.duration)
+        return true;
+    else if(duration > a.duration)
+        return false;
+
+    if(startTime < a.startTime)
+        return true;
+    else if(startTime > a.startTime)
+        return false;
+
+    if(parameters.size() < a.parameters.size())
+        return true;
+    else if(parameters.size() > a.parameters.size())
+        return false;
+
+    // parameters.size == a.parameters.size
+    for(unsigned int i = 0; i < parameters.size(); i++) {
+        if(parameters[i] < a.parameters[i])
+            return true;
+        else if(parameters[i] > a.parameters[i])
+            return false;
+    }
+
+    // objects are equal, i.e. NOT a < b
+    return false;
+}
+        
+bool DurativeAction::operator==(const DurativeAction & a) const
+{
+    if(*this < a)
+        return false;
+    if(a < *this)
+        return false;
+    return true;
+}
+
+void Plan::removeAction(const DurativeAction & a)
+{
+    vector<DurativeAction>::iterator it = actions.begin();
+    while(it != actions.end()) {
+        if(*it == a) {
+            it = actions.erase(it);
+        } else {
+            it++;
+        }
+    }
+}
+
 std::ostream & operator<<(std::ostream & os, const DurativeAction & a)
 {
     os << a.startTime << ": (" << a.name;
