@@ -65,7 +65,7 @@ class ContinualPlanning
          *
          * \return a new plan that reaches _goal or an empty plan, if no plan could be found
          */
-        Plan monitorAndReplan() const;
+        Plan monitorAndReplan();
 
         /// Returns true, if replanning needs to be done as _currentPlan in _currentState doesn't reach _goal.
         bool needReplanning() const;
@@ -79,6 +79,7 @@ class ContinualPlanning
         SymbolicState _goal;
         Plan _currentPlan;
 
+        bool _forceReplan;      ///< If true, someone want to hard trigger replanning in the next step
         ReplanningTriggerMethod _replanningTrigger;
 };
 

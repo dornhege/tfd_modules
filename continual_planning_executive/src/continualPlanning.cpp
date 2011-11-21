@@ -3,6 +3,7 @@
 
 ContinualPlanning::ContinualPlanning() : _planner(NULL)
 {
+    _forceReplan = false;
     _replanningTrigger = ReplanByMonitoring;
 }
 
@@ -34,6 +35,7 @@ bool ContinualPlanning::loop()
     std::set<DurativeAction> executedActions;
     if(!_planExecutor.executeBlocking(_currentPlan, _currentState, executedActions)) {
         ROS_WARN_STREAM("No action was executed for current plan:\n" << _currentPlan);
+        _forceReplan = true;        // force here in the hope that it fixes something.
     }
     // remove executedActions from plan
     for(std::set<DurativeAction>::iterator it = executedActions.begin(); it != executedActions.end(); it++) {
@@ -59,7 +61,7 @@ bool ContinualPlanning::estimateCurrentState()
     return ret;
 }
 
-Plan ContinualPlanning::monitorAndReplan() const
+Plan ContinualPlanning::monitorAndReplan()
 {
     if(!needReplanning()) {
         return _currentPlan;
@@ -71,10 +73,12 @@ Plan ContinualPlanning::monitorAndReplan() const
     Plan plan;
     continual_planning_executive::PlannerInterface::PlannerResult result = 
         _planner->plan(_currentState, _goal, plan);
+    _forceReplan = false;       // did replanning
 
     if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS
             || result == continual_planning_executive::PlannerInterface::PR_SUCCESS_TIMEOUT) {
-        ROS_INFO("Planning successfull.");
+        ROS_INFO_STREAM("Planning successfull. Got plan:" << std::endl
+                << std::fixed << std::setprecision(2) << plan);
     } else {
         ROS_WARN("Planning failed, result: %s",
                 continual_planning_executive::PlannerInterface::PlannerResultStr(result).c_str());
@@ -85,6 +89,11 @@ Plan ContinualPlanning::monitorAndReplan() const
 bool ContinualPlanning::needReplanning() const
 {
     static SymbolicState lastReplanState;
+
+    if(_forceReplan) {
+        ROS_WARN("Replanning was forced.");
+        return true;
+    }
 
     if(_currentPlan.empty()) {
         lastReplanState = _currentState;
