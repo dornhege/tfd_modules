@@ -15,11 +15,12 @@ class Task(object):
   FUNCTION_SYMBOLS = dict()
   CONSTANT_MAPPING = dict() # yes, this is a hack and should be removed
 
-  def __init__(self, domain_name, task_name, requirements,
+  def __init__(self, domain_name, task_name, requirements, oplinit,
                types, objects, modules, predicates, init, goal, actions, durative_actions, axioms, function_symbols, subplan_generators, module_inits):
     self.domain_name = domain_name
     self.task_name = task_name
     self.requirements = requirements
+    self.oplinit = oplinit
     self.types = types
     self.objects = objects
     self.modules = modules
@@ -44,7 +45,7 @@ class Task(object):
     return axiom
 
   def parse(domain_pddl, task_pddl):
-    domain_name, requirements, constants, predicates, types, functions, actions, durative_actions, axioms, modules, subplan_generators \
+    domain_name, requirements, oplinit, constants, predicates, types, functions, actions, durative_actions, axioms, modules, subplan_generators \
                  = parse_domain(domain_pddl)
     task_name, task_domain_name, module_inits, objects, init, goal = parse_task(task_pddl)
 
@@ -52,13 +53,16 @@ class Task(object):
     objects = constants + objects
     init += [conditions.Atom("=", (conditions.parse_term(obj.name), conditions.parse_term(obj.name))) 
              for obj in objects]
-    return Task(domain_name, task_name, requirements, types, objects, modules,
+    return Task(domain_name, task_name, requirements, oplinit, types, objects, modules,
                 predicates, init, goal, actions, durative_actions, axioms, Task.FUNCTION_SYMBOLS, subplan_generators, module_inits)
   parse = staticmethod(parse)
 
   def dump(self):
     print "Problem %s: %s [%s]" % (self.domain_name, self.task_name,
                                    self.requirements)
+    print "OplInit:"
+    for init in self.oplinit:
+      init.dump()
     print "Types:"
     for type in self.types:
       print "  %s" % type
@@ -220,10 +224,17 @@ def parse_domain(domain_pddl):
   opt_requirements = iterator.next()
   if opt_requirements[0] == ":requirements":
     yield Requirements(opt_requirements[1:])
-    opt_types = iterator.next()
+    oplinit = iterator.next()
   else:
     yield Requirements([":strips"])
-    opt_types = opt_requirements
+    oplinit = opt_requirements
+
+  if oplinit[0] == ":oplinit":
+    yield [modules.OplInit.parse(mi) for mi in oplinit[1:]]
+    opt_types = iterator.next()
+  else:
+    yield []  
+    opt_types = oplinit  
 
   the_types = [pddl_types.Type("object")]
   if opt_types[0] == ":types":

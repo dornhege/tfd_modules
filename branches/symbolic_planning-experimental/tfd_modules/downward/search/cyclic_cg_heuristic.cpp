@@ -1200,7 +1200,7 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
 
     // set the module callback state as the state we compute the heuristik for
     // this is probably the best we can do
-    g_modulecallback_state = &state;
+    g_setModuleCallbackState(&state);
 
     initialize_queue();
     set_waiting_time(REALLYSMALL);

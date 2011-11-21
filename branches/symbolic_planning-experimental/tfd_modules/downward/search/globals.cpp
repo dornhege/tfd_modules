@@ -125,6 +125,8 @@ void evaluate_axioms_in_init()
 void read_everything(istream &in)
 {
     read_variables(in);
+    read_oplinits(in);
+    read_objects(in);
     read_pddl_translation(in);
     read_constant_facts(in);
     read_modules(in);
@@ -175,6 +177,7 @@ vector<int> g_variable_domain;
 vector<int> g_axiom_layers;
 vector<double> g_default_axiom_values;
 vector<variable_type> g_variable_types;
+ObjectStringList g_objects;
 TimeStampedState *g_initial_state;
 vector<pair<int, double> > g_goal;
 vector<Operator> g_operators;

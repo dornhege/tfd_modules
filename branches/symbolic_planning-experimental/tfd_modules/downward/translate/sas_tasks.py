@@ -2,7 +2,7 @@ import pddl
 
 class SASTask:
   def __init__(self, variables, init, goal, operators, 
-        temp_operators,axioms, num_axioms, comp_axioms, condition_modules, effect_modules, cost_modules, 
+        temp_operators,axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, 
         translation, module_inits, subplan_generators, init_constant_predicates, init_constant_numerics):
     self.variables = variables
     self.init = init
@@ -12,6 +12,8 @@ class SASTask:
     self.axioms = axioms
     self.num_axioms = num_axioms
     self.comp_axioms = comp_axioms
+    self.oplinit = oplinit
+    self.objects = objects
     self.condition_modules = condition_modules
     self.effect_modules = effect_modules
     self.cost_modules = cost_modules
@@ -22,6 +24,16 @@ class SASTask:
     self.init_constant_numerics = init_constant_numerics
   def output(self, stream):
     self.variables.output(stream)
+    print >> stream, "begin_oplinits"
+    print >> stream, len(self.oplinit)
+    for init in self.oplinit:
+      print >> stream, init.init_function
+    print >> stream, "end_oplinits"
+    print >> stream, "begin_objects"
+    print >> stream, len(self.objects)
+    for object in self.objects:
+      print >> stream, object.opl_print()
+    print >> stream, "end_objects"
     self.translation.output(stream)
     print >> stream, "begin_constant_facts"
     print >> stream, "%d" % len(self.init_constant_predicates)

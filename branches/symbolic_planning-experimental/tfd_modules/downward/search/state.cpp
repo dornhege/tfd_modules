@@ -29,7 +29,7 @@ TimeStampedState::TimeStampedState(istream &in)
 void TimeStampedState::apply_module_effect(string internal_name)
 {
     int index = atoi(internal_name.substr(3).c_str());
-    g_modulecallback_state = this;
+    g_setModuleCallbackState(this);
     predicateCallbackType pct = getPreds;
     numericalFluentCallbackType nct = getFuncs;
 

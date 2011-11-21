@@ -118,3 +118,13 @@ class ModuleInit(object):
   def dump(self, indent="  "):
     print "%sFunction: %s Parameters: %s" % (indent, self.init_function, " ".join(self.parameters))
   parse = staticmethod(parse)
+
+class OplInit(object):
+  def __init__(self, init_function):
+    self.init_function = init_function
+  def parse(alist):
+    init_function = alist
+    return OplInit(init_function)
+  def dump(self, indent="  "):
+    print "%sFunction: %s" % (indent, self.init_function)
+  parse = staticmethod(parse)

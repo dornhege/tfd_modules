@@ -3,6 +3,7 @@
 
 #include "moduleLoader.h"
 #include "tfd_modules/module_api/pddlModuleTypes.h"
+#include "tfd_modules/module_api/OplCallbackInterface.h"
 
 class PDDLModuleLoader : virtual public ModuleLoader
 {
@@ -19,6 +20,8 @@ class PDDLModuleLoader : virtual public ModuleLoader
       modules::subplanGeneratorType getSubplanGenerator(string fnString);
       modules::outputSubplanType getOutputSubplan(string fnString);
       modules::executeModulePlanType getExecuteModulePlan(string fnString);
+
+      modules::oplCallbackInitType oplCalbackInit(string fnString);
 };
 
 #endif

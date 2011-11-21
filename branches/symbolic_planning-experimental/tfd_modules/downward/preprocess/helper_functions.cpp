@@ -101,6 +101,20 @@ void read_modules(istream &in, vector<string> & moduleInits,
     check_magic(in, "end_modules");
 }
 
+void read_oplinits(istream &in, vector<string>& oplinits)
+{
+    check_magic(in, "begin_oplinits");
+    read_n_strings(in, oplinits);
+    check_magic(in, "end_oplinits");
+}
+
+void read_objects(istream &in, vector<string>& objects)
+{
+    check_magic(in, "begin_objects");
+    read_n_strings(in, objects);
+    check_magic(in, "end_objects");
+}
+
 void read_translations(istream &in,
         vector<TranslatePredicate> &predicateTranslations, vector<
                 TranslateFunction> &functionTranslations,
@@ -191,9 +205,13 @@ void read_preprocessed_problem_description(istream &in,
         vector<ConditionModule> & costModules,
         vector<TranslatePredicate> &predicateTranslations, vector<
                 TranslateFunction> &functionTranslations,
-        vector<string> & pred_constants, vector<string> & num_constants)
+        vector<string> & pred_constants, vector<string> & num_constants,
+        vector<string>& objects,
+        vector<string>& oplinits)
 {
     read_variables(in, internal_variables, variables);
+    read_oplinits(in, oplinits);
+    read_objects(in, objects);
     read_translations(in, predicateTranslations, functionTranslations,
             variables);
     read_constants(in, pred_constants, num_constants);
@@ -257,7 +275,8 @@ void generate_cpp_input(bool solveable_in_poly_time,
         const vector<Axiom_relational> &axioms_rel, const vector<
                 Axiom_functional> &axioms_func, const SuccessorGenerator &sg,
         const vector<DomainTransitionGraph*> transition_graphs,
-        const CausalGraph &cg, ostream& outfile)
+        const CausalGraph &cg, const vector<string>& objects,
+        const vector<string>& oplinits, ostream& outfile)
 {
     //ostream outfile;
     //outfile.open("output", ios::out);
@@ -270,6 +289,20 @@ void generate_cpp_input(bool solveable_in_poly_time,
                 << ordered_vars[i]->get_range() << " "
                 << ordered_vars[i]->get_layer() << endl;
     outfile << "end_variables" << endl;
+    outfile << "begin_oplinits" << endl;
+    outfile << oplinits.size() << endl;
+    for (vector<string>::const_iterator it = oplinits.begin(); it
+            != oplinits.end(); it++) {
+        outfile << *it << endl;
+    }
+    outfile << "end_oplinits" << endl;
+    outfile << "begin_objects" << endl;
+    outfile << objects.size() << endl;
+    for (vector<string>::const_iterator it = objects.begin(); it
+            != objects.end(); it++) {
+        outfile << *it << endl;
+    }
+    outfile << "end_objects" << endl;
     outfile << "begin_pddl_translation" << endl;
     int count = pred_translations.size();
     outfile << count << endl;

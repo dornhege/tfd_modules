@@ -32,7 +32,8 @@ void read_preprocessed_problem_description(istream &in,
         vector<ConditionModule> & costModules,
         vector<TranslatePredicate> &predicate_translations, vector<
                 TranslateFunction> &function_translations,
-        vector<string> & pred_constants, vector<string> & num_constants);
+        vector<string> & pred_constants, vector<string> & num_constants,
+        vector<string>& objects, vector<string>& oplinits);
 
 //void dump_everything
 void dump_preprocessed_problem_description(const vector<Variable *> &variables,
@@ -60,7 +61,8 @@ void generate_cpp_input(bool causal_graph_acyclic,
         const vector<Axiom_relational> &axioms_rel, const vector<
                 Axiom_functional> &axioms_func, const SuccessorGenerator &sg,
         const vector<DomainTransitionGraph*> transition_graphs,
-        const CausalGraph &cg, ostream& outfile);
+        const CausalGraph &cg, const vector<string>& objects,
+        const vector<string>& oplinits, ostream& outfile);
 
 void check_magic(istream &in, string magic);
 

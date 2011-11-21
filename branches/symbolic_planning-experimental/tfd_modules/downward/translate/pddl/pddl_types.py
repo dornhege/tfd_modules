@@ -44,6 +44,8 @@ class TypedObject(object):
     return not self == other
   def __str__(self):
     return "%s: %s" % (self.name, self.type)
+  def opl_print(self):
+    return "%s %s" % (self.type, self.name)
   def uniquify_name(self, type_map, renamings):
     if self.name not in type_map:
       type_map[self.name] = self.type

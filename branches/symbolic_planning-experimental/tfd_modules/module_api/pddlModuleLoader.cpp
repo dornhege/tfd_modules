@@ -87,3 +87,12 @@ modules::executeModulePlanType PDDLModuleLoader::getExecuteModulePlan(string fnS
    //return (modules::executeModulePlanType)fn;
 }
 
+modules::oplCallbackInitType PDDLModuleLoader::oplCalbackInit(string fnString)
+{
+   void* fn = getFunction(fnString);
+   if(fn == NULL)
+      return NULL;
+   modules::oplCallbackInitType ret;
+   *(void **) (&ret) = fn;
+   return ret;
+}

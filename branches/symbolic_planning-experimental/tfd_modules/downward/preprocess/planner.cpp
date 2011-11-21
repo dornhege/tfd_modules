@@ -48,6 +48,8 @@ int main(int argc, const char **argv)
     vector<TranslateFunction> functionTranslations;
     vector<string> predConstants;
     vector<string> numConstants;
+    vector<string> objects;
+    vector<string> oplinits;
 
     if (argc != 1) {
         cout << "*** do not perform relevance analysis ***" << endl;
@@ -58,7 +60,7 @@ int main(int argc, const char **argv)
             initial_state, goals, operators, axioms_rel, axioms_func,
             moduleInits, subplanGenerators, condModules, effectModules,
             costModules, predicateTranslations, functionTranslations,
-            predConstants, numConstants);
+            predConstants, numConstants, objects, oplinits);
 
     //  for (int i = 0; i< operators.size(); i++)
     //      operators[i].dump();
@@ -105,6 +107,6 @@ int main(int argc, const char **argv)
             predicateTranslations, functionTranslations, predConstants,
             numConstants, initial_state, goals, operators, axioms_rel,
             axioms_func, successor_generator, transition_graphs, causal_graph,
-            out);
+            objects, oplinits, out);
     cout << "done" << endl << endl;
 }

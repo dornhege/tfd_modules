@@ -142,6 +142,29 @@ void InitModule::execInit()
     delete[] argv;
 }
 
+OplInit::OplInit(istream &in)
+{
+    string function_name, lib;
+    in >> function_name >> lib;
+    libCall = function_name;
+    libCall.append("@").append(lib);
+
+    oplInit = g_module_loader->oplCalbackInit(libCall);
+    if (oplInit == NULL) {
+        printf("ERROR: %s\tcould not load %s  ", __PRETTY_FUNCTION__, libCall.c_str());
+        assert(false);
+    }
+}
+
+opl::interface::OplCallbackInterface* OplInit::execInit(const ObjectStringList& objects,
+        const PredicateMapping& predicateMapping,
+        const FunctionMapping& functionMapping,
+        const modules::PredicateList& predicateConstants,
+        const modules::NumericalFluentList& numericConstants)
+{
+    return oplInit(objects, predicateMapping, functionMapping, predicateConstants, numericConstants);
+}
+
 Module::~Module()
 {
 }
@@ -149,12 +172,14 @@ Module::~Module()
 // global definitions
 
 const TimeStampedState* g_modulecallback_state = NULL;
+opl::interface::OplCallbackInterface* g_OplModuleCallback = NULL;
 
 map<int, ConditionModule *> g_condition_modules;
 vector<EffectModule *> g_effect_modules;
 map<int, CostModule*> g_cost_modules;
 vector<InitModule *> g_init_modules;
 vector<SubplanModuleSet> g_subplan_modules;
+OplInit* g_oplinit = NULL;
 
 PredicateMapping g_pred_mapping;
 FunctionMapping g_func_mapping;
@@ -175,6 +200,15 @@ void dump_modules()
         (*it)->dump();
     for(map<int, CostModule*>::iterator it =  g_cost_modules.begin(); it != g_cost_modules.end(); it++)
         it->second->dump();
+}
+
+void g_setModuleCallbackState(const TimeStampedState* currentState)
+{
+    g_modulecallback_state = currentState;
+    if (g_OplModuleCallback != NULL)
+    {
+        g_OplModuleCallback->setCurrentState(currentState);
+    }
 }
 
 bool getPreds(PredicateList* & predicateList)
@@ -519,3 +553,33 @@ void read_constant_facts(istream& in)
     check_magic(in, "end_constant_facts");
 }
 
+void read_oplinits(istream &in)
+{
+    check_magic(in, "begin_oplinits");
+    int count;
+    in >> count;
+    if (count > 0)
+    {
+        g_oplinit = new OplInit(in);
+    }
+    else
+    {
+        g_oplinit = NULL;
+    }
+    check_magic(in, "end_oplinits");
+}
+
+void read_objects(istream &in)
+{
+    check_magic(in, "begin_objects");
+    int count;
+    in >> count;
+    for (int i = 0; i < count; i++) {
+        string type;
+        string name;
+        in >> type;
+        in >> name;
+        g_objects.push_back(make_pair(type, name));
+    }
+    check_magic(in, "end_objects");
+}
