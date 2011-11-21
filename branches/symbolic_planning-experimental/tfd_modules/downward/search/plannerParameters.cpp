@@ -42,6 +42,7 @@ PlannerParameters::PlannerParameters()
     reschedule_plans = false;
 
     plan_name = "sas_plan";
+    epsilonize_plans = false;
     keep_original_plans = true;
     planMonitorFileName = "";
 

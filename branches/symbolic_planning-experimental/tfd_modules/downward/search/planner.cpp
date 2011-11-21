@@ -313,7 +313,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
             return best_makespan;
     }
 
-    cout << "Plan:" << endl;
+    cout << endl << "Found new plan:" << endl;
     for(int i = 0; i < plan.size(); i++) {
         const PlanStep& step = plan[i];
         printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
@@ -380,22 +380,23 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     }
 
     cout << "Plan length: " << rescheduled_plan.size() << " step(s)." << endl;
-    cout << "Makespan   : " << makespan << endl;
     if(g_parameters.reschedule_plans)
-        cout << "Solution was epsilonized and rescheduled to a makespan of " << makespan << "." << endl;
+        cout << "Rescheduled Makespan   : " << makespan << endl;
     else
-        cout << "Solution was epsilonized to a makespan of " << makespan << "." << endl;
+        cout << "Makespan   : " << makespan << endl;
 
-    // Perform epsilonize
-    if(!plan_filename.empty()) {
-        bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename, g_parameters.keep_original_plans);
-        if(!ret_of_epsilonize_plan)
-            cout << "Error while calling epsilonize plan! File: " << plan_filename << endl;
-    }
-    if(!best_plan_filename.empty()) {
-        bool ret_of_epsilonize_best_plan = epsilonize_plan(best_plan_filename, g_parameters.keep_original_plans);
-        if(!ret_of_epsilonize_best_plan)
-            cout << "Error while calling epsilonize best_plan! File: " << best_plan_filename << endl;
+    if(g_parameters.epsilonize_plans) {
+        // Perform epsilonize
+        if(!plan_filename.empty()) {
+            bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename, g_parameters.keep_original_plans);
+            if(!ret_of_epsilonize_plan)
+                cout << "Error while calling epsilonize plan! File: " << plan_filename << endl;
+        }
+        if(!best_plan_filename.empty()) {
+            bool ret_of_epsilonize_best_plan = epsilonize_plan(best_plan_filename, g_parameters.keep_original_plans);
+            if(!ret_of_epsilonize_best_plan)
+                cout << "Error while calling epsilonize best_plan! File: " << best_plan_filename << endl;
+        }
     }
 
     return makespan;
