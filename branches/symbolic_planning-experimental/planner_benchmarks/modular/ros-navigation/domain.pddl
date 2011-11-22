@@ -7,13 +7,12 @@
   )
 
   (:modules
-;    (costDrive ?r - robot ?target ?goal - location cost 
-;      costDrive@libmre_Module.so)
   )
 
   (:predicates 
       (at ?l - location)
       (explored ?t - target)
+      (driving)
   )
 
   (:functions
@@ -29,14 +28,16 @@
 
   (:durative-action explore
 	     :parameters (?s - location ?g - target)
-         ;:duration (= ?duration [costDrive ?r ?s ?g])
-        :duration (= ?duration 1.0)
-	     :condition (and (at start (at ?s)) (at start (not (= ?s ?g))) (at start (not (explored ?g))) )
-	     :effect
+         :duration (= ?duration 1.0)
+	     :condition (and (at start (at ?s)) (at start (not (= ?s ?g))) (at start (not (explored ?g))) 
+             (at start (not (driving))) )
+         :effect
 	     (and 
           (at start (not (at ?s)))
           (at end (at ?g))
           (at start (explored ?g))
+          (at start (driving))
+          (at end (not (driving)))
         )
   )
 )

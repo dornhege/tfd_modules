@@ -73,6 +73,7 @@ namespace planner_navigation_actions
 
         if(_actionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("Reached move_base target.");
+            current.setBooleanPredicate("explored", targetName, true);
             return true;
         }
 
