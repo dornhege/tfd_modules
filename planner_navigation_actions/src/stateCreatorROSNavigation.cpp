@@ -20,6 +20,8 @@ StateCreatorROSNavigation::~StateCreatorROSNavigation()
 
 bool StateCreatorROSNavigation::fillState(SymbolicState & state)
 {
+   state.setBooleanPredicate("static", "", true);
+
    state.addObject("l0", "location");
 
    tf::StampedTransform transform;
@@ -41,9 +43,7 @@ bool StateCreatorROSNavigation::fillState(SymbolicState & state)
    state.setNumericalFluent("qz", "l0", transform.getRotation().z());
    state.setNumericalFluent("qw", "l0", transform.getRotation().w());
 
-   // TODO (at t0) + make sure there is action for that.
-
-   // Check if we reached any goals
+   // Check if we are at any targets 
    pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets = 
       state.getTypedObjects().equal_range("target");
    
@@ -58,16 +58,6 @@ bool StateCreatorROSNavigation::fillState(SymbolicState & state)
       Predicate p;
       paramList[0] = target;
       p.parameters = paramList;
-
-      // check if its explored already
-      p.name = "explored";
-      bool explored = false;
-      if(!state.hasBooleanPredicate(p, &explored)) {
-         ROS_ERROR("%s: state has no explored predicate for target %s.", __func__, target.c_str());
-      } else {
-         if(explored)
-            continue;
-      }
 
       p.name = "x";
       double valueX;
@@ -86,8 +76,10 @@ bool StateCreatorROSNavigation::fillState(SymbolicState & state)
       double dy = transform.getOrigin().y() - valueY;
       // Found a target - update state!
       if(hypot(dx, dy) < _goalTolerance) {
-         ROS_INFO("Target %s explored!", target.c_str());
-         state.setBooleanPredicate("explored", target, true);
+         ROS_INFO("(at) target %s !", target.c_str());
+         state.setBooleanPredicate("at", target, true);
+      } else {
+         state.setBooleanPredicate("at", target, false);
       }
       if(hypot(dx, dy) < minDist) {
          minDist = hypot(dx, dy);

@@ -14,6 +14,7 @@
   (:predicates 
       (at ?l - location)
       (explored ?t - target)
+      (static)
   )
 
   (:functions
@@ -25,19 +26,20 @@
       (qy ?l - location)
       (qz ?l - location)
       (qw ?l - location)
-
   )
 
   (:durative-action explore
 	     :parameters (?s - location ?g - target)
-        :duration (= ?duration [costDrive ?s ?g])
-     ;   :duration (= ?duration 1.0)
-	     :condition (and (at start (at ?s)) (at start (not (= ?s ?g))) (at start (not (explored ?g))) )
-	     :effect
+         :duration (= ?duration [costDrive ?s ?g])
+	     :condition (and (at start (at ?s)) (at start (not (= ?s ?g))) (at start (not (explored ?g))) 
+             (at start (static)) )
+         :effect
 	     (and 
           (at start (not (at ?s)))
           (at end (at ?g))
           (at start (explored ?g))
+          (at start (not (static)))
+          (at end (static))
         )
   )
 )
