@@ -18,6 +18,7 @@ class PlannerParameters
 
    public:
       bool anytime_search;          ///< Perform anytime search (don't stop at first plan)
+      bool disallow_concurrent_actions;     ///< Do NOT allow any concurrent actions, i.e. do NOT plan temporally
       
       int timeout_if_plan_found;          ///< Timeout if a plan was found (0 - inf).
       int timeout_while_no_plan_found;    ///< Timeout while no plan found (0 - inf).
