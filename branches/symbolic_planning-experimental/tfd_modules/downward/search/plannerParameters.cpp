@@ -9,6 +9,7 @@ PlannerParameters::PlannerParameters()
 {
     // set defaults
     anytime_search = false;
+    disallow_concurrent_actions = false;
     timeout_while_no_plan_found = 0;
     timeout_if_plan_found = 0;
 
@@ -87,6 +88,9 @@ void PlannerParameters::dump() const
 {
     cout << endl << "Planner Paramters:" << endl;
     cout << "Anytime Search: " << (anytime_search ? "Enabled" : "Disabled") << endl;
+    cout << "Disallow concurrent actions: " << (disallow_concurrent_actions ? "Enabled" : "Disabled") << endl;
+    if(disallow_concurrent_actions)
+        cout << "WARNING: planning non-temporally" << endl;
     cout << "Timeout if plan was found: " << timeout_if_plan_found << " seconds";
     if(timeout_if_plan_found == 0)
         cout << " (no timeout)";
@@ -240,6 +244,7 @@ void PlannerParameters::printUsage() const
     printf("Usage: search <option characters>  (input read from stdin)\n");
     printf("Options are:\n");
     printf("  a - enable anytime search (otherwise finish on first plan found)\n");
+    printf("  c - disallow any concurrent actions (plan classically, NOT temporal)\n");
     printf("  t <timeout secs> - total timeout in seconds for anytime search (when plan found)\n");
     printf("  T <timeout secs> - total timeout in seconds for anytime search (when no plan found)\n");
     printf("  m <monitor file> - monitor plan, validate a given plan\n");
@@ -265,6 +270,8 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
         for (const char *c = argv[i]; *c != 0; c++) {
             if (*c == 'a') {
                 anytime_search = true;
+            } else if (*c == 'c') {
+                disallow_concurrent_actions = true;
             } else if (*c == 't') {
                 assert(i + 1 < argc);
                 timeout_if_plan_found = atoi(string(argv[++i]).c_str());
