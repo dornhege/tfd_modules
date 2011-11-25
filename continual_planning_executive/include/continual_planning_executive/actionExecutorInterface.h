@@ -3,6 +3,7 @@
 
 #include "plan.h"
 #include "symbolicState.h"
+#include <deque>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -16,6 +17,9 @@ namespace continual_planning_executive
         public:
             ActionExecutorInterface() {}
             virtual ~ActionExecutorInterface() {}
+
+            /// Initialize the action from a list of arguments - should be called after creating the interface.
+            virtual void initialize(const std::deque<std::string> & arguments) {}
 
             /// An action executor should return true, if it can execute the action
             /**

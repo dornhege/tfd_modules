@@ -136,7 +136,7 @@ double pathCost(const ParameterList & parameterList,
    double cost = INFINITE_COST;
 
    if(!s_GetPlan) {
-      ROS_ERROR("Persisten service connection to %s failed.", s_GetPlan.getService().c_str());
+      ROS_ERROR("Persistent service connection to %s failed.", s_GetPlan.getService().c_str());
       // FIXME reconnect - this shouldn't happen.
       return INFINITE_COST;
    }
@@ -182,7 +182,7 @@ retryGetPlan:
    } else {
       ROS_ERROR("Failed to call service %s - is the robot moving?", s_GetPlan.getService().c_str());
       failCounter++;
-      if(failCounter < 30) {
+      if(failCounter < 300) {
          usleep(1000*1000);
          goto retryGetPlan;
       }

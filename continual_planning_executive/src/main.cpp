@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <ros/ros.h>
 #include <vector>
+#include <deque>
+#include <string>
 
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
@@ -49,7 +51,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
             return false;
         }
         std::string state_creator_name = xmlRpc[i];
-        ROS_DEBUG("Loading state creator %s", state_creator_name.c_str());
+        ROS_INFO("Loading state creator %s", state_creator_name.c_str());
         try {
             continual_planning_executive::StateCreator* sc = s_StateCreatorLoader->createClassInstance(state_creator_name);
             s_ContinualPlanning._stateCreators.push_back(sc);
@@ -94,7 +96,7 @@ bool loadGoalCreators(ros::NodeHandle & nh)
             return false;
         }
         std::string goal_creator_name = xmlRpc[i];
-        ROS_DEBUG("Loading goal creator %s", goal_creator_name.c_str());
+        ROS_INFO("Loading goal creator %s", goal_creator_name.c_str());
         try {
             continual_planning_executive::GoalCreator* gc = s_GoalCreatorLoader->createClassInstance(goal_creator_name);
             if(!gc->fillStateAndGoal(s_ContinualPlanning._currentState, s_ContinualPlanning._goal)) {
@@ -110,6 +112,21 @@ bool loadGoalCreators(ros::NodeHandle & nh)
 
     ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning._goal);
     return true;
+}
+
+std::deque<std::string> splitString(const std::string & s, const char* delim)
+{
+    std::deque<std::string> elems;
+    std::string::size_type lastPos = 0;
+    std::string::size_type pos     = 0;
+
+    do {
+        pos = s.find_first_of(delim, lastPos);
+        elems.push_back(s.substr(lastPos, pos - lastPos));
+        lastPos = pos + 1;
+    } while(std::string::npos != pos);
+
+    return elems;
 }
 
 bool loadActionExecutors(ros::NodeHandle & nh)
@@ -143,10 +160,18 @@ bool loadActionExecutors(ros::NodeHandle & nh)
             ROS_ERROR("action_executors entry %d is not of type string.", i);
             return false;
         }
-        std::string action_executor_name = xmlRpc[i];
-        ROS_DEBUG("Loading action_executor %s", action_executor_name.c_str());
+        // This should be name + params
+        std::deque<std::string> action_executor_entry = splitString(xmlRpc[i], " ");
+        ROS_ASSERT(action_executor_entry.size() >= 1);
+
+        std::string action_executor_name = action_executor_entry.at(0);
+        action_executor_entry.pop_front();  // no only params left
+
+        ROS_INFO("Loading action_executor %s", action_executor_name.c_str());
         try {
-            continual_planning_executive::ActionExecutorInterface* ae = s_ActionExecutorLoader->createClassInstance(action_executor_name);
+            continual_planning_executive::ActionExecutorInterface* ae
+                = s_ActionExecutorLoader->createClassInstance(action_executor_name);
+            ae->initialize(action_executor_entry);
             s_ContinualPlanning._planExecutor.addActionExecutor(ae);
         } catch(pluginlib::PluginlibException & ex) {
             ROS_ERROR("Failed to load ActionExecutor instance for: %s. Error: %s.",
@@ -176,7 +201,7 @@ bool loadPlanner(ros::NodeHandle & nh)
         ROS_ERROR("No planner defined!");
         return false;
     }
-    ROS_DEBUG("Loading planner %s", planner_name.c_str());
+    ROS_INFO("Loading planner %s", planner_name.c_str());
     try {
         s_ContinualPlanning._planner = s_PlannerLoader->createClassInstance(planner_name);
     } catch(pluginlib::PluginlibException & ex) {
