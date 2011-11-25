@@ -29,6 +29,10 @@
 
         (handFree ?a - arm)                           ; nothing grasped in arm ?a
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
+
+        ;;; TODO: better pose formualtion
+        ;;; TODO: who/does someone destroy the know-pose stuff
+        ;;; add a grasped object from location if object there (goal: all true, later clean ?loc)
     )
 
     (:functions
