@@ -65,6 +65,12 @@ class SymbolicState
         /// Add an object to the list of objects.
         void addObject(string obj, string type); 
 
+        /// Remove an object from the state.
+        /**
+         * \param [in] removePredicates if true, all predicates/fluents that contain obj will also be removed.
+         */
+        void removeObject(string obj, bool removePredicates = true);
+
         /// Get a map from type -> objects of that type.
         const multimap<string, string> & getTypedObjects() const { return _typedObjects; }
 
@@ -77,11 +83,16 @@ class SymbolicState
          * and will be parsed into the single parameters.
          */
         void setBooleanPredicate(string name, string parameters, bool value);
+        /// Set all boolean predicates with name to value.
+        void setAllBooleanPredicates(string name, bool value);
 
         /// Set a numerical fluent. If it does not exist it will be created.
         void setNumericalFluent(string name, vector<string> parameters, double value);
         /// Set a numerical fluent using handcoded parameters.
         void setNumericalFluent(string name, string parameters, double value);
+        /// Set all numerical fluents with name to value.
+        void setAllNumericalFluents(string name, double value);
+
 
         /// Determine if this state has the given predicate.
         /**
@@ -94,7 +105,7 @@ class SymbolicState
 
         /// Does state fulfill this state?
         /**
-         * Check if state fulfills this state, i.e. for each predicate in this state, there is a 
+         * Check if the other state fulfills this (partial) state, i.e. for each predicate in this state, there is a 
          * corresponding one in the other state and it has the same truth value.
          * Predicates in the other state that do not exist in this state are ignored.
          * Numeric fluents need to be the same up to double_equals.
@@ -130,8 +141,8 @@ class SymbolicState
         map<Predicate, bool> _booleanPredicates;
         map<Predicate, double> _numericalFluents;
 
-        typedef pair<Predicate, bool> BooleanPredicateEntry;
-        typedef pair<Predicate, double> NumericalFluentEntry;
+        typedef map<Predicate, bool>::value_type BooleanPredicateEntry;
+        typedef map<Predicate, double>::value_type NumericalFluentEntry;
 };
 
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);
