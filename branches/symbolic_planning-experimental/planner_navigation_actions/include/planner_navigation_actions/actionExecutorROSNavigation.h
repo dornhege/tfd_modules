@@ -1,27 +1,22 @@
 #ifndef ACTION_EXECUTOR_R_O_S_NAVIGATION_H
 #define ACTION_EXECUTOR_R_O_S_NAVIGATION_H
 
-#include "continual_planning_executive/actionExecutorInterface.h"
+#include "continual_planning_executive/actionExecutorActionlib.hpp"
 #include "continual_planning_executive/symbolicState.h"
 #include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
 
 namespace planner_navigation_actions
 {
 
-    class ActionExecutorROSNavigation : public continual_planning_executive::ActionExecutorInterface
+    class ActionExecutorROSNavigation : public ActionExecutorActionlib
+                                        <move_base_msgs::MoveBaseAction, move_base_msgs::MoveBaseGoal>
     {
         public:
-            ActionExecutorROSNavigation();
-            ~ActionExecutorROSNavigation();
+            virtual bool fillGoal(move_base_msgs::MoveBaseGoal & goal,
+                    const DurativeAction & a, const SymbolicState & current);
 
-            virtual bool canExecute(const DurativeAction & a, const SymbolicState & current) const;
-
-            virtual bool executeBlocking(const DurativeAction & a, SymbolicState & current);
-
-        protected:
-            typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-            MoveBaseClient* _actionClient;
+            virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+                    const DurativeAction & a, SymbolicState & current);
     };
 
 };

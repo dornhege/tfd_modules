@@ -16,7 +16,7 @@ ContinualPlanning::~ContinualPlanning()
 bool ContinualPlanning::loop()
 {
     if(!estimateCurrentState()) {
-        ROS_WARN("State estimation failed.");     // FIXME: continue execution until this works?
+        ROS_WARN("State estimation failed.");     // FIXME: continue execution until this works.
         return true;
     }
 
@@ -69,8 +69,6 @@ Plan ContinualPlanning::monitorAndReplan()
         return _currentPlan;
     }
 
-    // fancy prefix stuff ???
-
     // REPLAN
     Plan plan;
     continual_planning_executive::PlannerInterface::PlannerResult result = 
@@ -117,7 +115,6 @@ bool ContinualPlanning::needReplanning() const
         case ReplanByMonitoring:
             // check that: app(currentState, currentPlan) reaches goal
             {
-                // TODO remove executed actions from plan somewhere (is there a TODO for that)
                 continual_planning_executive::PlannerInterface::PlannerResult result = 
                     _planner->monitor(_currentState, _goal, _currentPlan);
                 if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS) {

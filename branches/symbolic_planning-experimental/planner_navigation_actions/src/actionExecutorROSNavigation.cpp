@@ -8,31 +8,9 @@ PLUGINLIB_DECLARE_CLASS(planner_navigation_actions, action_executor_ros_navigati
 namespace planner_navigation_actions
 {
 
-    ActionExecutorROSNavigation::ActionExecutorROSNavigation()
+    bool ActionExecutorROSNavigation::fillGoal(move_base_msgs::MoveBaseGoal & goal,
+            const DurativeAction & a, const SymbolicState & current)
     {
-        _actionClient = new MoveBaseClient("move_base", true);
-        // wait for the action server to come up
-        while(!_actionClient->waitForServer(ros::Duration(5.0))){
-            ROS_INFO("Waiting for the move_base action server to come up");
-        }
-    }
-
-    ActionExecutorROSNavigation::~ActionExecutorROSNavigation()
-    {
-        // TODO: stop and delete
-    }
-
-    bool ActionExecutorROSNavigation::canExecute(const DurativeAction & a, const SymbolicState & current) const
-    {
-        // TODO: check this is the right kind of action and we do not have one running
-
-        return true;
-    }
-
-    bool ActionExecutorROSNavigation::executeBlocking(const DurativeAction & a, SymbolicState & current)
-    {
-        move_base_msgs::MoveBaseGoal goal;
-
         //we'll send a goal to the robot to move 1 meter forward
         goal.target_pose.header.frame_id = "/map";      // TODO: whole thing tf frame resolv?
         goal.target_pose.header.stamp = ros::Time::now();
@@ -64,21 +42,17 @@ namespace planner_navigation_actions
         p.name = "qw";
         if(!current.hasNumericalFluent(p, &goal.target_pose.pose.orientation.w))
             return false;
+        return true;
+    }
 
-        ROS_INFO("Sending goal");
-        _actionClient->sendGoal(goal);
-
-        // blocking call
-        _actionClient->waitForResult();
-
-        if(_actionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            ROS_INFO("Reached move_base target.");
+    void ActionExecutorROSNavigation::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+            const DurativeAction & a, SymbolicState & current)
+    {
+        if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
+            ROS_ASSERT(a.parameters.size() == 2);
+            string targetName = a.parameters[1];
             current.setBooleanPredicate("explored", targetName, true);
-            return true;
         }
-
-        ROS_INFO("Could not reach target! State: %s.", _actionClient->getState().toString().c_str());
-        return false;
     }
 
 };
