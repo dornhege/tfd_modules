@@ -11,7 +11,6 @@ namespace planner_navigation_actions
     bool ActionExecutorROSNavigation::fillGoal(move_base_msgs::MoveBaseGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
-        //we'll send a goal to the robot to move 1 meter forward
         goal.target_pose.header.frame_id = "/map";      // TODO: whole thing tf frame resolv?
         goal.target_pose.header.stamp = ros::Time::now();
 
@@ -46,6 +45,7 @@ namespace planner_navigation_actions
     }
 
     void ActionExecutorROSNavigation::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+            const move_base_msgs::MoveBaseResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {

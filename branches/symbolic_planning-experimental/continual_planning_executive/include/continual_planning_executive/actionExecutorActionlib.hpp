@@ -7,8 +7,8 @@
 
 /// Templated base class for creating action executors for actionlib actions using SimpleActionClient.
 /**
- * The class is templated over the action (e.g. move_base_msgs::MoveBaseAction) and the
- * corresponding goal (e.g. move_base_msgs::MoveBaseGoal).
+ * The class is templated over the action (e.g. move_base_msgs::MoveBaseAction), the
+ * corresponding goal (e.g. move_base_msgs::MoveBaseGoal) and the matching result.
  *
  * A minimal implementation should derive from this class (instantiating the template properly)
  * and implement fillGoal.
@@ -17,7 +17,7 @@
  * updateState can be used to update the planner state upon execution depending on the result
  * of the execution.
  */
-template <class Action, class ActionGoal>
+template <class Action, class ActionGoal, class ActionResult>
 class ActionExecutorActionlib : public continual_planning_executive::ActionExecutorInterface
 {
    public:
@@ -34,7 +34,7 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
 
       /// Determine if the action can be executed by this implementation.
       /**
-       * Default implementation only compared _actionName with the name of the DurativeAction.
+       * Default implementation only compares _actionName with the name of the DurativeAction.
        */
       virtual bool canExecute(const DurativeAction & a, const SymbolicState & current) const;
 
@@ -52,9 +52,10 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
       /// Update the state after an action was executed.
       /**
        * \param [in] actionReturnState the state of the executed action
+       * \param [in] result the result returned by the action
        * \param [in, out] current the current planner state to be updated
        */
-      virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+      virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState, const ActionResult & result,
               const DurativeAction & a, SymbolicState & current) {}
 
    protected:
@@ -65,13 +66,13 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
 };
 
 
-template <class Action, class ActionGoal>
-ActionExecutorActionlib<Action, ActionGoal>::ActionExecutorActionlib() : _actionClient(NULL)
+template <class Action, class ActionGoal, class ActionResult>
+ActionExecutorActionlib<Action, ActionGoal, ActionResult>::ActionExecutorActionlib() : _actionClient(NULL)
 {
 }
 
-template <class Action, class ActionGoal>
-ActionExecutorActionlib<Action, ActionGoal>::~ActionExecutorActionlib()
+template <class Action, class ActionGoal, class ActionResult>
+ActionExecutorActionlib<Action, ActionGoal, ActionResult>::~ActionExecutorActionlib()
 {
     _actionClient->cancelAllGoals();
 
@@ -79,8 +80,8 @@ ActionExecutorActionlib<Action, ActionGoal>::~ActionExecutorActionlib()
 }
 
 
-template <class Action, class ActionGoal>
-void ActionExecutorActionlib<Action, ActionGoal>::initialize(const std::deque<std::string> & arguments)
+template <class Action, class ActionGoal, class ActionResult>
+void ActionExecutorActionlib<Action, ActionGoal, ActionResult>::initialize(const std::deque<std::string> & arguments)
 {
     ROS_ASSERT(arguments.size() >= 2);
     _actionName = arguments.at(0);
@@ -97,15 +98,15 @@ void ActionExecutorActionlib<Action, ActionGoal>::initialize(const std::deque<st
     ROS_INFO("Initialized ActionExecutor for action %s.", _actionName.c_str());
 }
 
-template <class Action, class ActionGoal>
-bool ActionExecutorActionlib<Action, ActionGoal>::canExecute(
+template <class Action, class ActionGoal, class ActionResult>
+bool ActionExecutorActionlib<Action, ActionGoal, ActionResult>::canExecute(
         const DurativeAction & a, const SymbolicState & current) const
 {
     return (a.name == _actionName);
 }
 
-template <class Action, class ActionGoal>
-bool ActionExecutorActionlib<Action, ActionGoal>::executeBlocking(const DurativeAction & a, SymbolicState & current)
+template <class Action, class ActionGoal, class ActionResult>
+bool ActionExecutorActionlib<Action, ActionGoal, ActionResult>::executeBlocking(const DurativeAction & a, SymbolicState & current)
 {
     ActionGoal goal;
     if(!fillGoal(goal, a, current)) {
@@ -118,7 +119,7 @@ bool ActionExecutorActionlib<Action, ActionGoal>::executeBlocking(const Durative
     // blocking call
     _actionClient->waitForResult();
 
-    updateState(_actionClient->getState(), a, current);
+    updateState(_actionClient->getState(), *(_actionClient->getResult()), a, current);
 
     if(_actionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
         ROS_INFO("Reached goal for action: %s.", _actionName.c_str());
