@@ -59,6 +59,61 @@ void SymbolicState::addObject(string obj, string type)
     _typedObjects.insert(std::make_pair(type, obj));
 }
 
+void SymbolicState::removeObject(string obj, bool removePredicates)
+{
+    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); it++) {
+        if(it->second == obj) {
+            _typedObjects.erase(it);    // it invalid now
+            break;  // once should be OK, only 1 object per name
+        }
+    }
+
+    if(!removePredicates)
+        return;
+
+    bool removedSomething = true;   // true, to get in loop
+    // unfortunately the erase function returning an iterator is only C++11
+    // so for now we do the ugly (loop until match, erase once), until nothing changed - approach
+    while(removedSomething) {
+        removedSomething = false;
+        for(map<Predicate, bool>::iterator it = _booleanPredicates.begin(); it != _booleanPredicates.end(); it++) {
+            bool foundObj = false;
+            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
+                    paramIt != it->first.parameters.end(); paramIt++) {
+                if(obj == *paramIt) {
+                    foundObj = true;
+                    break;
+                }
+            }
+            if(foundObj) {
+                _booleanPredicates.erase(it);    // it invalid
+                removedSomething = true;
+                break;
+            }
+        }
+    }
+    // the same for numerical fluents
+    removedSomething = true;
+    while(removedSomething) {
+        removedSomething = false;
+        for(map<Predicate, double>::iterator it = _numericalFluents.begin(); it != _numericalFluents.end(); it++) {
+            bool foundObj = false;
+            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
+                    paramIt != it->first.parameters.end(); paramIt++) {
+                if(obj == *paramIt) {
+                    foundObj = true;
+                    break;
+                }
+            }
+            if(foundObj) {
+                _numericalFluents.erase(it);    // it invalid
+                removedSomething = true;
+                break;
+            }
+        }
+    }
+}
+
 void SymbolicState::setBooleanPredicate(string name, vector<string> parameters, bool value)
 {
     Predicate bp;
@@ -74,6 +129,14 @@ void SymbolicState::setBooleanPredicate(string name, string parameters, bool val
     setBooleanPredicate(name, params, value);
 }
 
+void SymbolicState::setAllBooleanPredicates(string name, bool value)
+{
+    forEach(SymbolicState::BooleanPredicateEntry & bp, _booleanPredicates) {
+        if(bp.first.name == name)
+            bp.second = value;
+    }
+}
+
 void SymbolicState::setNumericalFluent(string name, vector<string> parameters, double value)
 {
     Predicate bp;
@@ -87,6 +150,14 @@ void SymbolicState::setNumericalFluent(string name, string parameters, double va
 {
     vector<string> params = buildParameterList(parameters);
     setNumericalFluent(name, params, value);
+}
+
+void SymbolicState::setAllNumericalFluents(string name, double value)
+{
+    forEach(SymbolicState::NumericalFluentEntry & nf, _numericalFluents) {
+        if(nf.first.name == name)
+            nf.second = value;
+    }
 }
 
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
@@ -137,11 +208,11 @@ bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
 
 bool SymbolicState::booleanEquals(const SymbolicState & other) const
 {
-    // TODO: better: collect merged list (should be same) and then only check truth
+    // better: collect merged list (should be same) and then only check truth
     // all our predicates are the same in other
     forEach(const BooleanPredicateEntry & bp, _booleanPredicates) {
         bool value;
-        // state needs to have every goal predicate
+        // state needs to have every predicate
         if(!other.hasBooleanPredicate(bp.first, &value))
             return false;
         // and they need to be the same truth value
@@ -151,7 +222,7 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
     // all other's predicates are the same in ours
     forEach(const BooleanPredicateEntry & bp, other._booleanPredicates) {
         bool value;
-        // state needs to have every goal predicate
+        // state needs to have every predicate
         if(!hasBooleanPredicate(bp.first, &value))
             return false;
         // and they need to be the same truth value
@@ -163,8 +234,26 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
 
 bool SymbolicState::numericalEquals(const SymbolicState & other) const
 {
-    // TODO
-    return false;
+    forEach(const NumericalFluentEntry & nf, _numericalFluents) {
+        double value;
+        // state needs to have every predicate
+        if(!other.hasNumericalFluent(nf.first, &value))
+            return false;
+        // and they need to be the same truth value
+        if(!double_equals(value, nf.second))
+            return false;
+    }
+    // all other's predicates are the same in ours
+    forEach(const NumericalFluentEntry & nf, other._numericalFluents) {
+        double value;
+        // state needs to have every predicate
+        if(!hasNumericalFluent(nf.first, &value))
+            return false;
+        // and they need to be the same truth value
+        if(!double_equals(value, nf.second))
+            return false;
+    }
+    return true;
 }
 
 bool SymbolicState::equals(const SymbolicState & other) const
