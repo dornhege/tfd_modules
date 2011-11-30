@@ -87,19 +87,19 @@ def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, mod
     return ranges, dictionary, mod_effects_dict
 
 def translate_strips_conditions(conditions, dictionary, ranges, comp_axioms, 
-                                temporal=False):
+                                temporal=False, true_atoms=[], false_atoms=[]):
     if temporal:
-        condition = [translate_strips_conditions_aux(conds, dictionary, ranges, comp_axioms) 
-                     for conds in conditions] 
+        condition = [translate_strips_conditions_aux(conds, dictionary, ranges, comp_axioms, true_atoms, false_atoms) 
+                     for conds in conditions]
         if None in condition:
             return None
         else:
             return condition
     else:
-        return translate_strips_conditions_aux(conditions, dictionary, ranges, comp_axioms)
+        return translate_strips_conditions_aux(conditions, dictionary, ranges, comp_axioms, true_atoms, false_atoms)
 
 
-def translate_strips_conditions_aux(conditions, dictionary, ranges, comparison_axioms):
+def translate_strips_conditions_aux(conditions, dictionary, ranges, comparison_axioms, true_atoms, false_atoms):
     if not conditions:
         return {} # Quick exit for common case.
 
@@ -146,6 +146,16 @@ def translate_strips_conditions_aux(conditions, dictionary, ranges, comparison_a
               condition[var] = val
         else:
             atom = pddl.Atom(fact.predicate, fact.args) # force positive
+            if fact.negated:
+                if atom in false_atoms:
+                    continue
+                if atom in true_atoms:
+                    return None
+            else:
+                if atom in true_atoms:
+                    continue
+                if atom in false_atoms:
+                    return None
             try:
                 for var, val in dictionary[atom]:
                     if fact.negated:
@@ -229,14 +239,14 @@ def implies(condition, condition_list, global_cond, temporal):
                 return True
     return False
 
-def translate_add_effects(add_effects, dictionary, mod_effects_dict, ranges, comp_axioms, temporal=False):
+def translate_add_effects(add_effects, dictionary, mod_effects_dict, ranges, comp_axioms, temporal, true_atoms, false_atoms):
     effect = {}
     mod_effect = {}
     possible_add_conflict = False
 
     for conditions, fact in add_effects:
         eff_condition_dict = translate_strips_conditions(conditions, dictionary, 
-                                         ranges, comp_axioms, temporal)
+                                         ranges, comp_axioms, temporal, true_atoms, false_atoms)
         if eff_condition_dict is None: # Impossible condition for this effect.
             continue
 
@@ -264,13 +274,13 @@ def translate_add_effects(add_effects, dictionary, mod_effects_dict, ranges, com
     return effect, possible_add_conflict, mod_effect
 
 def translate_del_effects(del_effects,dictionary,ranges,effect,condition,
-                          comp_axioms, temporal=False, time=None):
+                          comp_axioms, temporal, time, true_atoms, false_atoms):
     if temporal:
         assert time is not None
 
     for conditions, fact in del_effects:
         eff_condition_dict = translate_strips_conditions(conditions, dictionary,
-                                                  ranges, comp_axioms, temporal)
+                                                  ranges, comp_axioms, temporal, true_atoms, false_atoms)
         if eff_condition_dict is None:
             continue
 
@@ -316,13 +326,13 @@ def translate_del_effects(del_effects,dictionary,ranges,effect,condition,
                 eff_conditions.append(eff_condition)
 
 def translate_assignment_effects(assign_effects, dictionary, ranges, comp_axioms, 
-                                 temporal=False):
+                                 temporal, true_atoms, false_atoms):
     effect = {}
     possible_assign_conflict = False
 
     for conditions, assignment in assign_effects:
         eff_condition_dict = translate_strips_conditions(conditions, dictionary, 
-                                         ranges, comp_axioms, temporal)
+                                         ranges, comp_axioms, temporal, true_atoms, false_atoms)
         if eff_condition_dict is None: # Impossible condition for this effect.
             continue
 
@@ -354,15 +364,15 @@ def translate_strips_operator(operator, dictionary, mod_effects_dict, ranges, co
         return None
 
     effect, possible_add_conflict, mod_eff = translate_add_effects(operator.add_effects, 
-                                                          dictionary, mod_effects_dict, ranges, comp_axioms)
-    translate_del_effects(operator.del_effects,dictionary,ranges,effect,condition, comp_axioms)
+                                                          dictionary, mod_effects_dict, ranges, comp_axioms, False)
+    translate_del_effects(operator.del_effects,dictionary,ranges,effect,condition, comp_axioms, False, None)
 
     if possible_add_conflict:
         print operator.name
     assert not possible_add_conflict, "Conflicting add effects?"
 
     assign_effect, possible_assign_conflict = \
-        translate_assignment_effects(operator.assign_effects, dictionary, ranges, comp_axioms)
+        translate_assignment_effects(operator.assign_effects, dictionary, ranges, comp_axioms, False)
     
     if possible_assign_conflict:
         print operator.name
@@ -388,7 +398,7 @@ def translate_strips_operator(operator, dictionary, mod_effects_dict, ranges, co
     # add mod_eff to a SASOperator
     return sas_tasks.SASOperator(operator.name, prevail, pre_post, assign_effects)
     
-def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, ranges, comp_axioms):
+def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, ranges, comp_axioms, true_atoms, false_atoms):
     # NOTE: This function does not really deal with the intricacies of properly
     # encoding delete effects for grouped propositions in the presence of
     # conditional effects. It should work ok but will bail out in more
@@ -396,7 +406,7 @@ def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, r
 
     duration = translate_operator_duration(operator.duration, dictionary)
     condition = translate_strips_conditions(operator.conditions, 
-                                dictionary, ranges, comp_axioms, True)
+                                dictionary, ranges, comp_axioms, True, true_atoms, false_atoms)
     if condition is None:
         print "condition is None"
         return None
@@ -406,9 +416,9 @@ def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, r
     possible_add_conflict = False
     for time in range(2):
         eff, poss_conflict, mod_eff = translate_add_effects(operator.add_effects[time], 
-                                          dictionary, mod_effects_dict, ranges, comp_axioms, True)
+                                          dictionary, mod_effects_dict, ranges, comp_axioms, True, true_atoms, false_atoms)
         translate_del_effects(operator.del_effects[time], dictionary, ranges, 
-                              eff, condition, comp_axioms, True, time)
+                              eff, condition, comp_axioms, True, time, true_atoms, false_atoms)
         effect.append(eff)
         mod_effects.append(mod_eff)
         possible_add_conflict |= poss_conflict
@@ -421,7 +431,7 @@ def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, r
     possible_assign_conflict = False
     for time in range(2):
         eff, conflict = translate_assignment_effects(operator.assign_effects[time], 
-                                                     dictionary, ranges, comp_axioms, True)
+                                                     dictionary, ranges, comp_axioms, True, true_atoms, false_atoms)
         assign_effect.append(eff)
         possible_assign_conflict |= conflict
     
@@ -502,11 +512,12 @@ def translate_strips_operators(actions, strips_to_sas, module_effects_to_sas, ra
             result.append(sas_op)
     return result
 
-def translate_temporal_strips_operators(actions, strips_to_sas, module_effects_to_sas, ranges, comp_axioms):
+def translate_temporal_strips_operators(actions, strips_to_sas, module_effects_to_sas, ranges, comp_axioms,
+        true_atoms, false_atoms):
     result = []
     actions.sort(lambda x,y: cmp(x.name,y.name))
     for action in actions:
-        sas_op = translate_temporal_strips_operator(action, strips_to_sas, module_effects_to_sas, ranges, comp_axioms)
+        sas_op = translate_temporal_strips_operator(action, strips_to_sas, module_effects_to_sas, ranges, comp_axioms, true_atoms, false_atoms)
         if sas_op:
             result.append(sas_op)
     return result
@@ -525,19 +536,30 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
                    max_num_layer, num_axiom_map, const_num_axioms, oplinit, objects,
                    modules, module_inits, subplan_generators, init_constant_predicates, init_constant_numerics):
 
-    axioms, axiom_init, axiom_layer_dict = axiom_rules.handle_axioms(
+    axioms, axiom_init, axiom_layer_dict, true_atoms, false_atoms = axiom_rules.handle_axioms(
       actions, durative_actions, axioms, goals)
 
     init = init + axiom_init
 
+    # filter trivial true_atoms from goal
+    goals = [g for g in goals if g not in true_atoms]   # FIXME: empty goal would be handled nicely by search
+    # if any atom in goal is false, the task is unsolvable
+    for fa in false_atoms:
+        if fa in goals:
+            print "False atom in goal:"
+            fa.dump()
+            return unsolvable_sas_task("False atom in goal")
+
     comp_axioms = [{},[]]
     goal_pairs = translate_strips_conditions(goals, strips_to_sas, ranges, comp_axioms).items()
     goal = sas_tasks.SASGoal(goal_pairs)
-
+        
+    # FIXME: remove this, defunct anyways
     operators = translate_strips_operators(actions,
                                         strips_to_sas, module_effects_to_sas, ranges, comp_axioms)
     temp_operators = translate_temporal_strips_operators(durative_actions, 
-                                        strips_to_sas, module_effects_to_sas, ranges, comp_axioms)
+                                        strips_to_sas, module_effects_to_sas, ranges, comp_axioms,
+                                        true_atoms, false_atoms)
     
     axioms = translate_strips_axioms(axioms, strips_to_sas, ranges, comp_axioms)
     sas_num_axioms = [translate_numeric_axiom(axiom,strips_to_sas) for axiom in num_axioms 
@@ -589,6 +611,7 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
         init_values[var]=val
     init = sas_tasks.SASInit(init_values)
     
+    # TODO: move this block to translate_modules
     strips_condition_modules = [module for module in modules if module.type == "conditionchecker"]
     strips_effect_modules = [module for module in modules if module.type == "effect"]
     strips_cost_modules = [module for module in modules if module.type == "cost"]
@@ -669,9 +692,6 @@ def pddl_to_sas(task):
     if not relaxed_reachable:
         return unsolvable_sas_task("No relaxed solution")
 
-    num_axioms = list(num_axioms)
-    num_axioms.sort(lambda x,y: cmp(x.name,y.name))
-
     # HACK! Goals should be treated differently.
     # Update: This is now done during normalization. The assertions
     # are only left here to be on the safe side. Can be removed eventually
@@ -681,6 +701,9 @@ def pddl_to_sas(task):
         goal_list = [task.goal]
     for item in goal_list:
         assert isinstance(item, pddl.Literal)
+
+    num_axioms = list(num_axioms)
+    num_axioms.sort(lambda x,y: cmp(x.name,y.name))
 
     groups, mutex_groups, translation_key = fact_groups.compute_groups(
         task, atoms, return_mutex_groups=WRITE_ALL_MUTEXES,
