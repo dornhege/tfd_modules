@@ -1,16 +1,15 @@
 ; initial state at start loc
+; add 1 object
 (define (problem p01)
   (:domain tidyup-grasp)
   (:moduleoptions )
-  (:objects l0 - location right_arm - arm bottle - movable_object bottlepos - pose
+  (:objects l0 - location right_arm - arm bottle - movable_object
     lg0 lg1 lg2 - grasp_location)
   (:init 
       (at-base l0)
       (can-navigate l0 lg0)
       (can-navigate l0 lg1)
       (can-navigate l0 lg2)
-
-      (at-object bottle bottlepos)
 
       (handFree right_arm)
 
@@ -24,5 +23,5 @@
 
    )
 
-   (:goal (and (grasped bottle right_arm)))
+   (:goal (and (clean lg0) (clean lg1) (clean lg2)))
 )
