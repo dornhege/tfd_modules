@@ -3,20 +3,16 @@
 (define (problem p04)
   (:domain tidyup-grasp)
   (:moduleoptions )
-  (:objects right_arm - arm bottle - movable_object bottlepos - pose
+  (:objects right_arm - arm bottle - movable_object
     lg0 lg1 lg2 - grasp_location)
   (:init 
       (at-base lg1)
       (can-navigate lg1 lg0)
       (can-navigate lg1 lg2)
 
-      (at-object bottle bottlepos)
-
       (handFree right_arm)
 
       (detected-objects lg1)
-
-      (know-pose bottle)
 
       (= (x l0) 0.0)
       (= (y l0) 0.0)
@@ -28,5 +24,5 @@
 
    )
 
-   (:goal (and (grasped bottle right_arm)))
+   (:goal (and (clean lg0) (clean lg1) (clean lg2)))
 )

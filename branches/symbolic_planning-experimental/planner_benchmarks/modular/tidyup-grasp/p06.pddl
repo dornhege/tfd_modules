@@ -1,5 +1,6 @@
 ; first grasp_location reached, object detection done - success
-(define (problem p05)
+; grasped obj
+(define (problem p06)
   (:domain tidyup-grasp)
   (:moduleoptions )
   (:objects right_arm - arm bottle - movable_object
@@ -9,7 +10,7 @@
       (can-navigate lg1 lg0)
       (can-navigate lg1 lg2)
 
-      (handFree right_arm)
+      (grasped bottle right_arm)
 
       (detected-objects lg1)
 
