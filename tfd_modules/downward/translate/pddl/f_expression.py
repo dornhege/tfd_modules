@@ -3,11 +3,11 @@ import conditions
 import pddl
 
 def isFloat(astring):
-  try:
-    float(astring)
-  except ValueError:
-    return False
-  return True
+    try:
+      float(astring)
+    except ValueError:
+      return False
+    return True
 
 def parse_expression(exp, durative=False):
     if isinstance(exp, list):
