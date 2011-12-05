@@ -1,0 +1,25 @@
+<package>
+  <description brief="tidyup_grasp_actions">
+
+     tidyup_grasp_actions
+
+  </description>
+  <author>dornroot</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/tidyup_grasp_actions</url>
+  <depend package="roscpp"/>
+  <depend package="continual_planning_executive"/>
+  <depend package="pluginlib"/>
+  <depend package="actionlib"/>
+  <depend package="tidyup_msgs"/>
+  <depend package="tf"/>
+  <depend package="hardcoded_facts"/>
+
+  <export>
+      <continual_planning_executive plugin="${prefix}/tidyup_grasp_actions_plugins.xml" />
+  </export>
+
+</package>
+
+
