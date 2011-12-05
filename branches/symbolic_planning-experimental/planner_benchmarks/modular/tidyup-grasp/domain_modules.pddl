@@ -82,6 +82,7 @@
         )
     )
 
+    ; For now: clean = we looked there and grasped everything we could
     (:derived
         (clean ?l - grasp_location)
         (and 

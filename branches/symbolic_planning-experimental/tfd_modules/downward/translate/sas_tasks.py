@@ -197,12 +197,13 @@ class SASTemporalOperator:
             assignment.output(stream)
         mod_eff = self.module_effects[time]
         for me, cond in mod_eff.iteritems():
-            # I hope condition handling is correct like this.
-            for cond_time in range(3):
-                print >> stream, len(cond[cond_time]),
-                for cvar, cval in cond[cond_time]:
-                    print >> stream, cvar, cval,
-            print >> stream, "me-%d" % me
+            for c in cond:
+                # I hope condition handling is correct like this.
+                for cond_time in range(3):
+                    print >> stream, len(c[cond_time]),
+                    for cvar, cval in c[cond_time]:
+                        print >> stream, cvar, cval,
+                print >> stream, "me-%d" % me
     print >> stream, "end_operator"
 
 class SASDuration:
