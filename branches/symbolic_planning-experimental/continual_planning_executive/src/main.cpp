@@ -284,17 +284,19 @@ int main(int argc, char** argv)
     }
 
     ros::Rate loopSleep(5);
+    ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
     while(ros::ok()) {
         ros::spinOnce();
 
-        if(!s_ContinualPlanning.loop()) {
+        cpState = s_ContinualPlanning.loop();
+        if(cpState != ContinualPlanning::Running) {
             break;
         }
 
         loopSleep.sleep();
     }
 
-    if(s_ContinualPlanning.isGoalFulfilled()) {
+    if(s_ContinualPlanning.isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal) {
         if(ros::ok())
             ROS_INFO("Continual planning ended.\nGoal reached by agent!");
         else

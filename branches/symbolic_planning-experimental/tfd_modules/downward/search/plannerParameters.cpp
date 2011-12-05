@@ -176,6 +176,7 @@ bool PlannerParameters::readROSParameters()
 #if ROS_BUILD
     ros::NodeHandle nhPriv("~");
     nhPriv.param("anytime_search", anytime_search, anytime_search);
+    nhPriv.param("disallow_concurrent_actions", disallow_concurrent_actions, disallow_concurrent_actions);
     nhPriv.param("timeout_if_plan_found", timeout_if_plan_found, timeout_if_plan_found);
     nhPriv.param("timeout_while_no_plan_found", timeout_while_no_plan_found, timeout_while_no_plan_found); 
 

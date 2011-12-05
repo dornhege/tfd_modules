@@ -58,6 +58,7 @@ class SymbolicState
             _typedObjects.clear();
             _booleanPredicates.clear();
             _numericalFluents.clear();
+            _objectFluents.clear();
         }
 
         // Setter/Getter
@@ -93,6 +94,13 @@ class SymbolicState
         /// Set all numerical fluents with name to value.
         void setAllNumericalFluents(string name, double value);
 
+        /// Set a object fluent. If it does not exist it will be created.
+        void setObjectFluent(string name, vector<string> parameters, string value);
+        /// Set a object fluent using handcoded parameters.
+        void setObjectFluent(string name, string parameters, string value);
+        /// Set all object fluents with name to value.
+        void setAllObjectFluents(string name, string value);
+
 
         /// Determine if this state has the given predicate.
         /**
@@ -100,6 +108,7 @@ class SymbolicState
          */
         bool hasBooleanPredicate(const Predicate & p, bool* value) const;
         bool hasNumericalFluent(const Predicate & p, double* value) const;
+        bool hasObjectFluent(const Predicate & p, string* value) const;
 
         // state matching
 
@@ -120,6 +129,8 @@ class SymbolicState
         bool booleanEquals(const SymbolicState & other) const;
         /// Determine if the numerical fluents in this state are the same as in other and vice-versa.
         bool numericalEquals(const SymbolicState & other) const;
+        /// Determine if the object fluents in this state are the same as in other and vice-versa.
+        bool objectFluentsEquals(const SymbolicState & other) const;
         /// Determine if all fluents in this state are the same as in other and vice-versa.
         bool equals(const SymbolicState & other) const;
 
@@ -138,11 +149,14 @@ class SymbolicState
         multimap<string, string> _typedObjects;    ///< Map from type to it objects of this same type.
 
         // The only possible parameters for the following predicates should be those in the _typedObjects list.
+        // matched strings in _objectFluents should also only be from _typedObjects and of the correct type
         map<Predicate, bool> _booleanPredicates;
         map<Predicate, double> _numericalFluents;
+        map<Predicate, string> _objectFluents;
 
         typedef map<Predicate, bool>::value_type BooleanPredicateEntry;
         typedef map<Predicate, double>::value_type NumericalFluentEntry;
+        typedef map<Predicate, string>::value_type ObjectFluentEntry;
 };
 
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);

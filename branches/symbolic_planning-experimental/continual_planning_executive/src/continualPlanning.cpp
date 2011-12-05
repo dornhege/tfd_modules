@@ -5,28 +5,34 @@
 
 ContinualPlanning::ContinualPlanning() : _planner(NULL)
 {
-    _forceReplan = false;
     _replanningTrigger = ReplanByMonitoring;
+    _forceReplan = true;
 }
 
 ContinualPlanning::~ContinualPlanning()
 {
 }
 
-bool ContinualPlanning::loop()
+ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
 {
     if(!estimateCurrentState()) {
         ROS_WARN("State estimation failed.");     // FIXME: continue execution until this works.
-        return true;
+        return Running;
     }
 
     if(isGoalFulfilled()) // done!
-        return false;
+        return FinishedAtGoal;
 
-    Plan newPlan = monitorAndReplan();
+    bool atGoal = false;
+    Plan newPlan = monitorAndReplan(atGoal);
     if(newPlan.empty()) {
+        if(atGoal) {
+            ROS_INFO("Empty plan returned by monitorAndReplan - Reached Goal!");
+            return FinishedAtGoal;
+        }
+
         ROS_ERROR("Empty plan returned by monitorAndReplan.");
-        return false;           // not at goal and no plan -> can't do anything besides fail
+        return FinishedNoPlanToGoal;           // not at goal and no plan -> can't do anything besides fail
     }
 
     // exec plan
@@ -44,7 +50,7 @@ bool ContinualPlanning::loop()
         _currentPlan.removeAction(*it);
     }
 
-    return true;
+    return Running;
 }
 
 bool ContinualPlanning::isGoalFulfilled() const
@@ -63,9 +69,9 @@ bool ContinualPlanning::estimateCurrentState()
     return ret;
 }
 
-Plan ContinualPlanning::monitorAndReplan()
+Plan ContinualPlanning::monitorAndReplan(bool & atGoal)
 {
-    if(!needReplanning()) {
+    if(!needReplanning(atGoal)) {
         return _currentPlan;
     }
 
@@ -86,7 +92,7 @@ Plan ContinualPlanning::monitorAndReplan()
     return plan;
 }
 
-bool ContinualPlanning::needReplanning() const
+bool ContinualPlanning::needReplanning(bool & atGoal) const
 {
     static SymbolicState lastReplanState;
 
@@ -95,7 +101,8 @@ bool ContinualPlanning::needReplanning() const
         return true;
     }
 
-    if(_currentPlan.empty()) {
+    // in monitoring it is OK to monitor the empty plan - only if that fails we need to replan
+    if(_currentPlan.empty() && _replanningTrigger != ReplanByMonitoring) {
         lastReplanState = _currentState;
         return true;
     }
@@ -118,6 +125,8 @@ bool ContinualPlanning::needReplanning() const
                 continual_planning_executive::PlannerInterface::PlannerResult result = 
                     _planner->monitor(_currentState, _goal, _currentPlan);
                 if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS) {
+                    if(_currentPlan.empty())
+                        atGoal = true;
                     return false;   // success = _currentPlan leads to goal -> no replanning
                 } else if(result == continual_planning_executive::PlannerInterface::PR_FAILURE_UNREACHABLE) {
                     return true;
@@ -125,8 +134,11 @@ bool ContinualPlanning::needReplanning() const
                     ROS_WARN("Unexpected monitoring result: %s",
                             continual_planning_executive::PlannerInterface::PlannerResultStr(result).c_str());
                     // there should be no timeouts in monitoring
-                    if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS_TIMEOUT)
+                    if(result == continual_planning_executive::PlannerInterface::PR_SUCCESS_TIMEOUT) {
+                        if(_currentPlan.empty())
+                            atGoal = true;
                         return false;
+                    }
                     return true;
                 }
             }

@@ -374,8 +374,8 @@ bool getFuncs(NumericalFluentList* & fluentList)
             if (!funcFound) {
                 cout
                     << "Error! Could not find entry in func mapping with key: "
-                    << key;
-                exit(1);
+                    << key << endl;
+                return false;
             }
         } else {
             res = entry->second;

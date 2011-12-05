@@ -36,6 +36,12 @@ class ContinualPlanning
         friend bool loadActionExecutors(ros::NodeHandle & nh);
         friend bool loadPlanner(ros::NodeHandle & nh);
 
+        enum ContinualPlanningState {
+            Running,
+            FinishedNoPlanToGoal,
+            FinishedAtGoal
+        };
+
         enum ReplanningTriggerMethod {
             ReplanAlways,
             ReplanIfLogicalStateChanged,
@@ -47,9 +53,9 @@ class ContinualPlanning
 
         /// Execute one loop step
         /**
-         * \returns true, if the planning loop should continue
+         * \returns Running, if the planning loop should continue
          */
-        bool loop();
+        ContinualPlanningState loop();
 
         /// Does _currentState match _goal?
         bool isGoalFulfilled() const;
@@ -63,12 +69,16 @@ class ContinualPlanning
          * This might either be a copy of the current plan if that
          * reaches the goal or a new plan.
          *
+         * \param [out] atGoal if the empty plan was successfully monitored, the atGoal flag is set to true
          * \return a new plan that reaches _goal or an empty plan, if no plan could be found
          */
-        Plan monitorAndReplan();
+        Plan monitorAndReplan(bool & atGoal);
 
         /// Returns true, if replanning needs to be done as _currentPlan in _currentState doesn't reach _goal.
-        bool needReplanning() const;
+        /**
+         * \param [out] atGoal if the empty plan was successfully monitored, the atGoal flag is set to true
+         */
+        bool needReplanning(bool & atGoal) const;
 
     protected:
         std::vector<continual_planning_executive::StateCreator*> _stateCreators;
