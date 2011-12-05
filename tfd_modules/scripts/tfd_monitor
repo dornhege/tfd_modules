@@ -49,15 +49,15 @@ rosrun tfd_modules tfd_search m ${MONITOR_PLAN} $ROS_PARAMS < ${OUTPUT_DIR}/outp
 RETVAL=${PIPESTATUS[0]}
 
 if [ $RETVAL != 0 ]; then
-   echo "SEARCH RETURNED $RETVAL"
+   echo "MONITORING RETURNED $RETVAL"
    if [ $RETVAL == 137 ]; then
       echo "TIMEOUT"
       exit 137
    fi
-   echo "SEARCH UNSUCCESSFULL"
+   echo "MONITORING UNSUCCESSFULL"
    exit 1
 else
-   echo "SEARCH SUCCESSFULL"
+   echo "MONITORING SUCCESSFULL"
 fi
 
 exit 0

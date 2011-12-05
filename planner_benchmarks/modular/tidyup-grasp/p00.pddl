@@ -3,7 +3,7 @@
   (:domain tidyup-grasp)
   (:moduleoptions )
   (:objects l0 - location right_arm - arm 
-    lg0 lg1 lg2 - grasp_location)
+    lg0 lg1 lg2 - grasp_location map - frameid)
   (:init 
       (at-base l0)
       (can-navigate l0 lg0)
@@ -21,8 +21,10 @@
       (= (qy l0) 0.0)
       (= (qz l0) 0.0)
       (= (qw l0) 1.0)
+      (= (timestamp l0) 12737474.0)
+      (= (frame-id l0) map)
 
    )
 
-   (:goal (and (clean lg0) (clean lg1) (clean lg2)))
+   (:goal (forall (?l - grasp_location) (clean ?l)))
 )

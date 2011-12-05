@@ -160,6 +160,30 @@ void SymbolicState::setAllNumericalFluents(string name, double value)
     }
 }
 
+void SymbolicState::setObjectFluent(string name, vector<string> parameters, string value)
+{
+    Predicate bp;
+    bp.name = name;
+    bp.parameters = parameters;
+
+    _objectFluents[bp] = value;
+}
+
+void SymbolicState::setObjectFluent(string name, string parameters, string value)
+{
+    vector<string> params = buildParameterList(parameters);
+    setObjectFluent(name, params, value);
+}
+
+void SymbolicState::setAllObjectFluents(string name, string value)
+{
+    forEach(SymbolicState::ObjectFluentEntry & of, _objectFluents) {
+        if(of.first.name == name)
+            of.second = value;
+    }
+}
+
+
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
 {
     map<Predicate, bool>::const_iterator it = _booleanPredicates.find(p);
@@ -174,6 +198,16 @@ bool SymbolicState::hasNumericalFluent(const Predicate & p, double* value) const
 {
     map<Predicate, double>::const_iterator it = _numericalFluents.find(p);
     if(it == _numericalFluents.end())
+        return false;
+    if(value != NULL)
+        *value = it->second;
+    return true;
+}
+        
+bool SymbolicState::hasObjectFluent(const Predicate & p, string* value) const
+{
+    map<Predicate, string>::const_iterator it = _objectFluents.find(p);
+    if(it == _objectFluents.end())
         return false;
     if(value != NULL)
         *value = it->second;
@@ -200,6 +234,16 @@ bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
             return false;
         // and they need to be the same value
         if(!double_equals(value, nf.second))
+            return false;
+    }
+
+    forEach(const ObjectFluentEntry & of, _objectFluents) {
+        string value;
+        // state needs to have every goal predicate
+        if(!state.hasObjectFluent(of.first, &value))
+            return false;
+        // and they need to be the same value
+        if(value != of.second)
             return false;
     }
 
@@ -256,9 +300,33 @@ bool SymbolicState::numericalEquals(const SymbolicState & other) const
     return true;
 }
 
+bool SymbolicState::objectFluentsEquals(const SymbolicState & other) const
+{
+    forEach(const ObjectFluentEntry & of, _objectFluents) {
+        string value;
+        // state needs to have every predicate
+        if(!other.hasObjectFluent(of.first, &value))
+            return false;
+        // and they need to be the same truth value
+        if(value != of.second)
+            return false;
+    }
+    // all other's predicates are the same in ours
+    forEach(const ObjectFluentEntry & of, other._objectFluents) {
+        string value;
+        // state needs to have every predicate
+        if(!hasObjectFluent(of.first, &value))
+            return false;
+        // and they need to be the same truth value
+        if(value != of.second)
+            return false;
+    }
+    return true;
+}
+
 bool SymbolicState::equals(const SymbolicState & other) const
 {
-    return booleanEquals(other) && numericalEquals(other);
+    return booleanEquals(other) && numericalEquals(other) && objectFluentsEquals(other);
 }
 
 
@@ -284,6 +352,9 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
     forEach(const NumericalFluentEntry & nf, _numericalFluents) {
         os << "    (= " << nf.first << " " << nf.second << ")" << std::endl;
     }
+    forEach(const ObjectFluentEntry & of, _objectFluents) {
+        os << "    (= " << of.first << " " << of.second << ")" << std::endl;
+    }
     os << "  )" << std::endl;
 }
 
@@ -305,6 +376,9 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     }
     forEach(const NumericalFluentEntry & nf, _numericalFluents) {
         os << "    (= " << nf.first << " " << nf.second << ")" << std::endl;
+    }
+    forEach(const ObjectFluentEntry & of, _objectFluents) {
+        os << "    (= " << of.first << " " << of.second << ")" << std::endl;
     }
     os << "  ))" << std::endl;
 }
@@ -372,6 +446,19 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
         }
     }
     os << std::endl;
+    os << "Object Fluents:" << std::endl;
+    count = 0;
+    forEach(const SymbolicState::ObjectFluentEntry & nf, ss._objectFluents) {
+        os << nf.first << " = " << nf.second << " ";
+        // print newline every 5 outputs
+        count++;
+        if(count >= 5) {
+            count = 0;
+            os << std::endl;
+        }
+    }
+    os << std::endl;
+
     return os;
 }
 
