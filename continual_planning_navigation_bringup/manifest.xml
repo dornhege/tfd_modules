@@ -1,6 +1,7 @@
 <package>
   <description brief="continual_planning_navigation_bringup">
-     continual_planning_navigation_bringup
+      This package contains launch files for a simple demo application that
+      uses continual planning.
   </description>
   <author>dornhege</author>
   <license>BSD</license>
