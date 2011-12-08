@@ -1,8 +1,7 @@
 <package>
   <description brief="tidyup_grasp_actions">
-
-     tidyup_grasp_actions
-
+    This package contains state and action definitions for the
+    continual_planning_executive that interface the tidyup grasping application.
   </description>
   <author>dornroot</author>
   <license>BSD</license>

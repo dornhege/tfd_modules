@@ -1,8 +1,7 @@
 <package>
   <description brief="planner_navigation_actions">
-
-     planner_navigation_actions
-
+    This package contains state and action definitions for the
+    continual_planning_executive that interface the navigation stack.
   </description>
   <author>dornroot</author>
   <license>BSD</license>
