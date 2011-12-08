@@ -3,7 +3,7 @@
     This package contains planner modules for integrating robot
     information, mainly for the PR2, from ROS into the planner.
   </description>
-  <author>dornhege</author>
+  <author>Christian Dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/planner_modules_pr2</url>

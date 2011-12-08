@@ -2,7 +2,7 @@
   <description brief="simple_modules">
    This package contains some simple planner modules for testing.
   </description>
-  <author>dornhege</author>
+  <author>Christian Dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/simple_modules</url>
