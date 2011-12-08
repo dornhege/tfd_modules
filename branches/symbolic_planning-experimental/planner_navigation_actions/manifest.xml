@@ -3,7 +3,7 @@
     This package contains state and action definitions for the
     continual_planning_executive that interface the navigation stack.
   </description>
-  <author>dornroot</author>
+  <author>Christian Dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/planner_navigation_actions</url>

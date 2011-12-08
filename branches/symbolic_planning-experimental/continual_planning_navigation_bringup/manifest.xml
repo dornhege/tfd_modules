@@ -3,7 +3,7 @@
       This package contains launch files for a simple demo application that
       uses continual planning.
   </description>
-  <author>dornhege</author>
+  <author>Christian Dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/continual_planning_navigation_bringup</url>
