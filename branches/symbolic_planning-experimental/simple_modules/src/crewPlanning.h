@@ -12,12 +12,15 @@ extern "C" {
 /// These three are always true/false or 50:50
 double available(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
+double availableNeg(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 int effectCall(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
         vector<double>& writtenVars);
 
 VERIFY_CONDITIONCHECKER_DEF(available);
+VERIFY_CONDITIONCHECKER_DEF(availableNeg);
 VERIFY_APPLYEFFECT_DEF(effectCall);
 
 #ifdef __cplusplus

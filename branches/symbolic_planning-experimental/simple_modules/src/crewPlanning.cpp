@@ -15,6 +15,18 @@ double available(const ParameterList & parameterList,
      return INFINITE_COST;
 }
 
+double availableNeg(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
+{
+  PredicateList* list = new PredicateList();
+  list->push_back(Predicate("available",parameterList));
+  predicateCallback(list);
+  if(list->front().value)
+     return INFINITE_COST;
+  else
+     return 0;
+}
+
 int effectCall(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
         vector<double>& writtenVars)

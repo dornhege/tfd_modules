@@ -31,6 +31,7 @@ def parse_condition_aux(alist, negated):
         args = alist[2:]
         assert len(args) == 1
     elif tag == "[":
+        assert not negated
         assert alist[-1] == "]"
         alist = alist[1:-1] # strip [ and ]
         # where go the type checks here? parameter should match the module...
