@@ -757,6 +757,8 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
         const LocalAssignment &pre_cond = trans->label->precond[i];
         // check whether the cost of this prevail has already been computed
         int global_var = (*(owner->causal_graph_parents))[pre_cond.local_var];
+        if(g_variable_types[global_var] == module)
+            continue;
         assert(!is_functional(global_var));
         double current_val = children_state[pre_cond.local_var];
         if(double_equals(current_val, pre_cond.value)) {

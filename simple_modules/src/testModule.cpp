@@ -7,13 +7,13 @@ using namespace std;
 double checkTrue(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
-   return true;
+   return 0;
 }
 
 double checkFalse(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
    ROS_DEBUG("Calling %s module", __func__);
-   return false;
+   return INFINITE_COST;
 }
 
 double checkRandom(const ParameterList & parameterList, predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
