@@ -1,6 +1,8 @@
 import pddl
 import sas_tasks
 
+from collections import defaultdict
+
 def handle_axioms(operators, durative_operators, axioms, goals):
     print "Processing axioms..."
 
@@ -10,18 +12,22 @@ def handle_axioms(operators, durative_operators, axioms, goals):
                                                       durative_operators, goals)
     axiom_init = get_axiom_init(axioms_by_atom, axiom_literals)
     axioms = simplify_axioms(axioms_by_atom, axiom_literals)
-    
+
     axioms, true_atoms, false_atoms = compute_constant_axioms(axioms)
-    # we moved some axioms (actually their heads) to true_atoms and false_atoms (i.e. they are not axioms any more)
-    # now repair axioms_by_atom by rebuilding it
+    # we moved some axioms (actually their heads) to true_atoms and false_atoms
+    # (i.e. they are not axioms any more). now repair axioms_by_atom by
+    # rebuilding it
     axioms_by_atom = get_axioms_by_atom(axioms)
-    # the axiom_literals are only used to know which ones need to be negated, so we remove
-    # the constant heads from those
+    # the axiom_literals are only used to know which ones need to be negated, so
+    # we remove the constant heads from those
     axiom_literals = [a for a in axiom_literals
-            if a.positive() not in true_atoms and a.positive() not in false_atoms]
-    # The same goes for init. The true_atoms and false_atoms should be handled in the translation
+                      if a.positive() not in true_atoms and
+                         a.positive() not in false_atoms]
+    # The same goes for init. The true_atoms and false_atoms should be handled
+    # in the translation
     axiom_init = [a for a in axiom_init
-            if a.positive() not in true_atoms and a.positive() not in false_atoms]
+                  if a.positive() not in true_atoms and
+                     a.positive() not in false_atoms]
 
     axioms = compute_negative_axioms(axioms_by_atom, axiom_literals)
     # NOTE: compute_negative_axioms more or less invalidates axioms_by_atom.
@@ -179,42 +185,66 @@ def simplify(axioms):
                 axioms_to_skip.add(dominated_axiom)
     return [axiom for axiom in axioms if id(axiom) not in axioms_to_skip]
 
+
 def compute_constant_axioms(axioms):
     """ Computes which axioms always evaluate to the same constant values """
-    true_atoms = []
-    false_atoms = []
+    true_atoms = set()
+    false_atoms = set()
+    new_axioms = set(axioms)
     # this will be a subset of axioms, where some axioms have simpler conditions
     # the removed axiom's heads should appear in true_atoms or false_atoms
-    new_axioms = axioms[:]
 
-    queue = new_axioms[:]
+    axioms_by_condition = defaultdict(set)
+    axioms_by_negated_condition = defaultdict(set)
 
-    def schedule_deps(atom):
-        for ax in new_axioms:
-            if ax not in queue:
-                if atom in ax.condition or atom.negate() in ax.condition:
-                    queue.append(ax)
+    queue = [] # true literals that have not been processed, yet
+    condition_counter = dict() 
+    # number of unsatisfied conditions for each axiom
+    axiom_counter = defaultdict(int) # number of axioms for each effect
+
+    # initialize counters and queue
+    for axiom in new_axioms:
+        assert not axiom.effect.negated
+        axiom_counter[axiom.effect] += 1
+        if not axiom.condition:
+            if axiom.effect not in true_atoms:
+                true_atoms.add(axiom.effect)
+                queue.append(axiom.effect)
+        else:
+            for cond in axiom.condition:
+                axioms_by_condition[cond].add(axiom)
+                axioms_by_negated_condition[cond.negate()].add(axiom)
+            condition_counter[axiom] = len(set(axiom.condition))
 
     while queue:
-        axiom = queue.pop()
+        literal = queue.pop()
+        for axiom in axioms_by_condition[literal]:
+            condition_counter[axiom] -= 1
+            if not condition_counter[axiom]:
+                if axiom.effect not in true_atoms:
+                    true_atoms.add(axiom.effect)
+                    queue.append(axiom.effect)
+        for axiom in axioms_by_negated_condition[literal]:
+            # axiom can never trigger, so we remove it
+            if axiom in new_axioms:
+                new_axioms.remove(axiom)
+                axiom_counter[axiom.effect] -= 1
+                if not axiom_counter[axiom.effect]:
+                    # axiom head can never become true
+                    assert axiom.effect not in false_atoms
+                    false_atoms.add(axiom.effect)
+                    queue.append(axiom.effect.negate())
 
-        # is any condition of the axiom false already?
-        false_conds = [a for a in axiom.condition
-                if a in false_atoms or a.negate() in true_atoms]
-        if false_conds:                             # remove that axiom (invalid) -> effect is always false
-            false_atoms.append(axiom.effect)
+    # filter all axioms from new_atoms that have a constantly true
+    # effect and simplify all other axiom conditions
+    for axiom in list(new_axioms):
+        assert not axiom.effect in false_atoms # should already be removed
+        if axiom.effect in true_atoms:
             new_axioms.remove(axiom)
-            schedule_deps(axiom.effect)
+        else:
+            axiom.condition = list(set(axiom.condition) - true_atoms)
+    return list(new_axioms), list(true_atoms), list(false_atoms)
 
-        # remove all facts from condition that are already true
-        axiom.condition = [a for a in axiom.condition
-                if a not in true_atoms and a.negate() not in false_atoms]
-        if not axiom.condition:                     # condition empty -> always triggers, effect is always true
-            true_atoms.append(axiom.effect)
-            new_axioms.remove(axiom)
-            schedule_deps(axiom.effect)
-
-    return new_axioms, true_atoms, false_atoms
 
 def compute_negative_axioms(axioms_by_atom, necessary_literals):
     new_axioms = []

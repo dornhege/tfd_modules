@@ -99,7 +99,6 @@ class EffectConditionProxy(ConditionProxy):
         fluent = rule_head.fluent
         rule_head = get_function_predicate(fluent)
         fluent_head = get_fluent_function_predicate(fluent)
-
       rule_body = [get_action_predicate(self.action)]
       if self.effecttime != None:
         # we use the start condition in any case
@@ -110,7 +109,6 @@ class EffectConditionProxy(ConditionProxy):
           rule_body += condition_to_rule_body([], self.condition[2])
       else:
         rule_body += condition_to_rule_body([], self.condition)
-
       if rule_head:
         rules.append((rule_body, rule_head))
       if fluent_head:
@@ -391,6 +389,25 @@ def move_existential_quantifiers(task):
     elif proxy.condition.has_existential_part():
       proxy.set(recurse(proxy.condition).simplified())
 
+def remove_object_functions_from_durations(task):
+    for act in task.durative_actions:
+        used_variables = [var.name for var in act.parameters]
+        for time in range(2):
+            for index, (op, exp) in enumerate(act.duration[time]):
+                typed_vars, function_terms, new_term = \
+                    exp.compile_objectfunctions_aux(used_variables, 
+                        recurse_object_terms=False)
+                act.duration[time][index] = (op, new_term)
+                act.parameters += typed_vars
+                new_conditions = []
+                assert len(typed_vars) == len(function_terms)
+                new_conditions = [act.condition[time]]
+                for var, term in zip(typed_vars, function_terms):
+                    variable = pddl.Variable(var.name)
+                    new_condition = pddl.Atom("=", [variable, term])
+                    new_conditions.append(new_condition)
+                act.condition[time] = pddl.Conjunction(new_conditions)
+
 # FIXME: What does this do?
 def remove_object_functions(task):
     def recurse(condition, used_variables):
@@ -449,6 +466,9 @@ def remove_object_functions(task):
         else:
             new_parts = [recurse(part,used_variables) for part in condition.parts]
             return condition.change_parts(new_parts)
+
+# TODO: Handle cost modules   
+#    remove_object_functions_from_durations(task)
 
     for proxy in tuple(all_conditions(task)):
         if isinstance(proxy.condition,list):
