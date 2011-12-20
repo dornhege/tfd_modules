@@ -40,15 +40,16 @@ import tools
 # Bis Ende der Woche sollte der Algorithmus auf den ADL-Domänen funktionieren.
 
 def invert_list(alist):
-  result = {}
-  for pos, arg in enumerate(alist):
-    result.setdefault(arg, []).append(pos)
-  return result
+    result = {}
+    for pos, arg in enumerate(alist):
+        result.setdefault(arg, []).append(pos)
+    return result
+
 
 def instantiate_factored_mapping(pairs):
-  part_mappings = [[zip(preimg, perm_img) for perm_img in tools.permutations(img)]
-                   for (preimg, img) in pairs]
-  return tools.cartesian_product(part_mappings)
+    part_mappings = [[zip(preimg, perm_img) for perm_img in tools.permutations(img)]
+                     for (preimg, img) in pairs]
+    return tools.cartesian_product(part_mappings)
 
 class InvariantPart:
   def __init__(self, predicate, order, omitted_pos=-1):
@@ -143,6 +144,7 @@ class Invariant:
       if not self.check_action_balance(balance_checker, action, enqueue_func):
         return False
     return True
+
   def check_action_balance(self, balance_checker, action, enqueue_func):
     # Check balance for this hypothesis with regard to one action.
     if isinstance(action,pddl.Action):
@@ -206,6 +208,7 @@ class Invariant:
             return False
           matched_end_add_effects.append((part, eff.peffect))
       return True
+
   def find_matching_del_effect(self, part, add_effect, del_effects, enqueue_func, generate_new=True):
     # Check balance for this hypothesis with regard to one add effect.
     for del_eff in del_effects:
@@ -216,6 +219,7 @@ class Invariant:
     if generate_new:
       self.generate_new_candidates(part, add_effect, del_effects, enqueue_func)
     return False # Balance check failed.
+
   def generate_new_candidates(self, part, add_effect, del_effects, enqueue_func):
     for del_eff in del_effects:
       if del_eff.peffect.predicate not in self.predicate_to_part:

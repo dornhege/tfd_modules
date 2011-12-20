@@ -64,12 +64,15 @@ class SASTask:
     print >> stream, "end_modules"
     self.init.output(stream)
     self.goal.output(stream)
-#    print >> stream, len(self.operators)
-#    for op in self.operators:
-#      op.output(stream)
-    print >> stream, len(self.temp_operators)
-    for op in self.temp_operators:
-      op.output(stream)
+    if len(self.operators) > 0:
+        assert len(self.temp_operators) == 0
+        print >> stream, len(self.operators)
+        for op in self.operators:
+            op.output(stream)
+    else:
+        print >> stream, len(self.temp_operators)
+        for op in self.temp_operators:
+          op.output(stream)
     print >> stream, len(self.axioms)
     for axiom in self.axioms:
       axiom.output(stream)

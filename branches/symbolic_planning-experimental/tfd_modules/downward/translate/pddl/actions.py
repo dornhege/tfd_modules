@@ -217,7 +217,7 @@ class DurativeAction(object):
         (because it has impossible preconditions or an empty effect list.)"""
 
         arg_list = [var_mapping[conditions.Variable(par.name)].name for par in self.parameters]
-        name = "(%s %s)" % (self.name, " ".join(arg_list))
+        name = "(%s %s)" % (self.name, " ".join(arg_list[:self.orig_parameter_length]))
 
         try:
             inst_duration = [[],[]]
