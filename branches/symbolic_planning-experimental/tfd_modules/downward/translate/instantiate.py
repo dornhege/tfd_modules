@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: latin-1 -*-
 
+from collections import defaultdict
+
 import build_model
 import pddl_to_prolog
 import normalize #because of "get_function_predicate" 
@@ -90,6 +92,7 @@ def instantiate(task, model):
   instantiated_axioms = []
   instantiated_numeric_axioms = set()
   new_constant_numeric_axioms = set()
+  reachable_action_parameters = defaultdict(list)
   instantiated_modules = set()
   for atom in model:
     if isinstance(atom.predicate, pddl.Action):
@@ -108,6 +111,7 @@ def instantiate(task, model):
     elif isinstance(atom.predicate, pddl.DurativeAction):
       action = atom.predicate
       parameters = action.parameters
+      reachable_action_parameters[action.name].append(parameters)
       for condition in action.condition:
         if isinstance(condition,pddl.ExistentialCondition):
           parameters = list(parameters)
@@ -145,7 +149,9 @@ def instantiate(task, model):
     instantiated_numeric_axioms |= new_constant_numeric_axioms
       
   return (relaxed_reachable, fluent_facts, fluent_functions, instantiated_actions, 
-          instantiated_durative_actions, instantiated_axioms, instantiated_numeric_axioms, instantiated_modules, init_constant_predicate_facts, init_constant_numeric_facts)
+          instantiated_durative_actions, instantiated_axioms, instantiated_numeric_axioms,
+          instantiated_modules, init_constant_predicate_facts, init_constant_numeric_facts,
+          reachable_action_parameters)
 
 def explore(task):
   prog = pddl_to_prolog.translate(task)
