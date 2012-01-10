@@ -24,6 +24,7 @@ import itertools
 ALLOW_CONFLICTING_EFFECTS = False
 USE_PARTIAL_ENCODING = True
 WRITE_ALL_MUTEXES = True
+USE_SAFE_INVARIANT_SYNTHESIS = True
 
 def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, modules):
     dictionary = {}
@@ -863,7 +864,8 @@ def pddl_to_sas(task):
     print "Instantiating..."
     (relaxed_reachable, atoms, num_fluents, actions, 
         durative_actions, axioms, num_axioms, modules, 
-        init_constant_predicates, init_constant_numerics) = instantiate.explore(task)
+        init_constant_predicates, init_constant_numerics,
+        reachable_action_params) = instantiate.explore(task)
 
     if not relaxed_reachable:
         return unsolvable_sas_task("No relaxed solution")
@@ -882,9 +884,10 @@ def pddl_to_sas(task):
         assert isinstance(item, pddl.Literal)
 
     groups, mutex_groups, translation_key = fact_groups.compute_groups(
-        task, atoms,
+        task, atoms, reachable_action_params,
         return_mutex_groups=WRITE_ALL_MUTEXES,
-        partial_encoding=USE_PARTIAL_ENCODING)
+        partial_encoding=USE_PARTIAL_ENCODING,
+        safe=USE_SAFE_INVARIANT_SYNTHESIS)
 
     num_axioms_by_layer, max_num_layer, num_axiom_map, const_num_axioms = \
         numeric_axiom_rules.handle_axioms(num_axioms)
@@ -898,6 +901,7 @@ def pddl_to_sas(task):
                               num_axioms_by_layer, max_num_layer, num_axiom_map,
                               const_num_axioms, task.oplinit, task.objects, modules, task.module_inits, task.subplan_generators, init_constant_predicates, init_constant_numerics)
 
+    simplify.constrain_end_effect_conditions(sas_task)
     mutex_key = build_mutex_key(strips_to_sas, mutex_groups)
 
 #    try:
