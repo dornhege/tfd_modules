@@ -68,7 +68,7 @@ struct PrePost
     bool is_applicable(const TimeStampedState &state) const;
 
     bool does_fire(const TimeStampedState &state) const {
-        for(int i = 0; i < cond_start.size(); i++)
+        for(unsigned int i = 0; i < cond_start.size(); i++)
             if(!cond_start[i].is_applicable(state))
                 return false;
         return true;
@@ -94,7 +94,7 @@ struct ModuleEffect
 
     bool does_fire(const TimeStampedState &state) const
     {
-        for(int i = 0; i < cond_start.size(); i++)
+        for(unsigned int i = 0; i < cond_start.size(); i++)
             if(!cond_start[i].is_applicable(state))
                 return false;
         return true;
@@ -296,7 +296,7 @@ class TimeStampedState
 
         bool satisfies(const vector<Prevail>& conds) const
         {
-            for(int i = 0; i < conds.size(); i++)
+            for(unsigned int i = 0; i < conds.size(); i++)
                 if(!satisfies(conds[i]))
                     return false;
             return true;
@@ -397,7 +397,7 @@ class TimeStampedState
 
         bool satisfies(const vector<pair<int, double> >& goal) const
         {
-            for(int i = 0; i < goal.size(); i++)
+            for(unsigned int i = 0; i < goal.size(); i++)
                 if(!satisfies(goal[i]))
                     return false;
             return true;
