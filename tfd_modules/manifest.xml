@@ -15,7 +15,7 @@
   <rosdep name="qt4" />
 
   <export>
-    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl" />
+    <cpp cflags="-I${prefix}/include -I${prefix}/downward/opl/interface" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl -ltfd_opl_interface" />
     <continual_planning_executive plugin="${prefix}/tfdm_interface_plugin.xml" />
   </export>
 
