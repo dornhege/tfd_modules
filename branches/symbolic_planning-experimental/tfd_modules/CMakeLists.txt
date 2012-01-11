@@ -114,6 +114,53 @@ set(search_SOURCES
    downward/search/state.cpp
    downward/search/successor_generator.cpp)
 
+set(opl_SOURCES
+   downward/opl/Domain.cpp
+   downward/opl/DurativeAction.cpp
+   downward/opl/Element.cpp
+   downward/opl/Fluent.cpp
+   downward/opl/Function.cpp
+   downward/opl/Initialization.cpp
+   downward/opl/InterfaceGenerator.cpp
+   downward/opl/KeyWordList.cpp
+   downward/opl/Module.cpp
+   downward/opl/NamedList.cpp
+   downward/opl/Number.cpp
+   downward/opl/Object.cpp
+   downward/opl/OPLSemantic.cpp
+   downward/opl/Problem.cpp
+   downward/opl/StringConstant.cpp
+   downward/opl/stringutil.cpp
+   downward/opl/SymbolAccess.cpp
+   downward/opl/SymbolDefinition.cpp
+   downward/opl/Type.cpp
+   downward/opl/parsing/DomainStructure.cpp
+   downward/opl/parsing/DurativeActionStructure.cpp
+   downward/opl/parsing/ElementDetector.cpp
+   downward/opl/parsing/FluentStructure.cpp
+   downward/opl/parsing/FunctionStructure.cpp
+   downward/opl/parsing/InitializationStructure.cpp
+   downward/opl/parsing/ModuleStructure.cpp
+   downward/opl/parsing/NamedListStructure.cpp
+   downward/opl/parsing/NumberStructure.cpp
+   downward/opl/parsing/ObjectStructure.cpp
+   downward/opl/parsing/Parser.cpp
+   downward/opl/parsing/ParseUnit.cpp
+   downward/opl/parsing/ProblemStructure.cpp
+   downward/opl/parsing/StringStructure.cpp
+   downward/opl/parsing/SymbolAccessStructure.cpp
+   downward/opl/parsing/SymbolDefinitionStructure.cpp
+   downward/opl/parsing/Translator.cpp
+   downward/opl/parsing/TypeStructure.cpp)
+
+set(opl_interface_SOURCES
+   downward/opl/interface/AbstractState.cpp
+   downward/opl/interface/AbstractStateFactory.cpp
+   downward/opl/interface/ObjectLookupTable.cpp
+   downward/opl/interface/oplObject.cpp
+   downward/opl/interface/FluentMapping.cpp
+   downward/opl/interface/stringutil.cpp)
+   
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
@@ -121,12 +168,17 @@ set(search_SOURCES
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(tfd_module_api ${module_api_SOURCES})
+rosbuild_add_library(tfd_opl_interface ${opl_interface_SOURCES})
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(tfd_preprocess ${preprocess_SOURCES})
 rosbuild_add_executable(tfd_search ${search_SOURCES})
 target_link_libraries(tfd_search tfd_module_api dl)
+#target_link_libraries(tfd_search tfd_opl_interface dl)
+#rosbuild_add_library(tfd_opl ${opl_SOURCES})
+#rosbuild_add_executable(opl_translate_domain downward/opl/opl_translate_domain.cpp)
+#target_link_libraries(opl_translate_domain tfd_opl dl)
 
 rosbuild_add_compile_flags(tfd_preprocess "-Wno-sign-compare -ansi -pedantic")
 rosbuild_add_compile_flags(tfd_search "-Wno-sign-compare -ansi ")
