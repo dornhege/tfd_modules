@@ -1,0 +1,18 @@
+<package>
+  <description brief="roomScanning_modules">
+   This package contains some simple planner modules for testing.
+  </description>
+  <author>dornhege</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/roomScanning_modules</url>
+  <depend package="tfd_modules"/>
+  <depend package="nav_msgs"/>
+  <depend package="costmap_2d"/>
+  <depend package="tf"/>
+  <depend package="planner_benchmarks"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/src" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_opl_RoomScanning" />
+  </export>
+</package>
