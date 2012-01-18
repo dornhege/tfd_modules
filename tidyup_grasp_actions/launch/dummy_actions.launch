@@ -2,6 +2,8 @@
 
     <node pkg="actionlib" type="axserver.py" args="/grasp_object tidyup_msgs/GraspObject" respawn="false" name="grasp_object" output="screen" />
     
+    <node pkg="actionlib" type="axserver.py" args="/post_grasp_position tidyup_msgs/PostGraspPosition" respawn="false" name="post_grasp_position" output="screen" />
+
     <node pkg="fr_tools" type="sxserver.py" args="/request_graspable_objects tidyup_msgs/RequestGraspableObjects" respawn="false" name="request_graspable_objects" output="screen" />
 
 </launch>
