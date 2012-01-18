@@ -16,6 +16,12 @@
         movable_object - pose           ; an object that can be grasped
     )
 
+    (:modules
+        (costDrive ?start ?goal - location cost 
+                 pathCost@libplanner_modules_pr2.so)
+      ; TODO connectivity module or set flag: use_cost_modules_for_applicablility
+    )
+
     (:predicates
         (at-base ?l - location)                           ; location of the base
         (can-navigate ?s - location ?g - location)        ; is there a path from ?s to ?g
@@ -171,7 +177,7 @@
 
     (:durative-action drive-base
 	    :parameters (?s - location ?g - location)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration [costDrive ?s ?g])
 	    :condition (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
