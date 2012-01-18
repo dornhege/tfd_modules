@@ -52,6 +52,8 @@ namespace planner_navigation_actions
             ROS_ASSERT(a.parameters.size() == 2);
             string targetName = a.parameters[1];
             current.setBooleanPredicate("explored", targetName, true);
+            // TODO fixme generic
+            current.setAllBooleanPredicates("recent-detected-objects", false);
         }
     }
 
