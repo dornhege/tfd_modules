@@ -26,6 +26,8 @@ rosbuild_add_library(tidyup_grasp_actions
     src/stateCreatorGraspObject.cpp
     src/goalCreatorGraspObject.cpp
     src/actionExecutorRequestGraspableObjects.cpp
+    src/actionExecutorPostGraspPosition.cpp
+    src/actionExecutorTuckArms.cpp
     src/actionExecutorTidyupGraspObject.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()

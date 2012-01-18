@@ -66,6 +66,9 @@ namespace tidyup_grasp_actions
             string arm = a.parameters[2];
             current.setBooleanPredicate("handFree", arm, false);
             current.setBooleanPredicate("grasped", targetName + " " + arm, true);
+            current.setBooleanPredicate("tucked", arm, false);
+            current.setBooleanPredicate("untucked", arm, false);
+            current.setBooleanPredicate("post-grasped", arm, false);
         }
     }
 

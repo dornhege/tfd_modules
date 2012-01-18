@@ -45,6 +45,7 @@ namespace tidyup_grasp_actions
         }
 
         current.setBooleanPredicate("detected-objects", location, true);
+        current.setBooleanPredicate("recent-detected-objects", location, true);
     }
 
 };

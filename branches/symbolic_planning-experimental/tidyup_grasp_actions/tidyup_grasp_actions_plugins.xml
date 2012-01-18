@@ -2,6 +2,12 @@
     <class name="tidyup_grasp_actions/action_executor_grasp_object" type="tidyup_grasp_actions::ActionExecutorTidyupGraspObject" base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that grasps an object.</description>
     </class>
+    <class name="tidyup_grasp_actions/action_executor_post_grasp_position" type="tidyup_grasp_actions::ActionExecutorPostGraspPosition" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves an arm to post grasp position.</description>
+    </class>
+    <class name="tidyup_grasp_actions/action_executor_tuck_arms" type="tidyup_grasp_actions::ActionExecutorTuckArms" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that tucks/untucks the arms.</description>
+    </class>
     <class name="tidyup_grasp_actions/action_executor_request_graspable_objects" type="tidyup_grasp_actions::ActionExecutorRequestGraspableObjects" base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that calls object detection for grasping.</description>
     </class>
