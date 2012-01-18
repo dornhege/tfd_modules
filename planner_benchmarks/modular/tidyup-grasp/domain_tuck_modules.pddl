@@ -8,11 +8,6 @@
         grasp_location - location       ; a location that grasp actions can be applied from (e.g. a location at a table)
         arm                             ; use left or right arm
         l_arm r_arm - arm               ; for dual arm actions to identidy the single arms
-        ; TODO inital state of arm(s), always now need two to enable tuck/untuck
-        ; who writes this shit???
-        ; left_arm - l_arm
-        ; right_arm - r_arm
-        ; hadnFree for both
         movable_object - pose           ; an object that can be grasped
     )
 
@@ -28,7 +23,6 @@
         (detected-objects ?l - grasp_location)            ; did we perform detect-objects at this location at some time?
         (recent-detected-objects ?l - grasp_location)     ; did we perform detect-objects at this location, without driving in between?
         ; TODO also actions need to set the new predicates herein!!!
-        ; TODO update probs hiermit
 
         (graspable-from ?o - object ?g - grasp_location)  ; is ?o graspable from ?g
 
