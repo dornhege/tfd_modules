@@ -52,8 +52,11 @@ namespace tidyup_grasp_actions
         }
 
         // a bit hacky: init currentState here
-        currentState.addObject("right_arm", "arm");
+        // TODO: fix this, r_arm won't work for non-tuck domain any more
+        currentState.addObject("right_arm", "r_arm");
         currentState.setBooleanPredicate("handFree", "right_arm", true);
+        currentState.addObject("left_arm", "l_arm");
+        currentState.setBooleanPredicate("handFree", "left_arm", true);
 
         return true;
     }
