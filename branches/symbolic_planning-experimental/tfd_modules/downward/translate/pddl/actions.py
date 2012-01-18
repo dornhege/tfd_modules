@@ -115,6 +115,7 @@ class DurativeAction(object):
         iterator = iter(alist)
         assert iterator.next() == ":durative-action"
         name = iterator.next()
+        print "Parsing durative-action", name
         parameters_tag_opt = iterator.next()
         if parameters_tag_opt == ":parameters":
             parameters = pddl_types.parse_typed_list(iterator.next(),

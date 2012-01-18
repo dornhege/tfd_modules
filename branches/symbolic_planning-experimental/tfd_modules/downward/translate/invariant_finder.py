@@ -5,6 +5,7 @@ from __future__ import with_statement
 from collections import deque, defaultdict
 import itertools
 import time
+import copy
 
 import invariants
 import pddl
@@ -28,7 +29,8 @@ class BalanceChecker(object):
                         too_heavy_effects[time].append(eff)
                         if eff.parameters: # universal effect
                             create_heavy_act = True
-                            too_heavy_effects[time].append(eff.copy())
+                            x = copy.copy(eff)
+                            too_heavy_effects[time].append(x)
             if safe:
                 if create_heavy_act:
                     heavy_act = pddl.DurativeAction(action.name, 
