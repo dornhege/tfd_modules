@@ -12,7 +12,7 @@
         <rosparam param="planner_options">
             - (navstack_init@libplanner_modules_pr2.so /map 0.3)
         </rosparam>
-        <env name="LD_LIBRARY_PATH" value="$(env LD_LIBRARY_PATH):$(find planner_modules_pr2)/lib" />
+        <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
     </node>
 
 </launch>
