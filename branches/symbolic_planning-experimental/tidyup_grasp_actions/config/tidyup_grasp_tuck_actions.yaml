@@ -3,9 +3,9 @@ state_creators:
 goal_creators:
     - tidyup_grasp_actions/goal_creator_grasp_object
 action_executors:
-    - tidyup_grasp_actions/action_executor_request_graspable_objects detect-objects request_graspable_objects
-    - tidyup_grasp_actions/action_executor_grasp_object grasp grasp_object
-    - tidyup_grasp_actions/action_executor_post_grasp_position move-to-post-grasp post_grasp_position
+    - tidyup_grasp_actions/action_executor_request_graspable_objects detect-objects /tidyup/request_graspable_objects
+    - tidyup_grasp_actions/action_executor_grasp_object grasp /learned_grasping/learned_grasping_action
+    - tidyup_grasp_actions/action_executor_post_grasp_position move-to-post-grasp /learned_grasping/post_grasp_position_action
     - tidyup_grasp_actions/action_executor_tuck_arms untuck-arms tuck_arms
     - tidyup_grasp_actions/action_executor_tuck_arms tuck-arms tuck_arms
     - tidyup_grasp_actions/action_executor_tuck_arms tuck-left-untuck-right tuck_arms
