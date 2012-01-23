@@ -30,7 +30,12 @@ namespace tidyup_grasp_actions
             tidyup_msgs::GraspableObject & object = *it;
 
             current.addObject(object.name, "movable_object");
+            if(object.pose.header.frame_id.empty()) {
+                ROS_ERROR("RequestGraspableObjects returned empty frame_id for object: %s", object.name.c_str());
+                object.pose.header.frame_id = "INVALID_FRAME_ID";
+            }
             current.addObject(object.pose.header.frame_id, "frameid");
+            current.setObjectFluent("frame-id", object.name, object.pose.header.frame_id);
             current.setBooleanPredicate("graspable-from", object.name + " " + location, true);
             current.setNumericalFluent("x", object.name, object.pose.pose.position.x);
             current.setNumericalFluent("y", object.name, object.pose.pose.position.y);
@@ -40,7 +45,6 @@ namespace tidyup_grasp_actions
             current.setNumericalFluent("qz", object.name, object.pose.pose.orientation.z);
             current.setNumericalFluent("qw", object.name, object.pose.pose.orientation.w);
             current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
-            current.setObjectFluent("frame-id", object.name, object.pose.header.frame_id);
             ROS_ASSERT(object.reachable);
         }
 
