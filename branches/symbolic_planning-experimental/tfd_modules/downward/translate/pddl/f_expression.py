@@ -187,6 +187,8 @@ class NumericConstant(FunctionalExpression):
     def __init__(self, value):
         self.value = value
         self.hash = hash((self.__class__, self.value))
+    def __eq__(self, other):
+        return (self.__class__ == other.__class__ and self.value == other.value)
     def __str__(self):
         return str(self.value)
     def _dump(self):
@@ -272,6 +274,11 @@ class FunctionAssignment(object):
         self.hash = hash((self.__class__.__name__, self.fluent, self.expression))
     def __str__(self):
         return "%s %s %s" % (self.__class__.__name__, self.fluent, self.expression) 
+    def __eq__(self, other):
+        return (self.__class__ is other.__class__ and
+                self.hash == other.hash and
+                self.fluent == other.fluent and
+                self.expression == other.expression)
     def dump(self, indent="  "):
         print "%s%s" % (indent, self._dump())
         self.fluent.dump(indent + "  ")

@@ -118,6 +118,11 @@ class Effect(object):
     self.parameters = parameters
     self.condition = condition
     self.peffect = peffect # literal or function assignment
+  def __eq__(self, other):
+    return (self.__class__ is other.__class__ and
+            self.parameters == other.parameters and
+            self.condition == other.condition and
+            self.peffect == other.peffect)
   def dump(self):
     indent = "  "
     if self.parameters:
@@ -134,6 +139,8 @@ class Effect(object):
       print "%sthen" % indent
       indent += "  "
     self.peffect.dump(indent)
+  def copy(self):
+    return Effect(self.parameters, self.condition, self.peffect)
   def uniquify_variables(self, type_map):
     renamings = {}
     self.parameters = [par.uniquify_name(type_map, renamings)
@@ -182,13 +189,6 @@ class Effect(object):
     assert len(effects) <= 1
     if effects:
       result.append((condition, effects[0]))
-#  def relaxed(self):
-#    if self.peffect.negated:
-#      return None
-#    else:
-#      return Effect(self.parameters, self.condition.relaxed(), self.peffect)
-#  def simplified(self):
-#    return Effect(self.parameters, self.condition.simplified(), self.peffect)
 
 class TmpEffect(object):
     def __init__(self,effects,time=None):
