@@ -15,6 +15,7 @@
   <depend package="tf"/>
   <depend package="hardcoded_facts"/>
   <depend package="pr2_common_action_msgs"/>
+  <depend package="visualization_msgs"/>
 
   <export>
       <continual_planning_executive plugin="${prefix}/tidyup_grasp_actions_plugins.xml" />

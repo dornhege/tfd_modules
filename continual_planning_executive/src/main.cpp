@@ -298,14 +298,14 @@ int main(int argc, char** argv)
 
     if(s_ContinualPlanning.isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal) {
         if(ros::ok())
-            ROS_INFO("Continual planning ended.\nGoal reached by agent!");
+            ROS_INFO("\n\nContinual planning ended.\nGOAL REACHED by agent!\n\n");
         else
-            printf("Continual planning ended.\nGoal reached by agent!\n");
+            printf("\n\nContinual planning ended.\nGOAL REACHED by agent!\n\n\n");
     } else {
         if(ros::ok())
-            ROS_ERROR("Continual planning ended.\nGoal was not reached.");
+            ROS_ERROR("\n\nContinual planning ended.\nGOAL was NOT REACHED.\n\n");
         else
-            printf("Continual planning ended.\nGoal was not reached.\n");
+            printf("\n\nContinual planning ended.\nGOAL was NOT REACHED.\n\n\n");
     }
 
     return 0;

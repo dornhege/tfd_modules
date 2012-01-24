@@ -1,5 +1,5 @@
 (define (domain tidyup-grasp)
-    (:requirements :strips :typing :durative-actions :fluents :modules :derived-predicates)
+    (:requirements :strips :typing :durative-actions :fluents :derived-predicates)
 
     (:types 
         pose                            ; any pose in space

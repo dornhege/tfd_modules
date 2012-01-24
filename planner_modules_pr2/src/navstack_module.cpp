@@ -35,7 +35,7 @@ static map< pair<string,string>, double> s_PathCostCache;
 
 void navstack_init(int argc, char** argv)
 {
-   ROS_ASSERT(argc == 3);
+   ROS_ASSERT(argc == 4);
   
    // get world frame
    ros::NodeHandle nhPriv("~");
@@ -48,7 +48,26 @@ void navstack_init(int argc, char** argv)
    s_GoalTolerance = strtod(argv[2], &checkPtr);
    if(checkPtr == argv[2]) {    // conversion error!
         ROS_ERROR("%s: Could not convert argument for goal tolerance: %s", __func__, argv[2]);
+        s_GoalTolerance = 0.5;
    }
+
+   if(strcmp(argv[3], "0") == 0) {
+       ROS_INFO("Using absolute goal tolerance.");
+   } else { // relative goal tolerance, argv[3] contains the base_local_planner namespace
+       ROS_INFO("Using relative goal tolerance.");
+       // get base_local_planner's xy_goal_tolerance
+       std::string base_local_planner_ns = argv[3];
+       double move_base_tol;
+       ros::NodeHandle nh;
+       if(!nh.getParam(base_local_planner_ns + "/xy_goal_tolerance", move_base_tol)) {
+           ROS_ERROR_STREAM("requested relative goal tolerance, but "
+                   << (base_local_planner_ns + "/xy_goal_tolerance") << " was not set"
+                   << " - falling back to absolute mode");
+       } else { // 2. add move_base's tolerance to our relative tolerance
+           s_GoalTolerance += move_base_tol;
+       }
+   }
+
    ROS_INFO("Goal Tolerance is: %f.", s_GoalTolerance);
 
    // init service query
