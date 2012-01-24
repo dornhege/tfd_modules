@@ -30,7 +30,7 @@ class BalanceChecker(object):
                         if eff.parameters: # universal effect
                             create_heavy_act = True
                             x = copy.copy(eff)
-                            too_heavy_effects[time].append(x)
+                            too_heavy_effects[time].append(eff.copy())
             if safe:
                 if create_heavy_act:
                     heavy_act = pddl.DurativeAction(action.name, 
