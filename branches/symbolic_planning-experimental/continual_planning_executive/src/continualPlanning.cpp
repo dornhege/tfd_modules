@@ -27,11 +27,11 @@ ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
     Plan newPlan = monitorAndReplan(atGoal);
     if(newPlan.empty()) {
         if(atGoal) {
-            ROS_INFO("Empty plan returned by monitorAndReplan - Reached Goal!");
+            ROS_INFO("\n\nEmpty plan returned by monitorAndReplan - Reached Goal!\n\n");
             return FinishedAtGoal;
         }
 
-        ROS_ERROR("Empty plan returned by monitorAndReplan.");
+        ROS_ERROR("\n\nEmpty plan returned by monitorAndReplan.\n\n");
         return FinishedNoPlanToGoal;           // not at goal and no plan -> can't do anything besides fail
     }
 
@@ -86,7 +86,7 @@ Plan ContinualPlanning::monitorAndReplan(bool & atGoal)
         ROS_INFO_STREAM("Planning successfull. Got plan:" << std::endl
                 << std::fixed << std::setprecision(2) << plan);
     } else {
-        ROS_WARN("Planning failed, result: %s",
+        ROS_ERROR("Planning failed, result: %s",
                 continual_planning_executive::PlannerInterface::PlannerResultStr(result).c_str());
     }
     return plan;
