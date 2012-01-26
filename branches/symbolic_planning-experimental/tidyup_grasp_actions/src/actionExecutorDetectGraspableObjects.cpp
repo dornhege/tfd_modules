@@ -1,16 +1,16 @@
-#include "tidyup_grasp_actions/actionExecutorRequestGraspableObjects.h"
+#include "tidyup_grasp_actions/actionExecutorDetectGraspableObjects.h"
 #include <pluginlib/class_list_macros.h>
 #include <tidyup_msgs/RequestObjectsGraspability.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, action_executor_request_graspable_objects,
-        tidyup_grasp_actions::ActionExecutorRequestGraspableObjects,
+PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, action_executor_detect_graspable_objects,
+        tidyup_grasp_actions::ActionExecutorDetectGraspableObjects,
         continual_planning_executive::ActionExecutorInterface)
 
 namespace tidyup_grasp_actions
 {
-    void ActionExecutorRequestGraspableObjects::initialize(const std::deque<std::string> & arguments)
+    void ActionExecutorDetectGraspableObjects::initialize(const std::deque<std::string> & arguments)
     {
-        ActionExecutorService<tidyup_msgs::RequestGraspableObjects>::initialize(arguments);
+        ActionExecutorService<tidyup_msgs::DetectGraspableObjects>::initialize(arguments);
 
         ROS_ASSERT(_nh);
 
@@ -23,15 +23,14 @@ namespace tidyup_grasp_actions
         }
     }
 
-    bool ActionExecutorRequestGraspableObjects::fillGoal(tidyup_msgs::RequestGraspableObjects::Request & goal,
+    bool ActionExecutorDetectGraspableObjects::fillGoal(tidyup_msgs::DetectGraspableObjects::Request & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
-        goal.onlyReachable = true;
         return true;
     }
 
-    void ActionExecutorRequestGraspableObjects::updateState(bool success,
-            tidyup_msgs::RequestGraspableObjects::Response & response,
+    void ActionExecutorDetectGraspableObjects::updateState(bool success,
+            tidyup_msgs::DetectGraspableObjects::Response & response,
             const DurativeAction & a, SymbolicState & current)
     {
         if(!success)
@@ -58,7 +57,7 @@ namespace tidyup_grasp_actions
 
             current.addObject(object.name, "movable_object");
             if(object.pose.header.frame_id.empty()) {
-                ROS_ERROR("RequestGraspableObjects returned empty frame_id for object: %s", object.name.c_str());
+                ROS_ERROR("DetectGraspableObjects returned empty frame_id for object: %s", object.name.c_str());
                 object.pose.header.frame_id = "INVALID_FRAME_ID";
             }
             current.addObject(object.pose.header.frame_id, "frameid");

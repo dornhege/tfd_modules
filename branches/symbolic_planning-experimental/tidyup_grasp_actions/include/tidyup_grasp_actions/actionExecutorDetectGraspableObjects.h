@@ -1,22 +1,22 @@
-#ifndef ACTION_EXECUTOR_REQUEST_GRASPABLE_OBJECTS_H
-#define ACTION_EXECUTOR_REQUEST_GRASPABLE_OBJECTS_H
+#ifndef ACTION_EXECUTOR_DETECT_GRASPABLE_OBJECTS_H
+#define ACTION_EXECUTOR_DETECT_GRASPABLE_OBJECTS_H
 
 #include "continual_planning_executive/actionExecutorService.hpp"
 #include "continual_planning_executive/symbolicState.h"
-#include <tidyup_msgs/RequestGraspableObjects.h>
+#include <tidyup_msgs/DetectGraspableObjects.h>
 
 namespace tidyup_grasp_actions
 {
 
-    class ActionExecutorRequestGraspableObjects : public ActionExecutorService<tidyup_msgs::RequestGraspableObjects>
+    class ActionExecutorDetectGraspableObjects : public ActionExecutorService<tidyup_msgs::DetectGraspableObjects>
     {
         public:
             virtual void initialize(const std::deque<std::string> & arguments);
 
-            virtual bool fillGoal(tidyup_msgs::RequestGraspableObjects::Request & goal,
+            virtual bool fillGoal(tidyup_msgs::DetectGraspableObjects::Request & goal,
                     const DurativeAction & a, const SymbolicState & current);
 
-            virtual void updateState(bool success, tidyup_msgs::RequestGraspableObjects::Response & response,
+            virtual void updateState(bool success, tidyup_msgs::DetectGraspableObjects::Response & response,
                     const DurativeAction & a, SymbolicState & current);
 
         protected:

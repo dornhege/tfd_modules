@@ -31,9 +31,6 @@ namespace tidyup_grasp_actions
             const DurativeAction & a, SymbolicState & current)
     {
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            if(!result.success) {
-                ROS_ERROR("ActionExecutorPostGraspPosition succeeded, but result.success was false.");
-            }
             ROS_INFO("Post Grasp Position succeeded.");
             ROS_ASSERT(a.parameters.size() == 1);
             string arm = a.parameters[0];
