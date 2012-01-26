@@ -93,7 +93,7 @@ void ActionExecutorService<Service>::initialize(const std::deque<std::string> & 
         ROS_WARN("Service %s not available - waiting.", serviceName.c_str());
     }
 
-    _serviceClient = _nh->serviceClient<Service>(serviceName, true);
+    _serviceClient = _nh->serviceClient<Service>(serviceName);
     if(!_serviceClient) {
         ROS_FATAL("Could not initialize service from %s (client name: %s)",
                 serviceName.c_str(), _serviceClient.getService().c_str());
