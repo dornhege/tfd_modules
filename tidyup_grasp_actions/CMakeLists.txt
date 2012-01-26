@@ -25,7 +25,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 rosbuild_add_library(tidyup_grasp_actions
     src/stateCreatorGraspObject.cpp
     src/goalCreatorGraspObject.cpp
-    src/actionExecutorRequestGraspableObjects.cpp
+    src/actionExecutorDetectGraspableObjects.cpp
     src/actionExecutorPostGraspPosition.cpp
     src/actionExecutorTuckArms.cpp
     src/actionExecutorTidyupGraspObject.cpp)

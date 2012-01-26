@@ -15,6 +15,17 @@ namespace tidyup_grasp_actions
         string targetName = a.parameters[1];
         string arm = a.parameters[2];
 
+        // set arm
+        goal.left_arm = false;
+        goal.right_arm = false;
+        if(arm == "left_arm") {
+            goal.left_arm = true;
+        }
+        if(arm == "right_arm") {
+            goal.right_arm = true;
+        }
+
+        // set target
         goal.target.name = targetName;
         goal.target.reachable = true;
 
@@ -52,7 +63,7 @@ namespace tidyup_grasp_actions
         if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.w))
             return false;
 
-        return true;
+        return (goal.left_arm || goal.right_arm);
     }
 
     void ActionExecutorTidyupGraspObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
