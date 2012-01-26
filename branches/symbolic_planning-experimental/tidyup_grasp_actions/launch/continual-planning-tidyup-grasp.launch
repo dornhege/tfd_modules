@@ -5,8 +5,8 @@
     <node pkg="continual_planning_executive" type="continual_planning_executive" args="" respawn="false" name="continual_planning_executive" output="screen" >
         <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup-grasp/domain_modules.pddl" />
 
-        <param name="goal_locations" value="$(find tidyup_grasp_actions)/launch/locations_single.dat" />
-        
+        <param name="goal_locations" value="$(find tidyup_bringup)/data/locations_lab.dat" />
+
         <!-- tolerance to use when determining if navigation has reached a target (i.e. we are AT a target)
             if nav_target_tolerance_relative_to_move_base is true, nav_base_local_planner_ns should give
             the namespace that holds the xy_goal_tolerance parameter the base_local_planner uses.
