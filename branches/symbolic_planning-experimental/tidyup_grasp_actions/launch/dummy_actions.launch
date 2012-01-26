@@ -6,4 +6,6 @@
 
     <node pkg="fr_tools" type="sxserver.py" args="/tidyup/request_graspable_objects tidyup_msgs/RequestGraspableObjects" respawn="false" name="request_graspable_objects" output="screen" />
 
+    <node pkg="fr_tools" type="sxserver.py" args="/learned_grasping/request_objects_graspability tidyup_msgs/RequestObjectsGraspability" respawn="false" name="request_objects_graspability" output="screen" />
+
 </launch>

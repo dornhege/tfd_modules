@@ -11,11 +11,19 @@ namespace tidyup_grasp_actions
     class ActionExecutorRequestGraspableObjects : public ActionExecutorService<tidyup_msgs::RequestGraspableObjects>
     {
         public:
+            virtual void initialize(const std::deque<std::string> & arguments);
+
             virtual bool fillGoal(tidyup_msgs::RequestGraspableObjects::Request & goal,
                     const DurativeAction & a, const SymbolicState & current);
 
             virtual void updateState(bool success, tidyup_msgs::RequestGraspableObjects::Response & response,
                     const DurativeAction & a, SymbolicState & current);
+
+        protected:
+            ros::ServiceClient _serviceClientGraspability;
+
+        private:
+            static const bool s_RequestGraspability = false;
     };
 
 };
