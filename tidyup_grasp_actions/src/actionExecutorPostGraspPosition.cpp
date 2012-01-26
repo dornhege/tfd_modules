@@ -30,6 +30,7 @@ namespace tidyup_grasp_actions
             const tidyup_msgs::PostGraspPositionResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
+        ROS_INFO("PostGraspPosition returned result: %s", result.result.c_str());
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("Post Grasp Position succeeded.");
             ROS_ASSERT(a.parameters.size() == 1);

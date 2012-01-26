@@ -70,6 +70,7 @@ namespace tidyup_grasp_actions
             const tidyup_msgs::GraspObjectResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
+        ROS_INFO("GraspObject returned result: %s", result.result.c_str());
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("Grasping succeeded.");
             ROS_ASSERT(a.parameters.size() == 3);
