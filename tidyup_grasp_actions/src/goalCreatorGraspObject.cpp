@@ -35,18 +35,21 @@ namespace tidyup_grasp_actions
             return false;
         }
         // create the actual states
-        const std::map<std::string, geometry_msgs::Pose> & goalPoses = goalLocations.getPoses();
+        const std::map<std::string, geometry_msgs::PoseStamped> & goalPoses = goalLocations.getPoses();
         forEach(const GeometryPoses::NamedPose & np, goalPoses) {
             currentState.addObject(np.first, "grasp_location");
             goal.addObject(np.first, "grasp_location");
 
-            currentState.setNumericalFluent("x", np.first, np.second.position.x);
-            currentState.setNumericalFluent("y", np.first, np.second.position.y);
-            currentState.setNumericalFluent("z", np.first, np.second.position.z);
-            currentState.setNumericalFluent("qx", np.first, np.second.orientation.x);
-            currentState.setNumericalFluent("qy", np.first, np.second.orientation.y);
-            currentState.setNumericalFluent("qz", np.first, np.second.orientation.z);
-            currentState.setNumericalFluent("qw", np.first, np.second.orientation.w);
+            currentState.setNumericalFluent("timestamp", np.first, np.second.header.stamp.toSec());
+            currentState.addObject(np.second.header.frame_id, "frameid");
+            currentState.setObjectFluent("frame-id", np.first, np.second.header.frame_id);
+            currentState.setNumericalFluent("x", np.first, np.second.pose.position.x);
+            currentState.setNumericalFluent("y", np.first, np.second.pose.position.y);
+            currentState.setNumericalFluent("z", np.first, np.second.pose.position.z);
+            currentState.setNumericalFluent("qx", np.first, np.second.pose.orientation.x);
+            currentState.setNumericalFluent("qy", np.first, np.second.pose.orientation.y);
+            currentState.setNumericalFluent("qz", np.first, np.second.pose.orientation.z);
+            currentState.setNumericalFluent("qw", np.first, np.second.pose.orientation.w);
             // make them clean
             goal.setBooleanPredicate("clean", np.first, true);
         }
