@@ -11,7 +11,8 @@ namespace planner_navigation_actions
     bool ActionExecutorROSNavigation::fillGoal(move_base_msgs::MoveBaseGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
-        goal.target_pose.header.frame_id = "/map";      // TODO: whole thing tf frame resolv?
+        // FIXME: don't get from state (very old), but the newest.
+        // The frame_id should be a fixed frame anyways
         goal.target_pose.header.stamp = ros::Time::now();
 
         ROS_ASSERT(a.parameters.size() == 2);
@@ -20,6 +21,9 @@ namespace planner_navigation_actions
         // extract nicer + warn.
         Predicate p;
         p.parameters.push_back(targetName);
+        p.name = "frame-id";
+        if(!current.hasObjectFluent(p, &goal.target_pose.header.frame_id))
+            return false;
         p.name = "x";
         if(!current.hasNumericalFluent(p, &goal.target_pose.pose.position.x))
             return false;
