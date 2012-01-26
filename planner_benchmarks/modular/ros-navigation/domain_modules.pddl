@@ -1,7 +1,8 @@
 (define (domain ros-navigation)
-  (:requirements :strips :typing :durative-actions :numeric-fluents :modules)
+  (:requirements :strips :typing :durative-actions :fluents :modules)
 
   (:types 
+    frameid                         ; the coordinate frame of a pose
     location
     target - location
   )
@@ -18,14 +19,16 @@
   )
 
   (:functions
-      (x ?l - location)
-      (y ?l - location)
-      (z ?l - location)
+      (x ?l - location) - number
+      (y ?l - location) - number
+      (z ?l - location) - number
       ; quaternion orientation
-      (qx ?l - location)
-      (qy ?l - location)
-      (qz ?l - location)
-      (qw ?l - location)
+      (qx ?l - location) - number
+      (qy ?l - location) - number
+      (qz ?l - location) - number
+      (qw ?l - location) - number
+      (timestamp ?l - location) - number      ; unix time in s
+      (frame-id ?l - location) - frameid
   )
 
   (:durative-action explore
