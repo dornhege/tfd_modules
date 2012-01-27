@@ -62,10 +62,15 @@ namespace tidyup_grasp_actions
             }
             current.addObject(object.pose.header.frame_id, "frameid");
             current.setObjectFluent("frame-id", object.name, object.pose.header.frame_id);
-            if(s_RequestGraspability)
-                current.setBooleanPredicate("graspable-from", object.name + " " + location, object.reachable);
-            else
-                current.setBooleanPredicate("graspable-from", object.name + " " + location, true);
+            if(s_RequestGraspability) {
+                current.setBooleanPredicate("graspable-from", object.name + " " + location + " left_arm",
+                       object.reachable_left_arm);
+                current.setBooleanPredicate("graspable-from", object.name + " " + location + " right_arm",
+                       object.reachable_right_arm);
+            } else {
+                current.setBooleanPredicate("graspable-from", object.name + " " + location + " left_arm", true);
+                current.setBooleanPredicate("graspable-from", object.name + " " + location + " right_arm", true);
+            }
             current.setNumericalFluent("x", object.name, object.pose.pose.position.x);
             current.setNumericalFluent("y", object.name, object.pose.pose.position.y);
             current.setNumericalFluent("z", object.name, object.pose.pose.position.z);
@@ -74,8 +79,6 @@ namespace tidyup_grasp_actions
             current.setNumericalFluent("qz", object.name, object.pose.pose.orientation.z);
             current.setNumericalFluent("qw", object.name, object.pose.pose.orientation.w);
             current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
-            if(!s_RequestGraspability)
-                ROS_ASSERT(object.reachable);
         }
 
         current.setBooleanPredicate("detected-objects", location, true);
