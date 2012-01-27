@@ -1,6 +1,7 @@
 #include "tidyup_grasp_actions/stateCreatorGraspObject.h"
 #include <pluginlib/class_list_macros.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <angles/angles.h>
 
 PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, state_creator_grasp_object,
         tidyup_grasp_actions::StateCreatorGraspObject, continual_planning_executive::StateCreator)
@@ -11,7 +12,8 @@ namespace tidyup_grasp_actions
     StateCreatorGraspObject::StateCreatorGraspObject()
     {
         ros::NodeHandle nhPriv("~");
-        nhPriv.param("nav_target_tolerance", _goalTolerance, 0.5);
+        nhPriv.param("nav_target_tolerance_xy", _goalToleranceXY, 0.5);
+        nhPriv.param("nav_target_tolerance_yaw", _goalToleranceYaw, 0.26);  //15deg
 
         bool relative;
         nhPriv.param("nav_target_tolerance_relative_to_move_base", relative, false);
@@ -21,19 +23,28 @@ namespace tidyup_grasp_actions
             if(!nhPriv.getParam("nav_base_local_planner_ns", base_local_planner_ns)) {
                 ROS_ERROR("nav_target_tolerance_relative_to_move_base was true, but nav_base_local_planner_ns is not set - falling back to absolute mode.");
             } else { // success: 2. get the xy_goal_tolerance
-                double move_base_tol;
+                double move_base_tol_xy;
                 ros::NodeHandle nh;
-                if(!nh.getParam(base_local_planner_ns + "/xy_goal_tolerance", move_base_tol)) {
+                if(!nh.getParam(base_local_planner_ns + "/xy_goal_tolerance", move_base_tol_xy)) {
                     ROS_ERROR_STREAM("nav_target_tolerance_relative_to_move_base was true, but "
                             << (base_local_planner_ns + "/xy_goal_tolerance") << " was not set"
                             << " - falling back to absolute mode");
                 } else { // 2. add move_base's tolerance to our relative tolerance
-                    _goalTolerance += move_base_tol;
+                    _goalToleranceXY += move_base_tol_xy;
+                }
+
+                double move_base_tol_yaw;
+                if(!nh.getParam(base_local_planner_ns + "/yaw_goal_tolerance", move_base_tol_yaw)) {
+                    ROS_ERROR_STREAM("nav_target_tolerance_relative_to_move_base was true, but "
+                            << (base_local_planner_ns + "/yaw_goal_tolerance") << " was not set"
+                            << " - falling back to absolute mode");
+                } else { // 2. add move_base's tolerance to our relative tolerance
+                    _goalToleranceYaw += move_base_tol_yaw;
                 }
             }
         }
 
-        ROS_INFO("Tolerance for accepting nav goals set to %f.", _goalTolerance);
+        ROS_INFO("Tolerance for accepting nav goals set to %f m, %f deg.", _goalToleranceXY, angles::to_degrees(_goalToleranceYaw));
 
         if(s_PublishLocationsAsMarkers) {
             _markerPub = nhPriv.advertise<visualization_msgs::MarkerArray>("location_markers", 5);
@@ -74,30 +85,60 @@ namespace tidyup_grasp_actions
             p.parameters = paramList;
 
             p.name = "x";
-            double valueX;
-            if(!state.hasNumericalFluent(p, &valueX)) {
+            double posX;
+            if(!state.hasNumericalFluent(p, &posX)) {
                 ROS_ERROR("%s: target object: %s - no x-location in goal.", __func__, target.c_str());
                 continue;
             }
-            double valueY;
+            double posY;
             p.name = "y";
-            if(!state.hasNumericalFluent(p, &valueY)) {
+            if(!state.hasNumericalFluent(p, &posY)) {
                 ROS_ERROR("%s: target object: %s - no y-location in goal.", __func__, target.c_str());
                 continue;
             }
 
-            double dx = transform.getOrigin().x() - valueX;
-            double dy = transform.getOrigin().y() - valueY;
+            double qx;
+            p.name = "qx";
+            if(!state.hasNumericalFluent(p, &qx)) {
+                ROS_ERROR("%s: target object: %s - no qx in goal.", __func__, target.c_str());
+                continue;
+            }
+            double qy;
+            p.name = "qy";
+            if(!state.hasNumericalFluent(p, &qy)) {
+                ROS_ERROR("%s: target object: %s - no qy in goal.", __func__, target.c_str());
+                continue;
+            }
+            double qz;
+            p.name = "qz";
+            if(!state.hasNumericalFluent(p, &qz)) {
+                ROS_ERROR("%s: target object: %s - no qz in goal.", __func__, target.c_str());
+                continue;
+            }
+            double qw;
+            p.name = "qw";
+            if(!state.hasNumericalFluent(p, &qw)) {
+                ROS_ERROR("%s: target object: %s - no qw in goal.", __func__, target.c_str());
+                continue;
+            }
+
+            tf::Transform targetTransform(btQuaternion(qx, qy, qz, qw), btVector3(posX, posY, 0.0));
+            tf::Transform deltaTransform = targetTransform.inverseTimes(transform);
+
+            double dDist = hypot(deltaTransform.getOrigin().x(), deltaTransform.getOrigin().y());
+            double dAng = tf::getYaw(deltaTransform.getRotation());
+            ROS_INFO("Target %s dist: %f m ang: %f deg", target.c_str(), dDist, angles::to_degrees(dAng));
+
             // Found a target - update state!
-            if(hypot(dx, dy) < _goalTolerance) {
+            if(dDist < _goalToleranceXY && fabs(dAng) < _goalToleranceYaw) {
                 ROS_INFO("(at) target %s !", target.c_str());
                 state.setBooleanPredicate("at-base", target, true);
                 atGraspLocations++;
             } else {
                 state.setBooleanPredicate("at-base", target, false);
             }
-            if(hypot(dx, dy) < minDist) {
-                minDist = hypot(dx, dy);
+            if(dDist < minDist) {
+                minDist = dDist;
                 nearestTarget = target;
             }
         }

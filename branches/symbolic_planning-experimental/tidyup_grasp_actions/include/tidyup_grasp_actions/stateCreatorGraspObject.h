@@ -23,7 +23,8 @@ namespace tidyup_grasp_actions
         protected:
             tf::TransformListener _tf;
 
-            double _goalTolerance;
+            double _goalToleranceXY;
+            double _goalToleranceYaw;
 
             static const bool s_PublishLocationsAsMarkers = true;
             ros::Publisher _markerPub;
