@@ -12,6 +12,7 @@ namespace tidyup_grasp_actions
             const DurativeAction & a, const SymbolicState & current)
     {
         ROS_ASSERT(a.parameters.size() == 3);
+        string location = a.parameters[0];
         string targetName = a.parameters[1];
         string arm = a.parameters[2];
 
@@ -27,7 +28,8 @@ namespace tidyup_grasp_actions
 
         // set target
         goal.target.name = targetName;
-        goal.target.reachable = true;
+        goal.target.reachable_left_arm = false;
+        goal.target.reachable_right_arm = false;
 
         // set the target pose from state
         Predicate p;
@@ -62,6 +64,22 @@ namespace tidyup_grasp_actions
         p.name = "qw";
         if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.w))
             return false;
+
+        // set target reachable from state
+        p.name = "graspable-from";
+        p.parameters.push_back(location);
+        
+        p.parameters.push_back("left_arm");
+        bool reachableLeft;
+        if(!current.hasBooleanPredicate(p, &reachableLeft))
+            return false;
+        goal.target.reachable_left_arm = reachableLeft;
+        
+        p.parameters[2] = "right_arm";
+        bool reachableRight;
+        if(!current.hasBooleanPredicate(p, &reachableRight))
+            return false;
+        goal.target.reachable_right_arm = reachableRight;
 
         return (goal.left_arm || goal.right_arm);
     }
