@@ -11,7 +11,8 @@
             if nav_target_tolerance_relative_to_move_base is true, nav_base_local_planner_ns should give
             the namespace that holds the xy_goal_tolerance parameter the base_local_planner uses.
         -->
-        <param name="nav_target_tolerance" value="0.05" />
+        <param name="nav_target_tolerance_xy" value="0.05" />
+        <param name="nav_target_tolerance_yaw" value="0.05" />
         <param name="nav_target_tolerance_relative_to_move_base" value="true" />
         <param name="nav_base_local_planner_ns" value="/move_base_node/DWAPlannerROS" />
 
