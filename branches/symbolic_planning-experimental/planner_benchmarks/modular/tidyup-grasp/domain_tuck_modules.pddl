@@ -24,7 +24,7 @@
         (recent-detected-objects ?l - grasp_location)     ; did we perform detect-objects at this location, without driving in between?
         ; TODO also actions need to set the new predicates herein!!!
 
-        (graspable-from ?o - object ?g - grasp_location)  ; is ?o graspable from ?g
+        (graspable-from ?o - object ?g - grasp_location ?a - arm)  ; is ?o graspable from ?g with ?a
 
         (tucked ?a - arm)                               ; arm is tucked at the base
         (untucked ?a - arm)                             ; arm is in untuck position
@@ -200,7 +200,7 @@
         :duration (= ?duration 1.0)
 	    :condition (and
             (at start (at-base ?l))
-            (at start (graspable-from ?o ?l))
+            (at start (graspable-from ?o ?l ?a))
             (at start (handFree ?a))
             (at start (not (tucked ?a)))
             (at start (recent-detected-objects ?l))
@@ -219,9 +219,12 @@
     (:derived
         (clean ?l - grasp_location)
         (and 
-            (detected-objects ?l) 
-            (forall (?o - movable_object) 
-                (imply (graspable-from ?o ?l) (exists (?a - arm) (and (grasped ?o ?a) (post-grasped ?a)))) 
+            (detected-objects ?l)           ; we look there
+            (forall (?o - movable_object)   ; every object is grasped (if possible)
+                (imply                      ; when there is any arm that can grasp the object it is grasped by an arm (not necessarily this one [if graspable with both])
+                    (exists (?a - arm) (graspable-from ?o ?l ?a))
+                    (exists (?a - arm) (and (grasped ?o ?a) (post-grasped ?a)))
+                )
             )
         )
     )
