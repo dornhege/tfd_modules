@@ -13,7 +13,7 @@
 
       (detected-objects lg1)
 
-      (graspable-from bottle lg1)
+      (graspable-from bottle lg1 right_arm)
 
       (= (x l0) 0.0)
       (= (y l0) 0.0)

@@ -16,12 +16,12 @@
       ; TODO connectivity module or set flag: use_cost_modules_for_applicablility
     )
 
-    (:predicates 
+    (:predicates
         (at-base ?l - location)                           ; location of the base
         (can-navigate ?s - location ?g - location)        ; is there a path from ?s to ?g
         (detected-objects ?l - grasp_location)            ; did we perform detect-objects at this location?
 
-        (graspable-from ?o - object ?g - grasp_location)  ; is ?o graspable from ?g
+        (graspable-from ?o - object ?g - grasp_location ?a - arm)  ; is ?o graspable from ?g with ?a
 
         (handFree ?a - arm)                           ; nothing grasped in arm ?a
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
@@ -72,7 +72,7 @@
         :duration (= ?duration 1.0)
 	    :condition (and
             (at start (at-base ?l))
-            (at start (graspable-from ?o ?l))
+            (at start (graspable-from ?o ?l ?a))
             (at start (handFree ?a))
             )
 	    :effect
@@ -86,9 +86,12 @@
     (:derived
         (clean ?l - grasp_location)
         (and 
-            (detected-objects ?l) 
-            (forall (?o - movable_object) 
-                (imply (graspable-from ?o ?l) (exists (?a - arm) (grasped ?o ?a))) 
+            (detected-objects ?l)           ; we look there
+            (forall (?o - movable_object)   ; every object is grasped (if possible)
+                (imply                      ; when there is any arm that can grasp the object it is grasped by an arm (not necessarily this one [if graspable with both])
+                    (exists (?a - arm) (graspable-from ?o ?l ?a))
+                    (exists (?a - arm) (and (grasped ?o ?a) (post-grasped ?a)))
+                )
             )
         )
     )
