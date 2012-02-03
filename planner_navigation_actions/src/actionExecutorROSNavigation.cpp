@@ -45,6 +45,9 @@ namespace planner_navigation_actions
         p.name = "qw";
         if(!current.hasNumericalFluent(p, &goal.target_pose.pose.orientation.w))
             return false;
+
+        ROS_INFO_STREAM("Created goal for ActionExecutorROSNavigation as: " << goal);
+
         return true;
     }
 
