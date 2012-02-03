@@ -194,9 +194,11 @@ retryGetPlan:
             lastPose = p;
          }
          cost = pathLength;
+      } else {
+          ROS_WARN("Got empty plan from service");
       }
 
-      ROS_INFO("Got plan from service.");
+      ROS_INFO("Got plan from service, cost: %f.", cost);
       // also empty plan = OK or fail or none?
    } else {
       ROS_ERROR("Failed to call service %s - is the robot moving?", s_GetPlan.getService().c_str());
