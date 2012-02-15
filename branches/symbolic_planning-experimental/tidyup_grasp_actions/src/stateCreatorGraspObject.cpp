@@ -47,7 +47,7 @@ namespace tidyup_grasp_actions
         ROS_INFO("Tolerance for accepting nav goals set to %f m, %f deg.", _goalToleranceXY, angles::to_degrees(_goalToleranceYaw));
 
         if(s_PublishLocationsAsMarkers) {
-            _markerPub = nhPriv.advertise<visualization_msgs::MarkerArray>("location_markers", 5);
+            _markerPub = nhPriv.advertise<visualization_msgs::MarkerArray>("location_markers", 5, true);
         }
     }
 
