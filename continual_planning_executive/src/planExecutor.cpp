@@ -42,7 +42,7 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
                     actionsExectued++;
                     ROS_INFO_STREAM("Successfully executed action: \"" << da << "\"");
                 } else {
-                    ROS_WARN_STREAM("Action execution failed for action: \"" << da << "\"");
+                    ROS_ERROR_STREAM("Action execution failed for action: \"" << da << "\"");
                 }
                 // FIXME: insert even if failed as we tried and the action is "used up"
                 executedActions.insert(da);

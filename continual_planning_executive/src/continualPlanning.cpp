@@ -42,8 +42,10 @@ ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
     //          supervise those while running and estimating state.
     std::set<DurativeAction> executedActions;
     if(!_planExecutor.executeBlocking(_currentPlan, _currentState, executedActions)) {
-        ROS_WARN_STREAM("No action was executed for current plan:\n" << _currentPlan);
+        ROS_ERROR_STREAM("No action was executed for current plan:\n" << _currentPlan << "\nWaiting for 10 sec...");
         _forceReplan = true;        // force here in the hope that it fixes something.
+        ros::WallDuration sleep(10.0);
+        sleep.sleep();
     }
     // remove executedActions from plan
     for(std::set<DurativeAction>::iterator it = executedActions.begin(); it != executedActions.end(); it++) {
