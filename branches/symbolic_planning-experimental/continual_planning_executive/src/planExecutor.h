@@ -17,6 +17,9 @@ class PlanExecutor
         virtual bool executeBlocking(const Plan & p, SymbolicState & currentState,
                 std::set<DurativeAction> & executedActions);
 
+        /// send a cancel signal to all actions.
+        void cancelAllActions();
+
     protected:
         bool _onlyExecuteActionAtZeroTime;    ///< if false any action will be executed that an actionexecutor wants to
 

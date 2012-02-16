@@ -3,6 +3,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <signal.h>
 
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
@@ -270,11 +271,26 @@ bool init()
     return true;
 }
 
+void signal_handler(int signal)
+{
+    if(signal != SIGINT) {
+        raise(signal);
+        return;
+    }
+
+    ROS_INFO("SIGINT received - canceling all running actions.");
+    s_ContinualPlanning._planExecutor.cancelAllActions();
+
+    ROS_INFO("shutting down...");
+    ros::shutdown();
+}
+
 int main(int argc, char** argv)
 {
     ROS_INFO("Continual Planning Executive started.");
 
-    ros::init(argc, argv, "continual_planning_executive");
+    ros::init(argc, argv, "continual_planning_executive", ros::init_options::NoSigintHandler);
+    signal(SIGINT, signal_handler);
 
     ros::NodeHandle nh;
 
