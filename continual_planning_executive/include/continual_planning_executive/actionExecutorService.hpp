@@ -58,6 +58,9 @@ class ActionExecutorService : public continual_planning_executive::ActionExecuto
       virtual void updateState(bool success, typename Service::Response & response,
               const DurativeAction & a, SymbolicState & current) {}
 
+      /// can't really do anything here
+      virtual void cancelAction() {}
+
    protected:
       ros::NodeHandle* _nh;
       ros::ServiceClient _serviceClient;

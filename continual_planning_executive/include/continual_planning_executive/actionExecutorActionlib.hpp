@@ -58,6 +58,9 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
       virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState, const ActionResult & result,
               const DurativeAction & a, SymbolicState & current) {}
 
+      /// just cancelAllGoals
+      virtual void cancelAction();
+
    protected:
       typedef actionlib::SimpleActionClient<Action> ActionClient;
       ActionClient* _actionClient;
@@ -129,6 +132,12 @@ bool ActionExecutorActionlib<Action, ActionGoal, ActionResult>::executeBlocking(
     ROS_INFO("Could not reach goal for action %s! Resulting action state: %s.",
            _actionName.c_str(), _actionClient->getState().toString().c_str());
     return false;
+}
+
+template <class Action, class ActionGoal, class ActionResult>
+void ActionExecutorActionlib<Action, ActionGoal, ActionResult>::cancelAction()
+{
+    _actionClient->cancelAllGoals();
 }
 
 #endif

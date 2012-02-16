@@ -56,3 +56,10 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
     return actionsExectued > 0;
 }
 
+void PlanExecutor::cancelAllActions()
+{
+    forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+        ai->cancelAction();
+    }
+}
+

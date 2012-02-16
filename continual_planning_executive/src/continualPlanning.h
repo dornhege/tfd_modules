@@ -35,6 +35,7 @@ class ContinualPlanning
         friend bool loadGoalCreators(ros::NodeHandle & nh);
         friend bool loadActionExecutors(ros::NodeHandle & nh);
         friend bool loadPlanner(ros::NodeHandle & nh);
+        friend void signal_handler(int);
 
         enum ContinualPlanningState {
             Running,

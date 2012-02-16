@@ -36,6 +36,9 @@ namespace continual_planning_executive
             virtual bool executeBlocking(const DurativeAction & a, SymbolicState & currentState) = 0;
 
             // TODO_TP non blocking call with progress ala action lib for temporal/parallel execution
+
+            /// Stop execution of this action, if it is running.
+            virtual void cancelAction() = 0;
     };
 
     /// Split a named id (e.g. robot0) in name and id (robot, 0).
