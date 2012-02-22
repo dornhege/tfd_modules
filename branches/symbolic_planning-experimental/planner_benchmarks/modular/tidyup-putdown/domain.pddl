@@ -19,8 +19,8 @@
     )
 
     (:constants
-       left_arm right_arm - arm
-       tucked untucked post-grasped - arm_position
+        left_arm right_arm - arm
+        tucked untucked post-grasped unknown - arm_position
     )
 
     (:predicates
@@ -30,12 +30,12 @@
         (searched ?l - grasp_location)            ; did we perform detect-objects at this location at some time?
         (recent-detected-objects ?l - grasp_location)     ; did we perform detect-objects at this location, without something changing (like driving in between)
 
-        ; Both set from object detection
+        ; set from object detection
         (graspable-from ?o - movable_object ?g - grasp_location ?a - arm)  ; is ?o graspable from ?g with ?a
         (can-putdown ?o - movable_object ?p - object_pose ?a - arm ?g - grasp_location)
         ; can we putdown ?o held in ?a at ?p when base is at ?g
 
-        ; TODO how to get this
+        ; should be set from whoever makes the object_pose
         (belongs-to ?p - object_pose ?s - static_object)    ; is ?p a pose located at/in ?s
 
         (handFree ?a - arm)                           ; nothing grasped in arm ?a
@@ -43,6 +43,11 @@
 
         (tidy-location ?o ?s)                       ; if ?o is on ?s it is considered tidied up
     )
+
+    ; TODO If ungraspable and graspable and the graspable is grasped -> the ungraspable might now be graspable!
+    ; TODO one leftover (hack searched? - better make sure all objects current - yeah KIF)
+; p07/08 + putdown probs
+; reactivate assert
 
     (:functions
         (x ?p - pose) - number
@@ -79,8 +84,8 @@
             (at end (not (handFree ?a)))
             (at end (grasped ?o ?a))
             (at end (assign (at-object ?o) undefined))
-            (at start (assign (arm-position ?a) undefined))
-            (at end (not (graspable-from ?o ?l ?a)))
+            (at start (assign (arm-position ?a) unknown))
+            (at end (not (graspable-from ?o ?l ?a)))    ; TODO 1 away
             (forall (?l - location) (at start (not (recent-detected-objects ?l))))  ; we possibly changed graspable or can-putdown
             ; TODO if there are untidy objects here, mark it not searched (might become graspable when looking again)
         )
@@ -103,7 +108,7 @@
             (at end (handFree ?a))
             (at end (not (grasped ?o ?a)))
             (at end (assign (at-object ?o) ?p))
-            (at start (assign (arm-position ?a) undefined))
+            (at start (assign (arm-position ?a) unknown))
             (forall (?l - location) (at start (not (recent-detected-objects ?l))))  ; we possibly changed graspable or can-putdown
         )
     )
@@ -161,7 +166,8 @@
             (at start (not (= (arm-position ?a) post-grasped)))
             )
         :effect (and
-            (change (arm-position ?a) post-grasped)
+            (at start (assign (arm-position ?a) unknown))
+            (at end (assign (arm-position ?a) post-grasped))
             )
     )
 
@@ -179,8 +185,10 @@
                 )
             ))
         :effect (and
-            (change (arm-position ?l) untucked)
-            (change (arm-position ?r) untucked)
+            (at start (assign (arm-position ?l) unknown))
+            (at end (assign (arm-position ?l) untucked))
+            (at start (assign (arm-position ?r) unknown))
+            (at end (assign (arm-position ?r) untucked))
             )
     )
     (:durative-action tuck-arms
@@ -200,8 +208,10 @@
                 )
             )
         :effect (and
-            (change (arm-position ?l) tucked)
-            (change (arm-position ?r) tucked)
+            (at start (assign (arm-position ?l) unknown))
+            (at end (assign (arm-position ?l) tucked))
+            (at start (assign (arm-position ?r) unknown))
+            (at end (assign (arm-position ?r) tucked))
             )
     )
     (:durative-action tuck-left-untuck-right
@@ -219,8 +229,10 @@
                 ))
             )
         :effect (and
-            (change (arm-position ?l) tucked)
-            (change (arm-position ?r) untucked)
+            (at start (assign (arm-position ?l) unknown))
+            (at end (assign (arm-position ?l) tucked))
+            (at start (assign (arm-position ?r) unknown))
+            (at end (assign (arm-position ?r) untucked))
             )
     )
     (:durative-action untuck-left-tuck-right
@@ -239,8 +251,10 @@
                 )
             )
         :effect (and
-            (change (arm-position ?l) untucked)
-            (change (arm-position ?r) tucked)
+            (at start (assign (arm-position ?l) unknown))
+            (at end (assign (arm-position ?l) untucked))
+            (at start (assign (arm-position ?r) unknown))
+            (at end (assign (arm-position ?r) tucked))
             )
     )
 
@@ -258,6 +272,7 @@
         ; if there is a tidy-location and the object is somehow graspable, it should be there
         (imply
             (and
+                ; we want it tidy
                 (exists (?s - static_object) (tidy-location ?o ?s))     ; tidy-location defined (needs to be tidied)
                 ; The object can actually somehow be grasped
                 (or
@@ -269,14 +284,43 @@
                     ; (and thus could be moved out of the way to get to ?o)
                     (exists (?other - movable_object)
                         (exists (?s - static_object)        ; there is another object
-                            (and (on ?other ?s) (on ?o ?s)  ; that is on the same ?s as ?o
+                            (and
+                                (not (= ?other ?o))
+                                (on ?other ?s) (on ?o ?s)  ; that is on the same ?s as ?o
                                 ; and we can somehow grasp ?other
-                                (exists (?a - arm) (exists (?l - grasp_location) (graspable-from ?other ?l ? a)))
+                                (exists (?a - arm) (exists (?l - grasp_location) (graspable-from ?other ?l ?a)))
                             )
                         )
                     )
+
+                    ; Or we already have it grasped
+                    (exists (?a - arm) (grasped ?o ?a))
                 )
-            )   ; THEN
+                ; The object can showhow be put down at a tidy location
+                (or
+                    ; Either because there is some putdown position for ?o that is a tidy-location
+                    ; DO we want this? Or should the planner just fail?
+                    ; How does the planner achieve a plan from this?
+                    ; if just take object away destroys these properties solution plan is:
+; take last object
+; be happy
+                    (exists (?p - object_pose)
+                        (exists (?a - arm)
+                            (exists (?g - grasp_location)
+                                (exists (?s - static_object)
+                                    (and
+                                        (can-putdown ?o ?p ?a ?g)
+                                        (belongs-to ?p ?s)
+                                        (tidy-location ?o ?s)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                    ; Or because some other object at the same location is graspable
+                    ; (and thus could be moved out of the way)
+                )
+            )   ; THEN -> it is tidied
             ; there is some static_object that is a tidy-location for ?o and ?o is actually there (i.e. ?o is tidy)
             (exists (?s - static_object) (and (tidy-location ?o ?s) (on ?o ?s)))
         )
