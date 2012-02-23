@@ -4,6 +4,7 @@
 
 bool Predicate::operator<(const Predicate & p) const
 {
+#if 0
     if(name < p.name)
         return true;
     else if(name > p.name)
@@ -13,6 +14,51 @@ bool Predicate::operator<(const Predicate & p) const
     else if(parameters.size() > p.parameters.size())
         return false;
     for(unsigned int i = 0; i < parameters.size(); i++) {
+        if(parameters[i] < p.parameters[i])
+            return true;
+        else if(parameters[i] > p.parameters[i])
+            return false;
+    }
+    // equal -> false (not <)
+    return false;
+#endif
+    // sorting procedure for predicates
+    // no particular reason then to put them in the map somehow
+    // so: tailored to nice outputs
+    //
+    // First: "global" preds = no parameters
+    // Then: sorted by their first parameter
+    // -> Idea: If that is an object all preds of the same object in one bunch
+    // Next: sorted by name
+    // -> Same predicates for the object together
+    // finally sorted by the following parameters
+
+    // 0-size params go before all others
+    if(parameters.empty() && !p.parameters.empty())
+        return true;
+    if(!parameters.empty() && p.parameters.empty())
+        return false;
+    // if both 0-size, sort by name
+    if(parameters.empty() && p.parameters.empty())
+        return name < p.name;
+
+    // now both parameters not empty
+    // sort by first parameter
+    if(parameters[0] < p.parameters[0])
+        return true;
+    if(parameters[0] > p.parameters[0])
+        return false;
+    // first is same, sort by name
+    if(name < p.name)
+        return true;
+    else if(name > p.name)
+        return false;
+    // names are same, just sort by the following params
+    if(parameters.size() < p.parameters.size())
+        return true;
+    else if(parameters.size() > p.parameters.size())
+        return false;
+    for(unsigned int i = 1; i < parameters.size(); i++) {
         if(parameters[i] < p.parameters[i])
             return true;
         else if(parameters[i] > p.parameters[i])
