@@ -64,6 +64,7 @@
 ; nope for later in both on (and the other)
 ; better to assume that one position -> objs stuff and clean somehow
 
+
     (:functions
         (x ?p - pose) - number
         (y ?p - pose) - number
@@ -281,59 +282,85 @@
         (exists (?p - object_pose)
             (and (belongs-to ?p ?s) (= (at-object ?o) ?p)))
     )
+ 
+    ;;; The following derived predicates define when an object is considered tidy, i.e.
+    ;;; we have this cleaned or do not need to clean it or there is no chance to clean it
 
+    ; 1. It is at a tidy location
     (:derived
         (tidy ?o - movable_object)
-        ; if there is a tidy-location and the object is somehow graspable, it should be there
-        (imply
-            (and
-                ; we want it tidy
-                (exists (?s - static_object) (tidy-location ?o ?s))     ; tidy-location defined (needs to be tidied)
-                ; The object can actually somehow be grasped
-                (or
-                    ; Either becasue is is graspable from a location
-                    (exists (?a - arm)                                      ; there is some arm and
-                        (exists (?l - grasp_location)                       ; some location so that
-                            (graspable-from ?o ?l ?a)))                     ; we can somehow grasp the object
-                    ; Or because some other object on the same location is graspable 
-                    ; (and thus could be moved out of the way to get to ?o)
-                    (exists (?other - movable_object)
-                        (exists (?s - static_object)        ; there is another object
-                            (and
-                                (not (= ?other ?o))
-                                (on ?other ?s) (on ?o ?s)  ; that is on the same ?s as ?o
-                                ; and we can somehow grasp ?other
-                                (exists (?a - arm) (exists (?l - grasp_location) (graspable-from ?other ?l ?a)))
-                            )
-                        )
-                    )
+        ; there is some static_object that is a tidy-location for ?o and ?o is actually there (i.e. ?o is tidy)
+        (exists (?s - static_object) (and (tidy-location ?o ?s) (on ?o ?s)))
+    )
 
-                    ; Or we already have it grasped
-                    (exists (?a - arm) (grasped ?o ?a))
+    ; 2. There is no tidy location defined for ?o (i.e. we don't need to tidy it)
+    (:derived
+        (tidy ?o - movable_object)
+        ; we don't want it tidy
+        (not (exists (?s - static_object) (tidy-location ?o ?s)))
+    )
+
+    ; 3. There is no way that we can get the object grasped, so we need not bother tidying this
+    (:derived
+        (tidy ?o - movable_object)
+        ; no way to get grasped means none of those:
+        (and 
+            ; It is not already grasped
+            (not (exists (?a - arm) (grasped ?o ?a)))
+
+            ; It is not graspable from any location
+            (not (exists (?a - arm)                                     ; there is some arm and
+                (exists (?l - grasp_location)                           ; some location so that
+                    (graspable-from ?o ?l ?a))))                        ; we can somehow grasp the object
+
+            ; There is also no chance to make it graspable by removing another graspable object
+            ; because all other objects at the same static_object are also not graspable
+            (not (exists (?other - movable_object)
+                (exists (?s - static_object)
+                    (and
+                        (not (= ?other ?o))         ; another object
+                        (on ?other ?s) (on ?o ?s)   ; that is on the same ?s as ?o
+                        ; and we can somehow grasp ?other
+                        (exists (?a - arm) (exists (?l - grasp_location) (graspable-from ?other ?l ?a)))
+                    )
                 )
-                ; The object can showhow be put down at a tidy location
-                (or
-                    ; Either because there is some putdown position for ?o that is a tidy-location
-                    (exists (?p - object_pose)
-                        (exists (?a - arm)
-                            (exists (?g - grasp_location)
-                                (exists (?s - static_object)
-                                    (and
-                                        (can-putdown ?o ?p ?a ?g)
-                                        (belongs-to ?p ?s)
-                                        (tidy-location ?o ?s)
-                                    )
-                                )
+            ))
+            ; NOTE: The (on) derived-predicates in the last clause will be used negated in
+            ; negative normal form which is prohibited by the PDDL definition.
+            ; This would constitute a sufficient condition for keeping axioms stratifiable.
+            ; Nevertheless with the current formulation of (on) axioms are stratifiable and
+            ; TFD should also handle this correctly.
+            ; If problems arise the (on) terms here need to be replaced with the condition of (on).
+        )
+    )
+
+    ; 4. There is no way that we can put this object at any tidy-location, so we need not bother
+    (:derived
+        (tidy ?o - movable_object)
+        ; No way to putdown mean neither of those is true
+        (and 
+            ; There is no putdown position for ?o at any tidy-location where can-putdown is true
+            (not (exists (?p - object_pose)
+                (exists (?a - arm)
+                    (exists (?g - grasp_location)
+                        (exists (?s - static_object)
+                            (and
+                                (can-putdown ?o ?p ?a ?g)
+                                (belongs-to ?p ?s)
+                                (tidy-location ?o ?s)
                             )
                         )
                     )
-                    ; Or because some other object at the same location is graspable
-                    ; (and thus could be moved out of the way)
-                    ; TODO
                 )
-            )   ; THEN -> it is tidied
-            ; there is some static_object that is a tidy-location for ?o and ?o is actually there (i.e. ?o is tidy)
-            (exists (?s - static_object) (and (tidy-location ?o ?s) (on ?o ?s)))
+            ))
+
+            ; There is also no putdown position for ?o where can-putdown is false,
+            ; but some other object is graspable, thus possible enabling can-putdown once ?other is removed.
+            ;
+            ; TODO
+            ; Or because some other object at the same location is graspable
+            ; (and thus could be moved out of the way)
+            ; (...)
         )
     )
 )
