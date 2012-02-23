@@ -27,8 +27,6 @@
        (recent-detected-objects lg1)
 
        (belongs-to bottlepos ether)
-       (= (at-object bottle) bottlepos)
-       (graspable-from bottle lg1 right_arm)
 
        (tidy-location bottle goal_table)
 
