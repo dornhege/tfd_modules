@@ -46,8 +46,23 @@
 
     ; TODO If ungraspable and graspable and the graspable is grasped -> the ungraspable might now be graspable!
     ; TODO one leftover (hack searched? - better make sure all objects current - yeah KIF)
-; p07/08 + putdown probs
-; reactivate assert
+
+; OK, jsut assume there is only one searhc loc for each obj???
+; seen from? as long as there are object not tidy that are seen from any loc, need to go back to see that object again????
+; maybe circumvent the seen/searched/KIF/1 object left stuff by really just assuring that we possibly go back to some locs until they are really clean (and possibly remove some objs from state)
+; seems nice
+;
+                    ; Either because there is some putdown position for ?o that is a tidy-location
+                    ; DO we want this? Or should the planner just fail?
+                    ; How does the planner achieve a plan from this?
+                    ; if just take object away destroys these properties solution plan is:
+; take last object
+; be happy
+
+; Can we remove the ether, just not set belongs-to to anything!
+; should only influence on, it is OK if we are on nothin?
+; nope for later in both on (and the other)
+; better to assume that one position -> objs stuff and clean somehow
 
     (:functions
         (x ?p - pose) - number
@@ -299,11 +314,6 @@
                 ; The object can showhow be put down at a tidy location
                 (or
                     ; Either because there is some putdown position for ?o that is a tidy-location
-                    ; DO we want this? Or should the planner just fail?
-                    ; How does the planner achieve a plan from this?
-                    ; if just take object away destroys these properties solution plan is:
-; take last object
-; be happy
                     (exists (?p - object_pose)
                         (exists (?a - arm)
                             (exists (?g - grasp_location)
@@ -319,6 +329,7 @@
                     )
                     ; Or because some other object at the same location is graspable
                     ; (and thus could be moved out of the way)
+                    ; TODO
                 )
             )   ; THEN -> it is tidied
             ; there is some static_object that is a tidy-location for ?o and ?o is actually there (i.e. ?o is tidy)
