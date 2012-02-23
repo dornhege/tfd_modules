@@ -132,7 +132,6 @@ def compute_necessary_axiom_literals(axioms_by_atom, operators,
 def get_axiom_init(axioms_by_atom, necessary_literals):
     result = set()
     for atom in axioms_by_atom:
-        assert(not (atom in necessary_literals and atom.negate() in necessary_literals))
         if atom not in necessary_literals and atom.negate() in necessary_literals:
             # Initial value for axiom: False (which is omitted due to closed world
             # assumption) unless it is only needed negatively.
