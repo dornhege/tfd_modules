@@ -5,8 +5,8 @@
    (:domain tidyup-putdown)
    (:moduleoptions )
    (:objects l0 - location bottle - movable_object bottlepos - object_pose
-     ether goal_table - static_object
-     lg0 lg1 lg2 - grasp_location map - frameid)
+     goal_table - static_object
+     lg0 lg1 lg2 - search_location map - frameid)
    (:init 
        (at-base lg1)
 
@@ -20,13 +20,11 @@
        (handFree left_arm)
        (grasped bottle right_arm)
 
-       (= (arm-position left_arm) unknown)
-       (= (arm-position right_arm) unknown)
+       (= (arm-position left_arm) unknown_armpos)
+       (= (arm-position right_arm) unknown_armpos)
 
        (searched lg1)
        (recent-detected-objects lg1)
-
-       (belongs-to bottlepos ether)
 
        (tidy-location bottle goal_table)
 
@@ -43,7 +41,7 @@
 
     (:goal
         (and
-            (forall (?l - grasp_location) (searched ?l))
+            (forall (?l - search_location) (cleared ?l))
             (forall (?o - movable_object) (tidy ?o))
         )
     )
