@@ -12,28 +12,23 @@ class Variable;
 
 class DomainTransitionGraphSymb: public DomainTransitionGraph
 {
-
     private:
-        struct Transition
-        {
-                Transition(int theTarget, int theOp, trans_type theType) :
-                    target(theTarget), op(theOp), type(theType)
-                {
+        struct Transition {
+            Transition(int theTarget, int theOp, trans_type theType) :
+                target(theTarget), op(theOp), type(theType) {
                 }
-                bool operator==(const Transition &other) const
-                {
-                    return target == other.target && op == other.op
-                            && condition == other.condition && type
-                            == other.type;
-                }
-                bool operator<(const Transition &other) const;
-                int target;
-                int op;
-                SetEdgeCondition set_condition;
-                EdgeCondition condition;
-                trans_type type;
-                DurationCond duration;
-                void dump();
+            bool operator==(const Transition &other) const {
+                return target == other.target && op == other.op
+                    && condition == other.condition && type == other.type;
+            }
+            bool operator<(const Transition &other) const;
+            int target;
+            int op;
+            SetEdgeCondition set_condition;
+            EdgeCondition condition;
+            trans_type type;
+            DurationCond duration;
+            void dump();
         };
         typedef vector<Transition> Vertex;
         vector<Vertex> vertices;

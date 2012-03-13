@@ -11,19 +11,17 @@ class Variable;
 class DomainTransitionGraphFunc: public DomainTransitionGraph
 {
     private:
-        struct Transition
-        {
-                Transition(trans_type theType, int theOp) :
-                    type(theType), op(theOp)
-                {
+        struct Transition {
+            Transition(trans_type theType, int theOp) :
+                type(theType), op(theOp) {
                 }
-                SetEdgeCondition set_condition;
-                EdgeCondition condition;
-                trans_type type;
-                foperator fop;
-                DurationCond duration;
-                Variable *right_var;
-                int op;
+            SetEdgeCondition set_condition;
+            EdgeCondition condition;
+            trans_type type;
+            foperator fop;
+            DurationCond duration;
+            Variable *right_var;
+            int op;
         };
         int level;
         vector<Transition> transitions;

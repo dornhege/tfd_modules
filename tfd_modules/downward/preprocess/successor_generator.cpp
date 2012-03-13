@@ -23,20 +23,18 @@ using namespace std;
  course also reduce memory usage. However, it would make the code
  g++-specific, so it's probably not worth it.
 
- */
+*/
 
-class GeneratorBase
-{
+class GeneratorBase {
     public:
-        virtual ~GeneratorBase()
-        {
+        virtual ~GeneratorBase() {
         }
         virtual void dump(string indent) const = 0;
         virtual void generate_cpp_input(ostream &outfile) const = 0;
 };
 
-class GeneratorSwitch: public GeneratorBase
-{
+class GeneratorSwitch : public GeneratorBase {
+    private:
         Variable *switch_var;
         list<int> immediate_ops_indices;
         vector<GeneratorBase *> generator_for_value;
@@ -44,14 +42,13 @@ class GeneratorSwitch: public GeneratorBase
     public:
         ~GeneratorSwitch();
         GeneratorSwitch(Variable *switch_variable, list<int> &operators,
-                const vector<GeneratorBase *> &gen_for_val,
-                GeneratorBase *default_gen);
+                const vector<GeneratorBase *> &gen_for_val, GeneratorBase *default_gen);
         virtual void dump(string indent) const;
         virtual void generate_cpp_input(ostream &outfile) const;
 };
 
-class GeneratorLeaf: public GeneratorBase
-{
+class GeneratorLeaf : public GeneratorBase {
+    private:
         list<int> applicable_ops_indices;
     public:
         GeneratorLeaf(list<int> &operators);
@@ -59,8 +56,7 @@ class GeneratorLeaf: public GeneratorBase
         virtual void generate_cpp_input(ostream &outfile) const;
 };
 
-class GeneratorEmpty: public GeneratorBase
-{
+class GeneratorEmpty : public GeneratorBase {
     public:
         virtual void dump(string indent) const;
         virtual void generate_cpp_input(ostream &outfile) const;
@@ -70,26 +66,23 @@ GeneratorSwitch::GeneratorSwitch(Variable *switch_variable,
         list<int> &operators, const vector<GeneratorBase *> &gen_for_val,
         GeneratorBase *default_gen) :
     switch_var(switch_variable), generator_for_value(gen_for_val),
-            default_generator(default_gen)
-{
-    immediate_ops_indices.swap(operators);
-}
+    default_generator(default_gen) {
+        immediate_ops_indices.swap(operators);
+    }
 
-GeneratorSwitch::~GeneratorSwitch()
-{
-    for (int i = 0; i < generator_for_value.size(); i++)
+GeneratorSwitch::~GeneratorSwitch() {
+    for(int i = 0; i < generator_for_value.size(); i++)
         delete generator_for_value[i];
     delete default_generator;
 }
 
-void GeneratorSwitch::dump(string indent) const
-{
+void GeneratorSwitch::dump(string indent) const {
     cout << indent << "switch on " << switch_var->get_level() << endl;
     cout << indent << "immediately:" << endl;
-    for (list<int>::const_iterator op_iter = immediate_ops_indices.begin(); op_iter
+    for(list<int>::const_iterator op_iter = immediate_ops_indices.begin(); op_iter
             != immediate_ops_indices.end(); ++op_iter)
         cout << indent << *op_iter << endl;
-    for (int i = 0; i < switch_var->get_range(); i++) {
+    for(int i = 0; i < switch_var->get_range(); i++) {
         cout << indent << "case " << i << ":" << endl;
         generator_for_value[i]->dump(indent + "  ");
     }
@@ -97,16 +90,15 @@ void GeneratorSwitch::dump(string indent) const
     default_generator->dump(indent + "  ");
 }
 
-void GeneratorSwitch::generate_cpp_input(ostream &outfile) const
-{
+void GeneratorSwitch::generate_cpp_input(ostream &outfile) const {
     int level = switch_var->get_level();
     assert(level != -1);
     outfile << "switch " << level << endl;
     outfile << "check " << immediate_ops_indices.size() << endl;
-    for (list<int>::const_iterator op_iter = immediate_ops_indices.begin(); op_iter
+    for(list<int>::const_iterator op_iter = immediate_ops_indices.begin(); op_iter
             != immediate_ops_indices.end(); ++op_iter)
         outfile << *op_iter << endl;
-    for (int i = 0; i < switch_var->get_range(); i++) {
+    for(int i = 0; i < switch_var->get_range(); i++) {
         //cout << "case "<<switch_var->get_name()<<" (Level " <<switch_var->get_level() <<
         //  ") has value " << i << ":" << endl;
         generator_for_value[i]->generate_cpp_input(outfile);
@@ -115,39 +107,33 @@ void GeneratorSwitch::generate_cpp_input(ostream &outfile) const
     default_generator->generate_cpp_input(outfile);
 }
 
-GeneratorLeaf::GeneratorLeaf(list<int> &ops)
-{
+GeneratorLeaf::GeneratorLeaf(list<int> &ops) {
     applicable_ops_indices.swap(ops);
 }
 
-void GeneratorLeaf::dump(string indent) const
-{
-    for (list<int>::const_iterator op_iter = applicable_ops_indices.begin(); op_iter
+void GeneratorLeaf::dump(string indent) const {
+    for(list<int>::const_iterator op_iter = applicable_ops_indices.begin(); op_iter
             != applicable_ops_indices.end(); ++op_iter)
         cout << indent << *op_iter << endl;
 }
 
-void GeneratorLeaf::generate_cpp_input(ostream &outfile) const
-{
+void GeneratorLeaf::generate_cpp_input(ostream &outfile) const {
     outfile << "check " << applicable_ops_indices.size() << endl;
-    for (list<int>::const_iterator op_iter = applicable_ops_indices.begin(); op_iter
+    for(list<int>::const_iterator op_iter = applicable_ops_indices.begin(); op_iter
             != applicable_ops_indices.end(); ++op_iter)
         outfile << *op_iter << endl;
 }
 
-void GeneratorEmpty::dump(string indent) const
-{
+void GeneratorEmpty::dump(string indent) const {
     cout << indent << "<empty>" << endl;
 }
 
-void GeneratorEmpty::generate_cpp_input(ostream &outfile) const
-{
+void GeneratorEmpty::generate_cpp_input(ostream &outfile) const {
     outfile << "check 0" << endl;
 }
 
 SuccessorGenerator::SuccessorGenerator(const vector<Variable *> &variables,
-        const vector<Operator> &operators)
-{
+        const vector<Operator> &operators) {
     //  cout << "variables:" << endl;
     //  for(int i=0; i< variables.size(); i++) {
     //    cout << variables[i]->get_name() << endl;
@@ -155,16 +141,16 @@ SuccessorGenerator::SuccessorGenerator(const vector<Variable *> &variables,
     // We need the iterators to conditions to be stable:
     conditions.reserve(operators.size());
     list<int> all_operator_indices;
-    for (int i = 0; i < operators.size(); i++) {
+    for(int i = 0; i < operators.size(); i++) {
         const Operator *op = &operators[i];
         Condition cond;
-        for (int j = 0; j < op->get_prevail_start().size(); j++) {
+        for(int j = 0; j < op->get_prevail_start().size(); j++) {
             Operator::Prevail prev = op->get_prevail_start()[j];
             cond.push_back(make_pair(prev.var, prev.prev));
         }
-        for (int j = 0; j < op->get_pre_post_start().size(); j++) {
+        for(int j = 0; j < op->get_pre_post_start().size(); j++) {
             Operator::PrePost pre_post = op->get_pre_post_start()[j];
-            if (pre_post.pre != -1)
+            if(pre_post.pre != -1)
                 cond.push_back(make_pair(pre_post.var, pre_post.pre));
         }
         sort(cond.begin(), cond.end());
@@ -173,8 +159,7 @@ SuccessorGenerator::SuccessorGenerator(const vector<Variable *> &variables,
         next_condition_by_op.push_back(conditions.back().begin());
     }
 
-    cout << "all_operator_indices.size(): " << all_operator_indices.size()
-            << endl;
+    cout << "all_operator_indices.size(): " << all_operator_indices.size() << endl;
 
     varOrder = variables;
     sort(varOrder.begin(), varOrder.end());
@@ -182,20 +167,19 @@ SuccessorGenerator::SuccessorGenerator(const vector<Variable *> &variables,
     root = construct_recursive(0, all_operator_indices);
 }
 
-GeneratorBase *SuccessorGenerator::construct_recursive(int switch_var_no, list<
-        int> &op_indices)
-{
-    if (op_indices.empty())
+GeneratorBase *SuccessorGenerator::construct_recursive(int switch_var_no,
+        list<int> &op_indices) {
+    if(op_indices.empty())
         return new GeneratorEmpty;
 
-    while (true) {
+    while(true) {
 
         // Test if no further switch is necessary (or possible).
-        if (switch_var_no == varOrder.size())
+        if(switch_var_no == varOrder.size())
             return new GeneratorLeaf(op_indices);
 
         //cout << "size:" << varOrder.size() << ", number: " << switch_var_no << endl;
-        if (varOrder[switch_var_no]->is_functional()
+        if(varOrder[switch_var_no]->is_functional()
                 || varOrder[switch_var_no]->is_module()) {
             // this switch var can be left out because variable is functional
             ++switch_var_no;
@@ -212,22 +196,21 @@ GeneratorBase *SuccessorGenerator::construct_recursive(int switch_var_no, list<
         bool all_ops_are_immediate = true;
         bool var_is_interesting = false;
 
-        while (!op_indices.empty()) {
+        while(!op_indices.empty()) {
             int op_index = op_indices.front();
             op_indices.pop_front();
             assert(op_index >= 0 && op_index < next_condition_by_op.size());
-            Condition::const_iterator &cond_iter =
-                    next_condition_by_op[op_index];
+            Condition::const_iterator &cond_iter = next_condition_by_op[op_index];
             assert(cond_iter - conditions[op_index].begin() >= 0);
             assert(cond_iter - conditions[op_index].begin() <= conditions[op_index].size());
-            if (cond_iter == conditions[op_index].end()) {
+            if(cond_iter == conditions[op_index].end()) {
                 var_is_interesting = true;
                 applicable_ops_indices.push_back(op_index);
             } else {
                 all_ops_are_immediate = false;
                 Variable *var = cond_iter->first;
                 int val = cond_iter->second;
-                if (var == switch_var) {
+                if(var == switch_var) {
                     var_is_interesting = true;
                     ++cond_iter;
                     ops_for_val_indices[val].push_back(op_index);
@@ -237,18 +220,17 @@ GeneratorBase *SuccessorGenerator::construct_recursive(int switch_var_no, list<
             }
         }
 
-        if (all_ops_are_immediate) {
+        if(all_ops_are_immediate) {
             return new GeneratorLeaf(applicable_ops_indices);
-        } else if (var_is_interesting) {
+        } else if(var_is_interesting) {
             vector<GeneratorBase *> gen_for_val;
-            for (int j = 0; j < number_of_children; j++) {
+            for(int j = 0; j < number_of_children; j++) {
                 gen_for_val.push_back(construct_recursive(switch_var_no + 1,
-                        ops_for_val_indices[j]));
+                            ops_for_val_indices[j]));
             }
             GeneratorBase *default_sg = construct_recursive(switch_var_no + 1,
                     default_ops_indices);
-            return new GeneratorSwitch(switch_var, applicable_ops_indices,
-                    gen_for_val, default_sg);
+            return new GeneratorSwitch(switch_var, applicable_ops_indices, gen_for_val, default_sg);
         } else {
             // this switch var can be left out because no operator depends on it
             ++switch_var_no;
@@ -257,22 +239,18 @@ GeneratorBase *SuccessorGenerator::construct_recursive(int switch_var_no, list<
     }
 }
 
-SuccessorGenerator::SuccessorGenerator()
-{
+SuccessorGenerator::SuccessorGenerator() {
     root = 0;
 }
 
-SuccessorGenerator::~SuccessorGenerator()
-{
+SuccessorGenerator::~SuccessorGenerator() {
     delete root;
 }
 
-void SuccessorGenerator::dump() const
-{
+void SuccessorGenerator::dump() const {
     cout << "Successor Generator:" << endl;
     root->dump("  ");
 }
-void SuccessorGenerator::generate_cpp_input(ostream &outfile) const
-{
+void SuccessorGenerator::generate_cpp_input(ostream &outfile) const {
     root->generate_cpp_input(outfile);
 }

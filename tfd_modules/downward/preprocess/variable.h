@@ -5,8 +5,8 @@
 #include <iostream>
 using namespace std;
 
-class Variable
-{
+class Variable {
+    private:
         int range;
         string name;
         int layer;
@@ -25,14 +25,8 @@ class Variable
         bool is_necessary() const;
         int get_range() const;
         string get_name() const;
-        int get_layer() const
-        {
-            return layer;
-        }
-        bool is_derived() const
-        {
-            return layer != -1;
-        }
+        int get_layer() const { return layer; }
+        bool is_derived() const { return layer != -1; }
         bool is_functional() const;
         bool is_used_in_duration_condition() const;
         void set_used_in_duration_condition();

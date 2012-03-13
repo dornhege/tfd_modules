@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "operator.h"
 #include "causal_graph.h"
+#include "plannerParameters.h"
 
 #include <algorithm>
 #include <iostream>
@@ -44,14 +45,35 @@ void TimeStampedState::apply_module_effect(string internal_name)
 
 TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     const Operator &op) :
-        state(predecessor.state), scheduled_effects(predecessor.scheduled_effects),
-        conds_over_all(predecessor.conds_over_all), conds_at_end(predecessor.conds_at_end),
+        state(predecessor.state),
+        scheduled_effects(predecessor.scheduled_effects),
+        conds_over_all(predecessor.conds_over_all),
+        conds_at_end(predecessor.conds_at_end),
         operators(predecessor.operators)
 {
-    timestamp = predecessor.timestamp;
+    // FIXME: The effects between now and now + sep can 
+    // happen at different timestamps. So, to implement this method 
+    // correctly, we have to apply and check the effects in the correct 
+    // order (and also check effect conditions in the intermediate steps).
+    // This is analogous to the problem in let_time_pass.
+
+    double sep = (g_parameters.epsilonize_internally ? EPS_TIME : 0.0);
+
+    timestamp = predecessor.timestamp + sep;
 
     // compute duration
     double duration = op.get_duration(&predecessor);
+
+    // The scheduled effects of the new state are precisely the
+    // scheduled effects of the predecessor state plus those at-end
+    // effects of the given operator whose at-start conditions are
+    // satisfied.
+    for(int i = 0; i < op.get_pre_post_end().size(); i++) {
+        const PrePost &eff = op.get_pre_post_end()[i];
+        if(eff.does_fire(predecessor)) {
+            scheduled_effects.push_back(ScheduledEffect(duration, eff));
+        }
+    }
 
     // Update values affected by an at-start effect of the operator.
     for(int i = 0; i < op.get_pre_post_start().size(); i++) {
@@ -66,6 +88,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
     }
 
+    // TODO eps internally
     // Update start module effects
     for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
         const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
@@ -73,22 +96,29 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         if(mod_eff.does_fire(predecessor)) {
             apply_module_effect(mod_eff.module->internal_name);
         }
-
     }
 
     g_axiom_evaluator->evaluate(*this);
 
-    // The scheduled effects of the new state are precisely the
-    // scheduled effects of the predecessor state plus those at-end
-    // effects of the given operator whose at-start conditions are
-    // satisfied.
-    for(int i = 0; i < op.get_pre_post_end().size(); i++) {
-        const PrePost &eff = op.get_pre_post_end()[i];
-        if(eff.does_fire(predecessor)) {
-            scheduled_effects.push_back(ScheduledEffect(duration, eff));
+    // The values of the new state are obtained by applying all
+    // effects scheduled in the predecessor state until the new time
+    // stamp and subsequently applying axioms
+    for(int i = 0; i < scheduled_effects.size(); i++) {
+        ScheduledEffect &eff = scheduled_effects[i];
+        if((eff.time_increment + EPSILON < sep) &&
+                         satisfies(eff.cond_end)) {
+            apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
+        }
+        if(eff.time_increment + EPSILON < sep) {
+            scheduled_effects.erase(scheduled_effects.begin() + i);
+            i--;
+        } else {
+            eff.time_increment -= sep;
         }
     }
+    g_axiom_evaluator->evaluate(*this);
 
+    // TODO eps internally?
     // The scheduled module effects of the new state are precisely the
     // scheduled module effects of the predecessor state plus those at-end
     // module effects of the given operator whose at-start conditions are
@@ -128,9 +158,36 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     initialize();
 }
 
+double TimeStampedState::eps_time(double offset) const {
+    // FIXME: this could be implemented much more efficiently if operators were
+    // sorted by time_increment
+    bool recheck = true;
+    double time = EPS_TIME + offset;
+    while(recheck) {
+        recheck = false;
+        for(unsigned int i = 0; i < operators.size(); ++i) {
+            double increment = operators[i].time_increment;
+            if(double_equals(increment, time)) {
+                time += EPS_TIME;
+                recheck = true;
+                break;
+            }
+        }
+    }
+    return time - offset;
+}
+
+
 TimeStampedState TimeStampedState::let_time_pass(
-    bool go_to_intermediate_between_now_and_next_happening) const
-{
+    bool go_to_intermediate_between_now_and_next_happening,
+    bool skip_eps_steps) const {
+
+	// FIXME: If we do not go to the intermediate between now and the 
+    // next happening but epsilonize internally, the effects can 
+    // happen at different timestamps. So, to implement this method 
+    // correctly, we have to apply and check the effects in the correct 
+    // order (and also check effect conditions in the intermediate steps).
+
     // Copy this state
     TimeStampedState succ(*this);
 
@@ -152,19 +209,27 @@ TimeStampedState TimeStampedState::let_time_pass(
 
     double time_diff = succ.timestamp - timestamp;
 
+    if(skip_eps_steps && g_parameters.epsilonize_internally && 
+       !go_to_intermediate_between_now_and_next_happening) {
+        double additional_time_diff = eps_time(nh - timestamp);
+        time_diff += additional_time_diff;
+        succ.timestamp += additional_time_diff;
+    }
+
     if(!go_to_intermediate_between_now_and_next_happening) {
         // The values of the new state are obtained by applying all
         // effects scheduled in the predecessor state for the new time
         // stamp and subsequently applying axioms
         for(int i = 0; i < scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = scheduled_effects[i];
-            if(double_equals(eff.time_increment, time_diff) &&
+            if((eff.time_increment < time_diff + EPSILON) &&
                 succ.satisfies(eff.cond_end)) {
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
         g_axiom_evaluator->evaluate(succ);
 
+        // TODO eps internally
         // Apply module effects as well!
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
@@ -185,7 +250,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = succ.scheduled_effects[i];
-            if(double_equals(eff.time_increment, 0) ||
+            if((eff.time_increment < EPSILON) ||
                 !succ.satisfies(eff.cond_overall)) {
                 succ.scheduled_effects.erase(succ.scheduled_effects.begin() + i);
                 i--;
@@ -193,6 +258,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         }
     }
 
+    // TODO eps internally
     // The scheduled module effects of the new state are precisely the
     // scheduled module effects of the predecessor state minus those
     // whose scheduled time point has been reached and minus those
@@ -222,8 +288,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.conds_over_all.size(); i++) {
             const ScheduledCondition &cond = succ.conds_over_all[i];
-            if(double_equals(cond.time_increment, 0)) {
-                assert(cond.time_increment + EPSILON >= 0);
+            if((cond.time_increment < EPSILON)) {
                 succ.conds_over_all.erase(succ.conds_over_all.begin() + i);
                 i--;
             }
@@ -239,7 +304,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.conds_at_end.size(); i++) {
             const ScheduledCondition &cond = succ.conds_at_end[i];
-            if(cond.time_increment < 0) {
+            if(cond.time_increment < EPSILON) {
                 succ.conds_at_end.erase(succ.conds_at_end.begin() + i);
                 i--;
             }
@@ -255,7 +320,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.operators.size(); i++) {
             const ScheduledOperator &op = succ.operators[i];
-            if(double_equals(op.time_increment, 0) || op.time_increment <= 0) {
+            if((op.time_increment < EPSILON) || op.time_increment <= 0) {
                 succ.operators.erase(succ.operators.begin() + i);
                 i--;
             }
@@ -273,7 +338,7 @@ TimeStampedState TimeStampedState::increase_time_stamp_by(double increment) cons
     TimeStampedState* res = &result;
     while(res->timestamp < timestamp + increment) {
         double old_timestamp = res->timestamp;
-        result = res->let_time_pass(false);
+        result = res->let_time_pass(false, false);
         res = &result;
         double new_timestamp = res->timestamp;
         if(double_equals(old_timestamp, new_timestamp))
@@ -341,7 +406,7 @@ void TimeStampedState::dump(bool verbose) const
                     << ": " << scheduled_effects[i].cond_overall[j].prev;
             }
             cout << ">,<";
-            for(int j = 0; j < scheduled_effects[i].cond_end.size(); i++) {
+            for(int j = 0; j < scheduled_effects[i].cond_end.size(); j++) {
                 cout << g_variable_name[scheduled_effects[i].cond_end[j].var]
                     << ": " << scheduled_effects[i].cond_end[j].prev;
             }
@@ -411,7 +476,7 @@ bool TimeStampedState::is_consistent_when_progressed(TimedSymbolicStates* timedS
             return false;
         }
 
-        current_progression = current_progression.let_time_pass(go_to_intermediate);
+        current_progression = current_progression.let_time_pass(go_to_intermediate, false);
         go_to_intermediate = !go_to_intermediate;
         last_time = current_time;
         current_time = current_progression.timestamp;

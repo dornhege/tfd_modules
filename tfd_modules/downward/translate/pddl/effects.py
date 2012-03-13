@@ -4,7 +4,7 @@ import f_expression
 import pddl_types
 
 def cartesian_product(*sequences):
-  # FIXME: Also exists in tools.py outside the pddl package (defined slightly
+  # TODO: Also exists in tools.py outside the pddl package (defined slightly
   #       differently). Not good. Need proper import paths.
   if not sequences:
     yield ()
@@ -189,6 +189,13 @@ class Effect(object):
     assert len(effects) <= 1
     if effects:
       result.append((condition, effects[0]))
+#  def relaxed(self):
+#    if self.peffect.negated:
+#      return None
+#    else:
+#      return Effect(self.parameters, self.condition.relaxed(), self.peffect)
+#  def simplified(self):
+#    return Effect(self.parameters, self.condition.simplified(), self.peffect)
 
 class TmpEffect(object):
     def __init__(self,effects,time=None):

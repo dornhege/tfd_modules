@@ -13,6 +13,7 @@ class Variable;
 
 class CausalGraph
 {
+    private:
         const vector<Variable *> &variables;
         const vector<Operator> &operators;
         const vector<Axiom_relational> &axioms_rel;
@@ -33,14 +34,14 @@ class CausalGraph
         bool acyclic;
 
         void weigh_graph_from_ops(const vector<Variable *> &variables,
-                const vector<Operator> &operators, const vector<pair<
-                        Variable *, int> > &goals);
+                const vector<Operator> &operators,
+                const vector<pair<Variable *, int> > &goals);
         void weigh_graph_from_axioms_rel(const vector<Variable *> &variables,
-                const vector<Axiom_relational> &axioms_rel, const vector<pair<
-                        Variable *, int> > &goals);
+                const vector<Axiom_relational> &axioms_rel,
+                const vector<pair<Variable *, int> > &goals);
         void weigh_graph_from_axioms_func(const vector<Variable *> &variables,
-                const vector<Axiom_functional> &axioms_func, const vector<pair<
-                        Variable *, int> > &goals);
+                const vector<Axiom_functional> &axioms_func,
+                const vector<pair<Variable *, int> > &goals);
         void get_strongly_connected_components(Partition &sccs);
         void calculate_topological_pseudo_sort(const Partition &sccs);
         void calculate_pseudo_sort();
@@ -49,12 +50,11 @@ class CausalGraph
         void count(Variable *curr_source, Variable *curr_target);
     public:
         CausalGraph(const vector<Variable *> &variables,
-                const vector<Operator> &operators, const vector<
-                        Axiom_relational> &axioms_rel, const vector<
-                        Axiom_functional> &axioms_func, const vector<pair<
-                        Variable *, int> > &the_goals);
-        ~CausalGraph()
-        {
+                const vector<Operator> &operators,
+                const vector<Axiom_relational> &axioms_rel,
+                const vector<Axiom_functional> &axioms_func,
+                const vector<pair<Variable *, int> > &the_goals);
+        ~CausalGraph() {
         }
         const vector<Variable *> &get_variable_ordering() const;
         bool is_acyclic() const;

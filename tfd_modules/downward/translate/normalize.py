@@ -147,10 +147,10 @@ class GoalConditionProxy(ConditionProxy):
   def set(self, new_condition):
     self.owner.goal = self.condition = new_condition
   def register_owner(self, task):
-    # FIXME: Implement with axioms.
+    # TODO: Implement with axioms.
     assert False, "Disjunctive goals not (yet) implemented."
   def delete_owner(self, task):
-    # FIXME: Implement with axioms.
+    # TODO: Implement with axioms.
     assert False, "Disjunctive goals not (yet) implemented."
   def build_rules(self, rules, fluent_preds, modules):
     rule_head_name = "@goal-reachable"
@@ -408,7 +408,7 @@ def remove_object_functions_from_durations(task):
                     new_conditions.append(new_condition)
                 act.condition[time] = pddl.Conjunction(new_conditions)
 
-# FIXME: What does this do?
+
 def remove_object_functions(task):
     def recurse(condition, used_variables):
         if isinstance(condition, pddl.Literal):

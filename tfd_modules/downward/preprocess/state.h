@@ -8,17 +8,14 @@ using namespace std;
 
 class Variable;
 
-class State
-{
-        map<Variable *, double> values;
+class State {
+    map<Variable *, double> values;
     public:
-        State()
-        {
-        } // Entfernen (erfordert kleines Redesign)
-        State(istream &in, const vector<Variable *> &variables);
+    State() {} // TODO: Entfernen (erfordert kleines Redesign)
+    State(istream &in, const vector<Variable *> &variables);
 
-        double operator[](Variable *var) const;
-        void dump() const;
+    double operator[](Variable *var) const;
+    void dump() const;
 };
 
 #endif

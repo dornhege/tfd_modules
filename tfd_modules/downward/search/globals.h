@@ -8,11 +8,12 @@
 #include <string>
 #include "module.h"
 #include <cmath>
+#include <limits>
 
 using namespace std;
 
-#define EPSILON 0.0001
-#define EPS_TIME 0.001
+#define EPSILON 0.000001 // for comparing doubles
+#define EPS_TIME 0.001   // for separation of timepoints
 
 #include "causal_graph.h"
 
@@ -57,8 +58,8 @@ inline bool double_equals(double a, double b)
     return std::abs(a - b) < EPSILON;
 }
 
-const int REALLYBIG = 9999999;
-const int REALLYSMALL = -9999999;
+const double REALLYBIG = numeric_limits<double>::max();
+const double REALLYSMALL = -numeric_limits<double>::max();
 
 void read_everything(istream &in);
 void dump_everything();

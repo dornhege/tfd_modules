@@ -12,8 +12,8 @@ class GeneratorBase;
 class Operator;
 class Variable;
 
-class SuccessorGenerator
-{
+class SuccessorGenerator {
+    private:
         GeneratorBase *root;
 
         typedef vector<pair<Variable *, int> > Condition;
@@ -28,8 +28,8 @@ class SuccessorGenerator
         // typical idiom for classes with non-trivial destructors
     public:
         SuccessorGenerator();
-        SuccessorGenerator(const vector<Variable *> &variables, const vector<
-                Operator> &operators);
+        SuccessorGenerator(const vector<Variable *> &variables,
+                const vector<Operator> &operators);
         ~SuccessorGenerator();
         void dump() const;
         void generate_cpp_input(ostream &outfile) const;

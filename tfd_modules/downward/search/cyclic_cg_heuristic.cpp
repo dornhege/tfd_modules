@@ -16,7 +16,6 @@ LocalProblem::LocalProblem(CyclicCGHeuristic* _owner, int the_var_no,
 {
 }
 
-
 double LocalTransition::get_direct_cost()
 {
     double ret = 0.0;
@@ -444,18 +443,19 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
     for(int i = 0; i < state.scheduled_effects.size(); i++) {
         const ScheduledEffect &seffect = state.scheduled_effects[i];
         if(seffect.var == var_no) {
+            LocalProblemNodeDiscrete& node = nodes[static_cast<int>(seffect.post)];
             if(g_parameters.cg_heuristic_zero_cost_waiting_transitions)
-                nodes[static_cast<int>(seffect.post)].cost = 0.0;
+                node.cost = 0.0;
             else
-                nodes[static_cast<int>(seffect.post)].cost = seffect.time_increment;
+                node.cost = seffect.time_increment;
             assert(seffect.time_increment > 0);
             assert(seffect.time_increment < LocalProblem::QUITE_A_LOT);
-            nodes[static_cast<int>(seffect.post)].reached_by_wait_for = seffect.time_increment;
-            for(int i = 0; i < parents_num; i++) {
+            node.reached_by_wait_for = seffect.time_increment;
+            for(int i = 0; i < parents_num; ++i) {
                 int var = (*causal_graph_parents)[i];
-                nodes[static_cast<int>(seffect.post)].children_state[i] = state[var];
+                node.children_state[i] = state[var];
             }
-            nodes[static_cast<int>(seffect.post)].on_expand(state);
+            node.on_expand(state);
         }
     }
 }
@@ -506,8 +506,7 @@ vector<TimedOp> LocalProblem::generate_causal_constraints(LocalProblemNode* goal
             vector<vector<TimedOp> > subplans;
             for(int j = 0; j < preconds.size(); ++j) {
                 vector<TimedOp> newOps = vector<TimedOp> ();
-                double
-                    actual_value =
+                double actual_value =
                     trans->get_source()->children_state[preconds[j].local_var];
                 if(!(double_equals(actual_value, preconds[j].value))) {
                     int var = preconds[j].prev_dtg->var;
