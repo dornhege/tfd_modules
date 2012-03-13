@@ -3,9 +3,8 @@
 
 using namespace std;
 
-Heuristic::Heuristic(/*bool use_caching*/)
+Heuristic::Heuristic()
 {
-    //use_cache = use_caching;
     heuristic = NOT_INITIALIZED;
     num_computations = 0;
 }
@@ -32,15 +31,6 @@ void Heuristic::set_preferred(const Operator *op)
 
 double Heuristic::evaluate(const TimeStampedState &state)
 {
-    //    if(use_cache) {
-    //	map<TimeStampedState, EvaluationInfo>::iterator it =
-    //		state_cache.find(state);
-    //	if(it != state_cache.end()) {
-    //	    heuristic = it->second.heuristic;
-    //	    preferred_operators = it->second.preferred_operators;
-    //	    return;
-    //	}
-    //    }
 
     if(heuristic == NOT_INITIALIZED)
         initialize();
@@ -57,10 +47,6 @@ double Heuristic::evaluate(const TimeStampedState &state)
         preferred_operators.clear();
     }
 
-    //    if(use_cache) {
-    //	EvaluationInfo info(heuristic, preferred_operators);
-    //	state_cache[state] = info;
-    //    }
 
 #ifndef NDEBUG
     if(heuristic != DEAD_END) {

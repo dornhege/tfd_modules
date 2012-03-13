@@ -3,8 +3,7 @@
 #include <cassert>
 using namespace std;
 
-Variable::Variable(istream &in)
-{
+Variable::Variable(istream &in) {
     in >> name >> range >> layer;
     level = -1;
     necessary = false;
@@ -18,89 +17,73 @@ Variable::Variable(istream &in)
         functional = false;
 }
 
-void Variable::set_level(int theLevel)
-{
+void Variable::set_level(int theLevel) {
     assert(level == -1);
     level = theLevel;
 }
 
-int Variable::get_level() const
-{
+int Variable::get_level() const {
     return level;
 }
 
-void Variable::set_necessary()
-{
+void Variable::set_necessary() {
     //assert(necessary == false);
     necessary = true;
 }
 
-int Variable::get_range() const
-{
+int Variable::get_range() const {
     return range;
 }
 
-string Variable::get_name() const
-{
+string Variable::get_name() const {
     return name;
 }
 
-bool Variable::is_necessary() const
-{
+bool Variable::is_necessary() const {
     return necessary;
 }
 
-bool Variable::is_functional() const
-{
+bool Variable::is_functional() const {
     return functional;
 }
 
-bool Variable::is_used_in_duration_condition() const
-{
+bool Variable::is_used_in_duration_condition() const {
     return used_in_duration_condition;
 }
 
-void Variable::set_used_in_duration_condition()
-{
+void Variable::set_used_in_duration_condition() {
     used_in_duration_condition = true;
 }
 
-bool Variable::is_subterm() const
-{
+bool Variable::is_subterm() const {
     return subterm;
 }
 
-void Variable::set_subterm()
-{
+void Variable::set_subterm() {
     subterm = true;
 }
 
-bool Variable::is_comparison() const
-{
+bool Variable::is_comparison() const {
     return comparison;
 }
 
-void Variable::set_comparison()
-{
+void Variable::set_comparison() {
     comparison = true;
 }
 
-bool Variable::is_module() const
-{
+bool Variable::is_module() const {
     return module;
 }
 
-void Variable::set_module()
-{
+void Variable::set_module() {
     module = true;
 }
 
-void Variable::dump() const
-{
+void Variable::dump() const {
     cout << name << " [range " << range;
-    if (level != -1)
+    if(level != -1)
         cout << "; level " << level;
-    if (is_derived())
+    if(is_derived())
         cout << "; derived; layer: " << layer;
     cout << "]" << endl;
 }

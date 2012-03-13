@@ -13,7 +13,7 @@ Axiom_relational::Axiom_relational(istream &in,
     check_magic(in, "begin_rule");
     int count; // number of conditions
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         int varNo, val;
         in >> varNo >> val;
         conditions.push_back(Condition(variables[varNo], val));
@@ -35,35 +35,35 @@ void strip_Axiom_relationals(vector<Axiom_relational> &axiom_relationals)
 {
     int old_count = axiom_relationals.size();
     int new_index = 0;
-    for (int i = 0; i < axiom_relationals.size(); i++)
-        if (!axiom_relationals[i].is_redundant())
+    for(int i = 0; i < axiom_relationals.size(); i++)
+        if(!axiom_relationals[i].is_redundant())
             axiom_relationals[new_index++] = axiom_relationals[i];
     axiom_relationals.erase(axiom_relationals.begin() + new_index,
             axiom_relationals.end());
     cout << axiom_relationals.size() << " of " << old_count
-            << " Axiom_relational rules necessary." << endl;
+        << " Axiom_relational rules necessary." << endl;
 }
 
 void strip_Axiom_functionals(vector<Axiom_functional> &axiom_functionals)
 {
     int old_count = axiom_functionals.size();
     int new_index = 0;
-    for (int i = 0; i < axiom_functionals.size(); i++)
-        if (!axiom_functionals[i].is_redundant())
+    for(int i = 0; i < axiom_functionals.size(); i++)
+        if(!axiom_functionals[i].is_redundant())
             axiom_functionals[new_index++] = axiom_functionals[i];
     axiom_functionals.erase(axiom_functionals.begin() + new_index,
             axiom_functionals.end());
     cout << axiom_functionals.size() << " of " << old_count
-            << " Axiom_functional rules necessary." << endl;
+        << " Axiom_functional rules necessary." << endl;
 }
 
 void Axiom_relational::dump() const
 {
     cout << "relational axiom:" << endl;
     cout << "conditions:";
-    for (int i = 0; i < conditions.size(); i++)
+    for(int i = 0; i < conditions.size(); i++)
         cout << "  " << conditions[i].var->get_name() << " := "
-                << conditions[i].cond;
+            << conditions[i].cond;
     cout << endl;
     cout << "derived:" << endl;
     cout << effect_var->get_name() << " -> " << effect_val << endl;
@@ -75,13 +75,13 @@ void Axiom_relational::generate_cpp_input(ostream &outfile) const
     assert(effect_var->get_level() != -1);
     outfile << "begin_rule" << endl;
     outfile << conditions.size() << endl;
-    for (int i = 0; i < conditions.size(); i++) {
+    for(int i = 0; i < conditions.size(); i++) {
         assert(conditions[i].var->get_level() != -1);
         outfile << conditions[i].var->get_level() << " " << conditions[i].cond
-                << endl;
+            << endl;
     }
     outfile << effect_var->get_level() << " " << old_val << " " << effect_val
-            << endl;
+        << endl;
     outfile << "end_rule" << endl;
 }
 
@@ -91,14 +91,14 @@ Axiom_functional::Axiom_functional(istream &in,
     this->comparison = false;
     int varNo, varNo1, varNo2;
     in >> varNo;
-    if (comparison) {
+    if(comparison) {
         in >> cop;
     } else {
         in >> fop;
     }
     in >> varNo1 >> varNo2;
     effect_var = variables[varNo];
-    if (comparison == true) {
+    if(comparison == true) {
         effect_var->set_comparison();
         this->set_comparison();
     } else {
@@ -116,7 +116,7 @@ bool Axiom_functional::is_redundant() const
 void Axiom_functional::dump() const
 {
     cout << "functional ";
-    if (this->is_comparison()) {
+    if(this->is_comparison()) {
         cout << "(comparison) ";
     } else {
         cout << "(subterm) ";
@@ -124,8 +124,8 @@ void Axiom_functional::dump() const
     cout << "axiom" << endl;
 
     cout << effect_var->get_name() << " contains the value of "
-            << left_var->get_name() << " ";
-    if (is_comparison()) {
+        << left_var->get_name() << " ";
+    if(is_comparison()) {
         cout << cop;
     } else {
         cout << fop;
@@ -138,11 +138,10 @@ void Axiom_functional::generate_cpp_input(ostream &outfile) const
 {
     assert(effect_var->get_level() != -1);
     outfile << effect_var->get_level() << " ";
-    if (is_comparison()) {
+    if(is_comparison()) {
         outfile << cop;
     } else {
         outfile << fop;
     }
-    outfile << " " << left_var->get_level() << " " << right_var->get_level()
-            << endl;
+    outfile << " " << left_var->get_level() << " " << right_var->get_level() << endl;
 }

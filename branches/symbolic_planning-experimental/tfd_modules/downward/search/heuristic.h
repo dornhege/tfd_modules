@@ -30,8 +30,6 @@ class Heuristic
             std::vector<const Operator *> preferred_operators;
         };
 
-        //bool use_cache;
-        //std::map<TimeStampedState, EvaluationInfo> state_cache;
 
         unsigned long num_computations;     ///< For stats, how ofter was compute_heuristic called
 

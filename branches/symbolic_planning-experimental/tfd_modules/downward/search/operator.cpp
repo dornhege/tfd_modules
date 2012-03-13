@@ -203,28 +203,27 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
     if(g_parameters.disallow_concurrent_actions && !state.operators.empty())
         return false;
 
+    if(g_parameters.epsilonize_internally) {
+        for(unsigned int i = 0; i < state.operators.size(); ++i) {
+            double time_increment = state.operators[i].time_increment;
+            if(double_equals(time_increment, EPS_TIME)) {
+                return false;
+            }
+        }
+    }
+
     if(g_parameters.use_cost_modules_for_applicability || (g_variable_types[duration_var] != costmodule)) {
         double duration = get_duration(&state, allowRelaxed);
         if(duration < 0 || duration >= INFINITE_COST)
             return false;
     }
 
-    for(int i = 0; i < pre_post_start.size(); i++)
-        if(!pre_post_start[i].is_applicable(state))
-            return false;
-
     for(int i = 0; i < prevail_start.size(); i++)
         if(!prevail_start[i].is_applicable(state, allowRelaxed))
             return false;
-
-    // Make sure that there is no other operator currently running, that
-    // has the same end timepoint as this operator would have.
-    //for(int i = 0; i < state.scheduled_effects.size(); i++) {
-    //if(double_equals(state.scheduled_effects[i].time_increment,
-    //    state[duration_var])) {
-    //    return false;
-    //}
-    //}
+    for(int i = 0; i < pre_post_start.size(); i++)
+        if(!pre_post_start[i].is_applicable(state))
+            return false;
 
     // There may be no simultaneous applications of two instances of the
     // same ground operator (for technical reasons, to simplify the task

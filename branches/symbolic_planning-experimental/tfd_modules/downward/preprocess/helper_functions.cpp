@@ -15,26 +15,24 @@ using namespace std;
 #include "successor_generator.h"
 #include "domain_transition_graph.h"
 
-void check_magic(istream &in, string magic)
-{
+void check_magic(istream &in, string magic) {
     string word;
     in >> word;
-    if (word != magic) {
+    if(word != magic) {
         cout << "Failed to match magic word '" << magic << "'." << endl;
         cout << "Got '" << word << "'." << endl;
         exit(1);
     }
 }
 
-void read_variables(istream &in, vector<Variable> &internal_variables, vector<
-        Variable *> &variables)
-{
+void read_variables(istream &in, vector<Variable> &internal_variables,
+        vector<Variable *> &variables) {
     check_magic(in, "begin_variables");
     int count;
     in >> count;
     internal_variables.reserve(count);
     // Important so that the iterators stored in variables are valid.
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         internal_variables.push_back(Variable(in));
         variables.push_back(&internal_variables.back());
     }
@@ -136,13 +134,12 @@ void read_translations(istream &in,
 
 }
 
-void read_goal(istream &in, const vector<Variable *> &variables, vector<pair<
-        Variable*, int> > &goals)
-{
+void read_goal(istream &in, const vector<Variable *> &variables,
+        vector<pair<Variable*, int> > &goals) {
     check_magic(in, "begin_goal");
     int count;
     in >> count;
-    for (int i = 0; i < count; i++) {
+    for(int i = 0; i < count; i++) {
         int varNo, val;
         in >> varNo >> val;
         goals.push_back(make_pair(variables[varNo], val));
@@ -150,55 +147,51 @@ void read_goal(istream &in, const vector<Variable *> &variables, vector<pair<
     check_magic(in, "end_goal");
 }
 
-void dump_goal(const vector<pair<Variable*, int> > &goals)
-{
+void dump_goal(const vector<pair<Variable*, int> > &goals) {
     cout << "Goal Conditions:" << endl;
-    for (int i = 0; i < goals.size(); i++)
+    for(int i = 0; i < goals.size(); i++)
         cout << "  " << goals[i].first->get_name() << ": " << goals[i].second
-                << endl;
+            << endl;
 }
 
-void read_operators(istream &in, const vector<Variable *> &variables, vector<
-        Operator> &operators)
-{
+void read_operators(istream &in, const vector<Variable *> &variables,
+        vector<Operator> &operators) {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
         operators.push_back(Operator(in, variables));
 }
 
-void read_axioms_rel(istream &in, const vector<Variable *> &variables, vector<
-        Axiom_relational> &axioms_rel)
-{
+void read_axioms_rel(istream &in, const vector<Variable *> &variables,
+        vector<Axiom_relational> &axioms_rel) {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
         axioms_rel.push_back(Axiom_relational(in, variables));
 }
 
-void read_axioms_comp(istream &in, const vector<Variable *> &variables, vector<
-        Axiom_functional> &axioms_func)
-{
+void read_axioms_comp(istream &in, const vector<Variable *> &variables,
+        vector<Axiom_functional> &axioms_func) {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
         axioms_func.push_back(Axiom_functional(in, variables, true));
 }
 
-void read_axioms_func(istream &in, const vector<Variable *> &variables, vector<
-        Axiom_functional> &axioms_func)
-{
+void read_axioms_func(istream &in, const vector<Variable *> &variables,
+        vector<Axiom_functional> &axioms_func) {
     int count;
     in >> count;
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
         axioms_func.push_back(Axiom_functional(in, variables, false));
 }
 
 void read_preprocessed_problem_description(istream &in,
         vector<Variable> &internal_variables, vector<Variable *> &variables,
-        State &initial_state, vector<pair<Variable*, int> > &goals, vector<
-                Operator> &operators, vector<Axiom_relational> &axioms_rel,
-        vector<Axiom_functional> &axioms_func, vector<string> &moduleInits,
+        State &initial_state, vector<pair<Variable*, int> > &goals,
+        vector<Operator> &operators, vector<Axiom_relational> &axioms_rel,
+        vector<Axiom_functional> &axioms_func,
+        vector<string> &moduleInits,
         vector<string> &subplanGenerators,
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
@@ -228,33 +221,30 @@ void read_preprocessed_problem_description(istream &in,
 void dump_preprocessed_problem_description(const vector<Variable *> &variables,
         const State &initial_state, const vector<pair<Variable*, int> > &goals,
         const vector<Operator> &operators,
-        const vector<Axiom_relational> &axioms_rel, const vector<
-                Axiom_functional> &axioms_func)
-{
+        const vector<Axiom_relational> &axioms_rel,
+        const vector<Axiom_functional> &axioms_func) {
 
     cout << "Variables (" << variables.size() << "):" << endl;
-    for (int i = 0; i < variables.size(); i++)
+    for(int i = 0; i < variables.size(); i++)
         variables[i]->dump();
 
     cout << "Initial State:" << endl;
     initial_state.dump();
     dump_goal(goals);
 
-    for (int i = 0; i < operators.size(); i++)
+    for(int i = 0; i < operators.size(); i++)
         operators[i].dump();
-    for (int i = 0; i < axioms_rel.size(); i++)
+    for(int i = 0; i < axioms_rel.size(); i++)
         axioms_rel[i].dump();
-    for (int i = 0; i < axioms_func.size(); i++)
+    for(int i = 0; i < axioms_func.size(); i++)
         axioms_func[i].dump();
 }
 
-void dump_DTGs(const vector<Variable *> &ordering, vector<
-        DomainTransitionGraph*> &transition_graphs)
-{
-    for (int i = 0; i < transition_graphs.size(); i++) {
-        cout << "Domain transition graph for variable "
-                << ordering[i]->get_level() << " (original name: "
-                << ordering[i]->get_name() << endl;
+void dump_DTGs(const vector<Variable *> &ordering,
+        vector<DomainTransitionGraph*> &transition_graphs) {
+    for(int i = 0; i < transition_graphs.size(); i++) {
+        cout << "Domain transition graph for variable " << ordering[i]->get_level()
+            << " (original name: " << ordering[i]->get_name() << endl;
         transition_graphs[i]->dump();
     }
 }
@@ -269,13 +259,15 @@ void generate_cpp_input(bool solveable_in_poly_time,
                 TranslatePredicate> &pred_translations, const vector<
                 TranslateFunction> &func_translations,
         const vector<string> & predConstants,
-        const vector<string> & numConstants, const State &initial_state,
+        const vector<string> & numConstants,
+        const State &initial_state,
         const vector<pair<Variable*, int> > &goals,
         const vector<Operator> & operators,
-        const vector<Axiom_relational> &axioms_rel, const vector<
-                Axiom_functional> &axioms_func, const SuccessorGenerator &sg,
+        const vector<Axiom_relational> &axioms_rel,
+        const vector<Axiom_functional> &axioms_func, const SuccessorGenerator &sg,
         const vector<DomainTransitionGraph*> transition_graphs,
-        const CausalGraph &cg, const vector<string>& objects,
+        const CausalGraph &cg,
+        const vector<string>& objects,
         const vector<string>& oplinits, ostream& outfile)
 {
     //ostream outfile;
@@ -284,10 +276,10 @@ void generate_cpp_input(bool solveable_in_poly_time,
     int var_count = ordered_vars.size();
     outfile << "begin_variables" << endl;
     outfile << var_count << endl;
-    for (int i = 0; i < var_count; i++)
+    for(int i = 0; i < var_count; i++)
         outfile << ordered_vars[i]->get_name() << " "
-                << ordered_vars[i]->get_range() << " "
-                << ordered_vars[i]->get_layer() << endl;
+            << ordered_vars[i]->get_range() << " " << ordered_vars[i]->get_layer()
+            << endl;
     outfile << "end_variables" << endl;
     outfile << "begin_oplinits" << endl;
     outfile << oplinits.size() << endl;
@@ -355,33 +347,33 @@ void generate_cpp_input(bool solveable_in_poly_time,
     }
     outfile << "end_modules" << endl;
     outfile << "begin_state" << endl;
-    for (int i = 0; i < var_count; i++)
+    for(int i = 0; i < var_count; i++)
         outfile << initial_state[ordered_vars[i]] << endl; // for axioms default value
     outfile << "end_state" << endl;
 
     vector<int> ordered_goal_values;
     ordered_goal_values.resize(var_count, -1);
-    for (int i = 0; i < goals.size(); i++) {
+    for(int i = 0; i < goals.size(); i++) {
         int var_index = goals[i].first->get_level();
         ordered_goal_values[var_index] = goals[i].second;
     }
     outfile << "begin_goal" << endl;
     outfile << goals.size() << endl;
-    for (int i = 0; i < var_count; i++)
-        if (ordered_goal_values[i] != -1)
+    for(int i = 0; i < var_count; i++)
+        if(ordered_goal_values[i] != -1)
             outfile << i << " " << ordered_goal_values[i] << endl;
     outfile << "end_goal" << endl;
 
     outfile << operators.size() << endl;
-    for (int i = 0; i < operators.size(); i++)
+    for(int i = 0; i < operators.size(); i++)
         operators[i].generate_cpp_input(outfile);
 
     outfile << axioms_rel.size() << endl;
-    for (int i = 0; i < axioms_rel.size(); i++)
+    for(int i = 0; i < axioms_rel.size(); i++)
         axioms_rel[i].generate_cpp_input(outfile);
 
     outfile << axioms_func.size() << endl;
-    for (int i = 0; i < axioms_func.size(); i++)
+    for(int i = 0; i < axioms_func.size(); i++)
         axioms_func[i].generate_cpp_input(outfile);
 
     outfile << "begin_SG" << endl;
@@ -393,8 +385,8 @@ void generate_cpp_input(bool solveable_in_poly_time,
     cg.generate_cpp_input(outfile, ordered_vars);
     outfile << "end_CG" << endl;
 
-    cout << var_count << endl;
-    for (int i = 0; i < var_count; i++) {
+    cout <<  var_count << endl;
+    for(int i = 0; i < var_count; i++) {
         outfile << "begin_DTG" << endl;
         transition_graphs[i]->generate_cpp_input(outfile);
         outfile << "end_DTG" << endl;
@@ -403,8 +395,7 @@ void generate_cpp_input(bool solveable_in_poly_time,
     //outfile.close();
 }
 
-compoperator get_inverse_op(compoperator op)
-{
+compoperator get_inverse_op(compoperator op) {
     switch (op) {
         case lt:
             return ge;
@@ -431,27 +422,25 @@ compoperator get_inverse_op(compoperator op)
     }
 }
 
-istream& operator>>(istream &is, foperator &fop)
-{
+istream& operator>>(istream &is, foperator &fop) {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("="))
+    if(!strVal.compare("="))
         fop = assign;
-    else if (!strVal.compare("+"))
+    else if(!strVal.compare("+"))
         fop = increase;
-    else if (!strVal.compare("-"))
+    else if(!strVal.compare("-"))
         fop = decrease;
-    else if (!strVal.compare("*"))
+    else if(!strVal.compare("*"))
         fop = scale_up;
-    else if (!strVal.compare("/"))
+    else if(!strVal.compare("/"))
         fop = scale_down;
     else
         assert(false);
     return is;
 }
 
-ostream& operator<<(ostream &os, const foperator &fop)
-{
+ostream& operator<<(ostream &os, const foperator &fop) {
     switch (fop) {
         case assign:
             os << "=";
@@ -469,35 +458,33 @@ ostream& operator<<(ostream &os, const foperator &fop)
             os << "-";
             break;
         default:
-            cout << (int) fop << " was read" << endl;
+            cout << (int)fop << " was read" << endl;
             assert(false);
     }
     return os;
 }
 
-istream& operator>>(istream &is, compoperator &fop)
-{
+istream& operator>>(istream &is, compoperator &fop) {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("<"))
+    if(!strVal.compare("<"))
         fop = lt;
-    else if (!strVal.compare("<="))
+    else if(!strVal.compare("<="))
         fop = le;
-    else if (!strVal.compare("="))
+    else if(!strVal.compare("="))
         fop = eq;
-    else if (!strVal.compare(">="))
+    else if(!strVal.compare(">="))
         fop = ge;
-    else if (!strVal.compare(">"))
+    else if(!strVal.compare(">"))
         fop = gt;
-    else if (!strVal.compare("!="))
+    else if(!strVal.compare("!="))
         fop = ue;
     else
         assert(false);
     return is;
 }
 
-ostream& operator<<(ostream &os, const compoperator &fop)
-{
+ostream& operator<<(ostream &os, const compoperator &fop) {
     switch (fop) {
         case lt:
             os << "<";
@@ -524,17 +511,16 @@ ostream& operator<<(ostream &os, const compoperator &fop)
     return os;
 }
 
-istream& operator>>(istream &is, trans_type &tt)
-{
+istream& operator>>(istream &is, trans_type &tt) {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("s"))
+    if(!strVal.compare("s"))
         tt = start;
-    else if (!strVal.compare("e"))
+    else if(!strVal.compare("e"))
         tt = end;
-    else if (!strVal.compare("c"))
+    else if(!strVal.compare("c"))
         tt = compressed;
-    else if (!strVal.compare("a"))
+    else if(!strVal.compare("a"))
         tt = ax_rel;
     else {
         cout << strVal << " was read." << endl;
@@ -543,8 +529,7 @@ istream& operator>>(istream &is, trans_type &tt)
     return is;
 }
 
-ostream& operator<<(ostream &os, const trans_type &tt)
-{
+ostream& operator<<(ostream &os, const trans_type &tt) {
     switch (tt) {
         case start:
             os << "s";
@@ -565,25 +550,23 @@ ostream& operator<<(ostream &os, const trans_type &tt)
     return os;
 }
 
-istream& operator>>(istream &is, condition_type &ct)
-{
+istream& operator>>(istream &is, condition_type &ct) {
     string strVal;
     is >> strVal;
-    if (!strVal.compare("s"))
+    if(!strVal.compare("s"))
         ct = start_cond;
-    else if (!strVal.compare("o"))
+    else if(!strVal.compare("o"))
         ct = overall_cond;
-    else if (!strVal.compare("e"))
+    else if(!strVal.compare("e"))
         ct = end_cond;
-    else if (!strVal.compare("a"))
+    else if(!strVal.compare("a"))
         ct = ax_cond;
     else
         assert(false);
     return is;
 }
 
-ostream& operator<<(ostream &os, const condition_type &ct)
-{
+ostream& operator<<(ostream &os, const condition_type &ct) {
     switch (ct) {
         case start_cond:
             os << "s";

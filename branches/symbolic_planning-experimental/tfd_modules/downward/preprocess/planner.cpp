@@ -19,11 +19,10 @@
 #include <cstring>
 using namespace std;
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char **argv) {
 
     ifstream file("../../benchmarks/modules-test/output-modules.sas");
-    if (argc == 2 && strcmp(argv[1], "-eclipserun") == 0) {
+    if(argc == 2 && strcmp(argv[1], "-eclipserun") == 0) {
         cin.rdbuf(file.rdbuf());
         argc = 1;
     }
@@ -51,7 +50,7 @@ int main(int argc, const char **argv)
     vector<string> objects;
     vector<string> oplinits;
 
-    if (argc != 1) {
+    if(argc != 1) {
         cout << "*** do not perform relevance analysis ***" << endl;
         g_do_not_prune_variables = true;
     }
@@ -62,12 +61,13 @@ int main(int argc, const char **argv)
             costModules, predicateTranslations, functionTranslations,
             predConstants, numConstants, objects, oplinits);
 
+
     //  for (int i = 0; i< operators.size(); i++)
     //      operators[i].dump();
 
     cout << "Building causal graph..." << endl;
-    CausalGraph causal_graph(variables, operators, axioms_rel, axioms_func,
-            goals);
+    CausalGraph
+        causal_graph(variables, operators, axioms_rel, axioms_func, goals);
     const vector<Variable *> &ordering = causal_graph.get_variable_ordering();
     //  cout << "ordering:" << endl;
     //  for(int i=0; i< ordering.size(); i++) {
@@ -88,9 +88,9 @@ int main(int argc, const char **argv)
     build_DTGs(ordering, operators, axioms_rel, axioms_func, transition_graphs);
     //  dump_DTGs(ordering, transition_graphs);
     bool solveable_in_poly_time = false;
-    if (cg_acyclic)
+    if(cg_acyclic)
         solveable_in_poly_time = are_DTGs_strongly_connected(transition_graphs);
-    //genauer machen? (highest level var muss nicht scc sein...gemacht)
+    //TODO: genauer machen? (highest level var muss nicht scc sein...gemacht)
     //nur Werte, die wichtig sind fuer drunterliegende vars muessen in scc sein
     cout << "solveable in poly time " << solveable_in_poly_time << endl;
     cout << "Building successor generator..." << endl;
@@ -102,11 +102,14 @@ int main(int argc, const char **argv)
 
     cout << "Writing output..." << endl;
     ostream out(old_cout);
-    generate_cpp_input(solveable_in_poly_time, ordering, moduleInits,
+    generate_cpp_input(solveable_in_poly_time, ordering,
+            moduleInits,
             subplanGenerators, condModules, effectModules, costModules,
             predicateTranslations, functionTranslations, predConstants,
-            numConstants, initial_state, goals, operators, axioms_rel,
-            axioms_func, successor_generator, transition_graphs, causal_graph,
+            numConstants,
+            initial_state, goals,
+            operators, axioms_rel, axioms_func, successor_generator,
+            transition_graphs, causal_graph,
             objects, oplinits, out);
     cout << "done" << endl << endl;
 }

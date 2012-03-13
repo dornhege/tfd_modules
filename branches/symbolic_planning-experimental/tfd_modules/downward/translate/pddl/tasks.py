@@ -118,7 +118,7 @@ class Requirements(object):
     return ", ".join(self.requirements)
 
 class DerivedFunctionAdministrator(object):
-    # use hash values?
+    #TODO use hash values?
     def __init__(self):
         self.functions = dict()
 

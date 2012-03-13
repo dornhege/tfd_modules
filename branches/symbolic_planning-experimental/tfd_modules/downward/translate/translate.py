@@ -12,7 +12,7 @@ import simplify
 import itertools
 import copy
 
-# The translator may generate trivial derived variables which are always true,
+# TODO: The translator may generate trivial derived variables which are always true,
 # for example if there ia a derived predicate in the input that only depends on
 # (non-derived) variables which are detected as always true.
 # Such a situation was encountered in the PSR-STRIPS-DerivedPredicates domain.
@@ -21,6 +21,7 @@ import copy
 # simplifications might be possible elsewhere, for example if a
 # derived variable is synonymous with another variable (derived or
 # non-derived).
+# The first part is now handled in axioms.py calculating true_atoms and false_atoms
 
 ALLOW_CONFLICTING_EFFECTS = False
 USE_PARTIAL_ENCODING = True

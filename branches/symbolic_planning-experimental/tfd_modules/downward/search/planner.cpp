@@ -320,8 +320,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
         cout << "Rescheduled Plan:" << endl;
         for (int i = 0; i < rescheduled_plan.size(); i++) {
             const PlanStep& step = rescheduled_plan[i];
-            fprintf(stderr, "%.8f: (%s) [%.8f]\n", step.start_time,
-                    step.op->get_name().c_str(), step.duration);
+            printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
         }
     }
     cout << "Solution with original makespan " << original_makespan
@@ -383,7 +382,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     else
         cout << "Makespan   : " << makespan << endl;
 
-    if(g_parameters.epsilonize_plans) {
+    if(g_parameters.epsilonize_externally) {
         // Perform epsilonize
         if(!plan_filename.empty()) {
             bool ret_of_epsilonize_plan = epsilonize_plan(plan_filename, g_parameters.keep_original_plans);

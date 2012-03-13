@@ -6,6 +6,7 @@ import sys
 
 DEBUG = True
 
+# TODO:
 # This is all quite hackish and would be easier if the translator were
 # restructured so that more information is immediately available for
 # the propositions, and if propositions had more structure. Directly

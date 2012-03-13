@@ -51,7 +51,7 @@ def instantiate(task, model):
 		init_assign = pddl.Assign(pne, value)
 		task.init.append(init_assign)
 
-  init_facts = set(task.init) # FIXME adapt
+  init_facts = set(task.init) # TODO adapt
   init_function_vals = init_function_values(init_facts)
   
   # Determine initial facts, that are not fluents => constant facts, that a module might need

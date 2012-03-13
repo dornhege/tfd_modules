@@ -248,7 +248,7 @@ class PrimitiveNumericExpression(FunctionalExpression):
                         init_function_vals, task, new_axioms=[]):
         args = [var_mapping.get(conditions.Variable(arg.name),arg) for arg in self.args]
         pne = PrimitiveNumericExpression(self.symbol, args)
-        # FIXME: check whether this PNE is fluent. Otherwise substitute it by the
+        # TODO check whether this PNE is fluent. Otherwise substitute it by the
         # corresponding constant
         if fluent_functions!=None:
             if pne not in fluent_functions and not pne.symbol.startswith("derived!"):

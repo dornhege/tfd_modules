@@ -27,9 +27,10 @@ class DomainTransitionGraphSubterm: public DomainTransitionGraph
                 trans_type type, vector<Variable *> variables);
         void addAxRelTransition(int from, int to, const Axiom_relational &ax,
                 int ax_index);
-        void setRelation(Variable* left_var, compoperator op,
-                Variable* right_var);
-        void setRelation(Variable* left_var, foperator op, Variable* right_var);
+        void setRelation(Variable* left_var,
+                compoperator op, Variable* right_var);
+        void setRelation(Variable* left_var,
+                foperator op, Variable* right_var);
         void finalize();
         void dump() const;
         void generate_cpp_input(ostream &outfile) const;

@@ -41,10 +41,11 @@ PlannerParameters::PlannerParameters()
     use_subgoals_to_break_makespan_ties = false;
 
     reschedule_plans = false;
+    epsilonize_internally = false;
+    epsilonize_externally = false;
+    keep_original_plans = true;
 
     plan_name = "sas_plan";
-    epsilonize_plans = false;
-    keep_original_plans = true;
     planMonitorFileName = "";
 
     monitoring_verify_timestamps = false;
@@ -154,7 +155,8 @@ void PlannerParameters::dump() const
         << (use_subgoals_to_break_makespan_ties ? "Enabled" : "Disabled") << endl;
 
     cout << "Reschedule plans: " << (reschedule_plans ? "Enabled" : "Disabled") << endl;
-    cout << "Epsilonize plans: " << (epsilonize_plans ? "Enabled" : "Disabled") << endl;
+    cout << "Epsilonize internally: " << (epsilonize_internally ? "Enabled" : "Disabled") << endl;
+    cout << "Epsilonize externally: " << (epsilonize_externally ? "Enabled" : "Disabled") << endl;
     cout << "Keep original plans: " << (keep_original_plans ? "Enabled" : "Disabled") << endl;
 
     cout << "Plan name: \"" << plan_name << "\"" << endl;
@@ -261,6 +263,8 @@ void PlannerParameters::printUsage() const
     printf("  K - use tss known filtering (might crop search space)!\n");
     printf("  n - no_heuristic\n");
     printf("  r - reschedule_plans\n");
+    printf("  e - epsilonize internally\n");
+    printf("  f - epsilonize externally\n");
     printf("  p <plan file> - plan filename prefix\n");
     printf("  M v - monitoring: verify timestamps\n");
 }
@@ -330,6 +334,10 @@ bool PlannerParameters::readCmdLineParameters(int argc, char** argv)
                 plan_name = string(argv[++i]);
             } else if (*c == 'r') {
                 reschedule_plans = true;
+            } else if (*c == 'e') {
+                epsilonize_internally = true;
+            } else if (*c == 'f') {
+                epsilonize_externally = true;
             } else if (*c == 'M') {
                 assert(i + 1 < argc);
                 const char *g = argv[++i];

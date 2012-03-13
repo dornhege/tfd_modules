@@ -11,10 +11,10 @@ class Variable;
 
 struct Condition
 {
-        Variable *var;
-        int cond;
-        Condition(Variable *v, int c) :
-            var(v), cond(c)
+    Variable *var;
+    int cond;
+    Condition(Variable *v, int c) :
+        var(v), cond(c)
         {
         }
 };
@@ -34,20 +34,16 @@ class Axiom_relational
         bool is_redundant() const;
         void dump() const;
         void generate_cpp_input(ostream &outfile) const;
-        const vector<Condition> &get_conditions() const
-        {
+        const vector<Condition> &get_conditions() const {
             return conditions;
         }
-        Variable* get_effect_var() const
-        {
+        Variable* get_effect_var() const {
             return effect_var;
         }
-        int get_old_val() const
-        {
+        int get_old_val() const {
             return old_val;
         }
-        int get_effect_val() const
-        {
+        int get_effect_val() const {
             return effect_val;
         }
 };
@@ -71,32 +67,25 @@ class Axiom_functional
 
         void dump() const;
         void generate_cpp_input(ostream &outfile) const;
-        Variable* get_effect_var() const
-        {
+        Variable* get_effect_var() const {
             return effect_var;
         }
-        Variable* get_left_var() const
-        {
+        Variable* get_left_var() const {
             return left_var;
         }
-        Variable* get_right_var() const
-        {
+        Variable* get_right_var() const {
             return right_var;
         }
-        foperator get_operator() const
-        {
+        foperator get_operator() const {
             return fop;
         }
-        void set_operator(foperator _fop)
-        {
+        void set_operator(foperator _fop) {
             fop = _fop;
         }
-        bool is_comparison() const
-        {
+        bool is_comparison() const {
             return comparison;
         }
-        void set_comparison()
-        {
+        void set_comparison() {
             comparison = true;
         }
 };

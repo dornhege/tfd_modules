@@ -466,7 +466,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             // non lazy eval = compute priority by child
             if(!g_parameters.lazy_evaluation) {
                 // compute child
-                TimeStampedState tss = parent_ptr->let_time_pass(false);
+                TimeStampedState tss = parent_ptr->let_time_pass(false, true);
                 double childG = getG(&tss, parent_ptr, NULL);
                 double childH = heur->evaluate(tss);
                 if(heur->is_dead_end()) {
@@ -526,7 +526,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     if(current_operator == g_let_time_pass) {
         // do not apply an operator but rather let some time pass until
         // next scheduled happening
-        current_state = current_predecessor->let_time_pass();
+        current_state = current_predecessor->let_time_pass(false, true);
     } else {
         assert(current_operator->get_name().compare("wait") != 0);
         current_state = TimeStampedState(*current_predecessor, *current_operator);

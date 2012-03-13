@@ -23,9 +23,10 @@ class DomainTransitionGraph;
 //void read_everything
 void read_preprocessed_problem_description(istream &in,
         vector<Variable> &internal_variables, vector<Variable *> &variables,
-        State &initial_state, vector<pair<Variable*, int> > &goals, vector<
-                Operator> &operators, vector<Axiom_relational> &axioms_rel,
-        vector<Axiom_functional> &axioms_func, vector<string> &moduleInits,
+        State &initial_state, vector<pair<Variable*, int> > &goals,
+        vector<Operator> &operators, vector<Axiom_relational> &axioms_rel,
+        vector<Axiom_functional> &axioms_func,
+        vector<string> &moduleInits,
         vector<string> &subplanGenerators,
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
@@ -39,11 +40,11 @@ void read_preprocessed_problem_description(istream &in,
 void dump_preprocessed_problem_description(const vector<Variable *> &variables,
         const State &initial_state, const vector<pair<Variable*, int> > &goals,
         const vector<Operator> &operators,
-        const vector<Axiom_relational> &axioms_rel, const vector<
-                Axiom_functional> &axioms_func);
+        const vector<Axiom_relational> &axioms_rel,
+        const vector<Axiom_functional> &axioms_func);
 
-void dump_DTGs(const vector<Variable *> &ordering, vector<
-        DomainTransitionGraph*> &transition_graphs);
+void dump_DTGs(const vector<Variable *> &ordering,
+        vector<DomainTransitionGraph*> &transition_graphs);
 
 void generate_cpp_input(bool causal_graph_acyclic,
         const vector<Variable *> & ordered_var,
@@ -55,13 +56,16 @@ void generate_cpp_input(bool causal_graph_acyclic,
                 TranslatePredicate> &pred_translations, const vector<
                 TranslateFunction> &func_translations,
         const vector<string> & predConstants,
-        const vector<string> & numConstants, const State &initial_state,
+        const vector<string> & numConstants,
+        const State &initial_state,
         const vector<pair<Variable*, int> > &goals,
         const vector<Operator> & operators,
-        const vector<Axiom_relational> &axioms_rel, const vector<
-                Axiom_functional> &axioms_func, const SuccessorGenerator &sg,
+        const vector<Axiom_relational> &axioms_rel,
+        const vector<Axiom_functional> &axioms_func,
+        const SuccessorGenerator &sg,
         const vector<DomainTransitionGraph*> transition_graphs,
-        const CausalGraph &cg, const vector<string>& objects,
+        const CausalGraph &cg,
+        const vector<string>& objects,
         const vector<string>& oplinits, ostream& outfile);
 
 void check_magic(istream &in, string magic);
@@ -103,22 +107,17 @@ ostream& operator<<(ostream &os, const trans_type &fop);
 
 compoperator get_inverse_op(compoperator op);
 
-struct DurationCond
-{
-        compoperator op;
-        Variable *var;
-        DurationCond(compoperator o, Variable *v) :
-            op(o), var(v)
-        {
+struct DurationCond {
+    compoperator op;
+    Variable *var;
+    DurationCond(compoperator o, Variable *v) :
+        op(o), var(v) {
         }
-        DurationCond()
-        {
-        }
+    DurationCond() {}
 };
 
-template<typename T> vector<T> append(vector<T> &first, vector<T> &sec)
-{
-    for (int i = 0; i < sec.size(); i++) {
+template<typename T> vector<T> append(vector<T> &first, vector<T> &sec) {
+    for(int i = 0; i< sec.size(); i++) {
         first.push_back(sec[i]);
     }
     return first;

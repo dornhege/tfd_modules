@@ -353,6 +353,7 @@ class TimeStampedState
             sort(conds_over_all.begin(), conds_over_all.end());
             sort(conds_at_end.begin(), conds_at_end.end());
         }
+        double eps_time(double offset) const;
 
     public:
         vector<double> state;
@@ -369,7 +370,8 @@ class TimeStampedState
         TimeStampedState(const TimeStampedState &predecessor, const Operator &op);
         // let time pass without applying an operator
         TimeStampedState let_time_pass(
-            bool go_to_intermediate_between_now_and_next_happening = false) const;
+            bool go_to_intermediate_between_now_and_next_happening = false,
+            bool skip_eps_steps = false) const;
 
         TimeStampedState increase_time_stamp_by(double increment) const;
 
