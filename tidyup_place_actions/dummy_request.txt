@@ -1,0 +1,2 @@
+objects:
+- {name: "bootle", pose: {header: {frame_id: "table"}, pose: {position: {x: 42}}}, reachable_right_arm: true, reachable_left_arm: false}
