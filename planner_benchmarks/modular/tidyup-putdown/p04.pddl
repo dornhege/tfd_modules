@@ -1,49 +1,86 @@
-; first grasp_location reached, object detection done - success
-; but not graspable from this loc
+; 1 objects, not graspable
 (define (problem p04)
    (:domain tidyup-putdown)
    (:moduleoptions )
-   (:objects l0 - location bottle - movable_object bottlepos - object_pose
-     ether goal_table - static_object
-     lg0 lg1 lg2 - grasp_location map - frameid)
+   (:objects 
+     robot_init_pose - location 
+     bottle - movable_object 
+     bottle_pose plate_pose glass_pose - object_pose 
+     goal_table party_table - static_object
+     lg0 lg1 lg2 - search_location 
+     table_location - grasp_location
+     map - frameid
+     goal_table_pos0 goal_table_pos1 goal_table_pos2 - object_pose)
    (:init 
-       (at-base lg1)
+       ; ROBOT 
+       (at-base robot_init_pose)
+       ;(canGrasp left_arm)
+       (canGrasp right_arm)
+       (handFree left_arm)
+       (handFree right_arm)
+       (= (arm-position left_arm) unknown_armpos)
+       (= (arm-position right_arm) unknown_armpos)
 
-       (can-navigate l0 lg0)
-       (can-navigate l0 lg1)
-       (can-navigate l0 lg2)
+       ; NAVIGATION 
+       (can-navigate robot_init_pose lg0)
+       (can-navigate robot_init_pose lg1)
+       (can-navigate robot_init_pose lg2)
        (can-navigate lg0 lg1)
        (can-navigate lg0 lg2)
        (can-navigate lg1 lg2)
+       (can-navigate lg0 table_location)
+       (can-navigate lg1 table_location)
+       (can-navigate lg2 table_location)
+       (can-navigate table_location lg0)
+       (can-navigate table_location lg1)
+       (can-navigate table_location lg2)
 
-       (handFree left_arm)
-       (handFree right_arm)
+       ; OBJECT POSES 
+       (belongs-to goal_table_pos0 goal_table)
+       (belongs-to goal_table_pos1 goal_table)
+       (belongs-to goal_table_pos2 goal_table)
+       (belongs-to bottle_pose party_table)
+       (belongs-to plate_pose party_table)
+       (belongs-to glass_pose party_table)
 
-       (= (arm-position left_arm) unknown)
-       (= (arm-position right_arm) unknown)
-
-       (searched lg1)
-       (recent-detected-objects lg1)
-
-       (belongs-to bottlepos ether)
-       (= (at-object bottle) bottlepos)
-       
+       ; MOVABLE OBJECTS
+       (= (at-object bottle) bottle_pose)
+       ;(graspable-from bottle lg0 right_arm)
+       ;(graspable-from bottle lg0 left_arm)
        (tidy-location bottle goal_table)
+       (can-putdown bottle goal_table_pos0 right_arm table_location)
+       (can-putdown bottle goal_table_pos1 right_arm table_location)
+       (can-putdown bottle goal_table_pos2 right_arm table_location)
+       (can-putdown bottle goal_table_pos0 left_arm table_location)
+       (can-putdown bottle goal_table_pos1 left_arm table_location)
+       (can-putdown bottle goal_table_pos2 left_arm table_location)
 
-       (= (x l0) 0.0)
-       (= (y l0) 0.0)
-       (= (z l0) 0.0)
-       (= (qx l0) 0.0)
-       (= (qy l0) 0.0)
-       (= (qz l0) 0.0)
-       (= (qw l0) 1.0)
-       (= (timestamp l0) 12737474.0)
-       (= (frame-id l0) map)
+       (= (at-object plate) plate_pose)
+       (graspable-from plate lg1 right_arm)
+       (graspable-from plate lg1 left_arm)
+       (tidy-location plate goal_table)
+       (can-putdown plate goal_table_pos0 right_arm table_location)
+       (can-putdown plate goal_table_pos1 right_arm table_location)
+       (can-putdown plate goal_table_pos2 right_arm table_location)
+       (can-putdown plate goal_table_pos0 left_arm table_location)
+       (can-putdown plate goal_table_pos1 left_arm table_location)
+       (can-putdown plate goal_table_pos2 left_arm table_location)
+
+       (= (at-object glass) glass_pose)
+       (graspable-from glass lg2 right_arm)
+       (graspable-from glass lg2 left_arm)
+       (tidy-location glass goal_table)
+       (can-putdown glass goal_table_pos0 right_arm table_location)
+       (can-putdown glass goal_table_pos1 right_arm table_location)
+       (can-putdown glass goal_table_pos2 right_arm table_location)
+       (can-putdown glass goal_table_pos0 left_arm table_location)
+       (can-putdown glass goal_table_pos1 left_arm table_location)
+       (can-putdown glass goal_table_pos2 left_arm table_location)
     )
 
     (:goal
         (and
-            (forall (?l - grasp_location) (searched ?l))
+            (forall (?l - search_location) (cleared ?l))
             (forall (?o - movable_object) (tidy ?o))
         )
     )

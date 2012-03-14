@@ -1,24 +1,29 @@
-; 0 objects, 3 search locations
-(define (problem p00)
+; 2 objects, 2 arms, start: one object in hand, at putdown location
+(define (problem p19)
    (:domain tidyup-putdown)
    (:moduleoptions )
    (:objects 
      robot_init_pose - location 
-     ;bottle - movable_object 
+     bottle plate - movable_object 
      bottle_pose plate_pose glass_pose - object_pose 
      goal_table party_table - static_object
      lg0 lg1 lg2 - search_location 
      table_location - grasp_location
-     map - frameid)
+     map - frameid
+     goal_table_pos0 goal_table_pos1 goal_table_pos2 - object_pose)
    (:init 
        ; ROBOT 
-       (at-base robot_init_pose)
-       ;(canGrasp left_arm)
+       (at-base table_location)
+       (canGrasp left_arm)
        (canGrasp right_arm)
-       (handFree left_arm)
+       ;(handFree left_arm)
        (handFree right_arm)
-       (= (arm-position left_arm) unknown_armpos)
+       (= (arm-position left_arm) untucked)
        (= (arm-position right_arm) unknown_armpos)
+       
+       (= (at-object bottle) goal_table_pos0)
+       (grasped plate left_arm)
+       (= (at-object plate) unknown_pose)
 
        ; NAVIGATION 
        (can-navigate robot_init_pose lg0)
@@ -43,9 +48,8 @@
        (belongs-to glass_pose party_table)
 
        ; MOVABLE OBJECTS
-       (= (at-object bottle) bottle_pose)
-       (graspable-from bottle lg0 right_arm)
-       (graspable-from bottle lg0 left_arm)
+       ;(graspable-from bottle lg0 right_arm)
+       ;(graspable-from bottle lg0 left_arm)
        (tidy-location bottle goal_table)
        (can-putdown bottle goal_table_pos0 right_arm table_location)
        (can-putdown bottle goal_table_pos1 right_arm table_location)
@@ -54,9 +58,9 @@
        (can-putdown bottle goal_table_pos1 left_arm table_location)
        (can-putdown bottle goal_table_pos2 left_arm table_location)
 
-       (= (at-object plate) plate_pose)
-       (graspable-from plate lg1 right_arm)
-       (graspable-from plate lg1 left_arm)
+       ;(= (at-object plate) plate_pose)
+       ;(graspable-from plate lg1 right_arm)
+       ;(graspable-from plate lg1 left_arm)
        (tidy-location plate goal_table)
        (can-putdown plate goal_table_pos0 right_arm table_location)
        (can-putdown plate goal_table_pos1 right_arm table_location)
