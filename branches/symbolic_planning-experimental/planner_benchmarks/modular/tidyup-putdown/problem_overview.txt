@@ -1,0 +1,24 @@
+start form initial situation:
+p00: 0 objects, 3 search locations
+p01: 1 objects, 0 put-down-poses, 3 search locations
+p02: 1 objects, 3 put-down-poses, 3 search locations
+p03: 1 objects, no tidy-locations
+p04: 1 objects, not graspable
+p05: 2 objects, at different locations, 3 put-down-poses
+p06: 2 objects, at same location, 3 put-down-poses
+p07: 3 objects, at different locations, 3 put-down-poses
+p08: 3 objects, at different locations, both arms usable
+p09: 3 objects, at same locations, both arms usable
+
+start from intermediate situation:
+p10: 1 objects, 3 search locations, start: at search location
+p11: 1 objects, 3 search locations, start: after scan, at search location
+p12: 1 objects, 3 search locations, start: object in hand, at search location
+p13: 1 objects, 3 search locations, start: object in hand, at tidy location
+p14: 1 objects, 1 arms, start: one object put down, at putdown location
+p15: 2 objects, 1 arms, start: one object in hand, at search location
+p16: 2 objects, 2 arms, start: one object in hand, at search location
+p17: 2 objects, 2 arms, start: both hands full, at search location
+p18: 2 objects, 2 arms, start: both hands full, at putdown location
+p19: 2 objects, 2 arms, start: one object in hand, at putdown location
+

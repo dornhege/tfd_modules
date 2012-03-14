@@ -1,24 +1,28 @@
-; 0 objects, 3 search locations
-(define (problem p00)
+; 1 objects, 3 search locations, start: after scan, at search location
+(define (problem p11)
    (:domain tidyup-putdown)
    (:moduleoptions )
    (:objects 
      robot_init_pose - location 
-     ;bottle - movable_object 
+     bottle - movable_object 
      bottle_pose plate_pose glass_pose - object_pose 
      goal_table party_table - static_object
      lg0 lg1 lg2 - search_location 
      table_location - grasp_location
-     map - frameid)
+     map - frameid
+     goal_table_pos0 goal_table_pos1 goal_table_pos2 - object_pose)
    (:init 
        ; ROBOT 
-       (at-base robot_init_pose)
+       (at-base lg0)
        ;(canGrasp left_arm)
        (canGrasp right_arm)
        (handFree left_arm)
        (handFree right_arm)
-       (= (arm-position left_arm) unknown_armpos)
-       (= (arm-position right_arm) unknown_armpos)
+       (= (arm-position left_arm) untucked)
+       (= (arm-position right_arm) untucked)
+       
+       (recent-detected-objects lg0)
+       (searched lg0)
 
        ; NAVIGATION 
        (can-navigate robot_init_pose lg0)

@@ -40,16 +40,17 @@
         ; should be set from whoever makes the object_pose
         (belongs-to ?p - object_pose ?s - static_object)    ; is ?p a pose located at/in ?s
 
-        (handFree ?a - arm)                           ; nothing grasped in arm ?a
+        (canGrasp ?a - arm)                           ; is this arm allowed to grasp objects?
+        (handFree ?a - arm)                           ; nothing grasped in arm ?
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
 
-        (tidy-location ?o ?s)                       ; if ?o is on ?s it is considered tidied up
+        (tidy-location ?o ?s)                       ; if ?o is on ?s it is considered tidied 
     )
 
     ; TODO If ungraspable and graspable and the graspable is grasped -> the ungraspable might now be graspable!
     ; TODO one leftover (hack searched? - better make sure all objects current - yeah KIF)
 
-; OK, jsut assume there is only one search loc for each obj???
+; OK, just assume there is only one search loc for each obj???
 ; seen from? as long as there are object not tidy that are seen from any loc, need to go back to see that object again????
 ; maybe circumvent the seen/searched/KIF/1 object left stuff by really just assuring that we possibly go back to some locs until they are really clean (and possibly remove some objs from state)
 ; seems nice
@@ -89,7 +90,8 @@
         :duration (= ?duration 1.0)
 	    :condition (and
             ; HACK grasp only works with r_arm
-            (at start (= ?a right_arm))
+            ;(at start (= ?a right_arm))
+            (at start (canGrasp ?a)) ; less hacky
             (at start (at-base ?l))
             (at start (on ?o ?s))
             (at start (handFree ?a))
@@ -103,7 +105,10 @@
             (at end (grasped ?o ?a))
             (at end (assign (at-object ?o) unknown_pose))
             (at start (assign (arm-position ?a) unknown_armpos))
-            (at end (not (graspable-from ?o ?l ?a)))
+            ; force re-detect objects after grasp
+            (at end (not (searched ?l)))
+            ; the object has been removed, therefore not graspable from any location or with any arm
+            (forall (?_a - arm) (forall (?_l - location) (at end (not (graspable-from ?o ?_l ?_a))))) 
 ;            (forall (?l - location) (at start (not (recent-detected-objects ?l))))  ; we possibly changed graspable or can-putdown
             ; TODO if there are untidy objects here, mark it not searched (might become graspable when looking again)
         )
@@ -115,7 +120,7 @@
         :duration (= ?duration 1.0)
 	    :condition (and
             ; HACK grasp only works with r_arm
-            (at start (= ?a right_arm))
+            ;(at start (= ?a right_arm))
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
             (at start (can-putdown ?o ?p ?a ?l))
@@ -127,12 +132,14 @@
             (at end (not (grasped ?o ?a)))
             (at end (assign (at-object ?o) ?p))
             (at start (assign (arm-position ?a) unknown_armpos))
+            ; force re-detect objects after putdown
+            (at end (not (recent-detected-objects ?l)))
             ; we just put something on ?p
             ; disable can-putdown for ALL objects/locations/arms at this ?p
-            (forall (?lo - grasp_location)
-                (forall (?ao - arm)
-                    (forall (?oo - movable_object)
-                        (at end (not (can-putdown ?oo ?p ?ao ?lo)))
+            (forall (?_l - grasp_location)
+                (forall (?_a - arm)
+                    (forall (?_o - movable_object)
+                        (at end (not (can-putdown ?_o ?p ?_a ?_l)))
                     )
                 )
             )
@@ -162,7 +169,7 @@
 
     (:durative-action drive-base
 	    :parameters (?s - location ?g - location)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 10.0)
 	    :condition (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
