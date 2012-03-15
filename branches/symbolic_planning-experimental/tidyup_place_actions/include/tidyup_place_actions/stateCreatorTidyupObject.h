@@ -6,14 +6,14 @@
 #include <tf/transform_listener.h>
 #include <ros/ros.h>
 
-namespace tidyup_grasp_actions 
+namespace tidyup_place_actions 
 {
 
-    class StateCreatorGraspObject : public continual_planning_executive::StateCreator
+    class StateCreatorTidyupObject : public continual_planning_executive::StateCreator
     {
         public:
-            StateCreatorGraspObject();
-            ~StateCreatorGraspObject();
+            StateCreatorTidyupObject();
+            ~StateCreatorTidyupObject();
 
             virtual bool fillState(SymbolicState & state);
 

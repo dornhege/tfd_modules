@@ -1,20 +1,21 @@
-#include "tidyup_place_actions/actionExecutorTidyupGraspObject.h"
+#include "tidyup_place_actions/actionExecutorTidyupPlaceObject.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_grasp_object,
-        tidyup_place_actions::ActionExecutorTidyupGraspObject,
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_place_object,
+        tidyup_place_actions::ActionExecutorTidyupPlaceObject,
         continual_planning_executive::ActionExecutorInterface)
 
 namespace tidyup_place_actions
 {
 
-    bool ActionExecutorTidyupGraspObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
+    bool ActionExecutorTidyupPlaceObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
-        ROS_ASSERT(a.parameters.size() == 3);
+        ROS_ASSERT(a.parameters.size() == 4);
         string location = a.parameters[0];
         string targetName = a.parameters[1];
-        string arm = a.parameters[2];
+        string objectPose = a.parameters[2];
+        string arm = a.parameters[3];
 
         // set arm
         goal.left_arm = false;
@@ -34,6 +35,7 @@ namespace tidyup_place_actions
         // set the target pose from state
         Predicate p;
         p.parameters.push_back(targetName);
+        p.parameters.push_back(objectPose);
 
         p.name = "frame-id";
         if(!current.hasObjectFluent(p, &goal.target.pose.header.frame_id))
@@ -66,7 +68,7 @@ namespace tidyup_place_actions
             return false;
 
         // set target reachable from state
-        p.name = "graspable-from";
+        p.name = "can-putdown";
         p.parameters.push_back(location);
 
         p.parameters.push_back("left_arm");
@@ -75,7 +77,7 @@ namespace tidyup_place_actions
             return false;
         goal.target.reachable_left_arm = reachableLeft;
 
-        p.parameters[2] = "right_arm";
+        p.parameters[3] = "right_arm";
         bool reachableRight;
         if(!current.hasBooleanPredicate(p, &reachableRight))
             return false;
@@ -84,19 +86,21 @@ namespace tidyup_place_actions
         return (goal.left_arm || goal.right_arm);
     }
 
-    void ActionExecutorTidyupGraspObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+    void ActionExecutorTidyupPlaceObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
             const tidyup_msgs::GraspObjectResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
-        ROS_INFO("GraspObject returned result: %s", result.result.c_str());
+        ROS_INFO("PlaceObject returned result: %s", result.result.c_str());
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            ROS_INFO("Grasping succeeded.");
-            ROS_ASSERT(a.parameters.size() == 3);
+            ROS_INFO("Putdown succeeded.");
+            ROS_ASSERT(a.parameters.size() == 4);
             string targetName = a.parameters[1];
-            string arm = a.parameters[2];
+            string objectPose = a.parameters[2];
+            string arm = a.parameters[3];
             current.setObjectFluent("arm-position", arm, "unknown_armpos");
-            current.setBooleanPredicate("handFree", arm, false);
-            current.setBooleanPredicate("grasped", targetName + " " + arm, true);
+            current.setObjectFluent("at-object", targetName, objectPose);
+            current.setBooleanPredicate("handFree", arm, true);
+            current.setBooleanPredicate("grasped", targetName + " " + arm, false);
         }
     }
 

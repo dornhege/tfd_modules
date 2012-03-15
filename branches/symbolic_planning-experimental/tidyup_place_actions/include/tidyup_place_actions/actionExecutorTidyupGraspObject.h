@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/GraspObjectAction.h>
 
-namespace tidyup_grasp_actions
+namespace tidyup_place_actions
 {
 
     class ActionExecutorTidyupGraspObject : public ActionExecutorActionlib<tidyup_msgs::GraspObjectAction,

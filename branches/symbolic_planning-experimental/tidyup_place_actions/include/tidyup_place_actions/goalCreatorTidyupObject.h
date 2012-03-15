@@ -3,14 +3,14 @@
 
 #include "continual_planning_executive/goalCreator.h"
 
-namespace tidyup_grasp_actions 
+namespace tidyup_place_actions 
 {
 
-    class GoalCreatorGraspObject : public continual_planning_executive::GoalCreator
+    class GoalCreatorTidyupObject : public continual_planning_executive::GoalCreator
     {
         public:
-            GoalCreatorGraspObject();
-            ~GoalCreatorGraspObject();
+            GoalCreatorTidyupObject();
+            ~GoalCreatorTidyupObject();
 
             virtual bool fillStateAndGoal(SymbolicState & currentState, SymbolicState & goal);
     };

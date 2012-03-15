@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <pr2_common_action_msgs/TuckArmsAction.h>
 
-namespace tidyup_grasp_actions
+namespace tidyup_place_actions
 {
 
     class ActionExecutorTuckArms : public ActionExecutorActionlib<pr2_common_action_msgs::TuckArmsAction,

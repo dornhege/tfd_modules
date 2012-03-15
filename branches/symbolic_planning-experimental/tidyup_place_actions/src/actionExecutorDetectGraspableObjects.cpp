@@ -1,12 +1,12 @@
-#include "tidyup_grasp_actions/actionExecutorDetectGraspableObjects.h"
+#include "tidyup_place_actions/actionExecutorDetectGraspableObjects.h"
 #include <pluginlib/class_list_macros.h>
 #include <tidyup_msgs/RequestObjectsGraspability.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, action_executor_detect_graspable_objects,
-        tidyup_grasp_actions::ActionExecutorDetectGraspableObjects,
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_detect_graspable_objects,
+        tidyup_place_actions::ActionExecutorDetectGraspableObjects,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_grasp_actions
+namespace tidyup_place_actions
 {
     void ActionExecutorDetectGraspableObjects::initialize(const std::deque<std::string> & arguments)
     {
@@ -40,7 +40,7 @@ namespace tidyup_grasp_actions
         std::string location = a.parameters.at(0);
 
         std::vector<tidyup_msgs::GraspableObject> objects = response.objects;
-        
+
         if(s_RequestGraspability) {
             tidyup_msgs::RequestObjectsGraspability reqSrv;
             reqSrv.request.objects = objects;
