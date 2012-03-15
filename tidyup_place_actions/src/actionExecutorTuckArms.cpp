@@ -1,11 +1,11 @@
-#include "tidyup_grasp_actions/actionExecutorTuckArms.h"
+#include "tidyup_place_actions/actionExecutorTuckArms.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, action_executor_tuck_arms,
-        tidyup_grasp_actions::ActionExecutorTuckArms,
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_tuck_arms,
+        tidyup_place_actions::ActionExecutorTuckArms,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_grasp_actions
+namespace tidyup_place_actions
 {
 
     bool ActionExecutorTuckArms::fillGoal(pr2_common_action_msgs::TuckArmsGoal & goal,
@@ -61,46 +61,26 @@ namespace tidyup_grasp_actions
                 ROS_ASSERT(result.tuck_left == false);
                 ROS_ASSERT(result.tuck_right == false);
                 valid_name = true;
-
-                current.setBooleanPredicate("untucked", l_arm, true);
-                current.setBooleanPredicate("untucked", r_arm, true);
-                current.setBooleanPredicate("tucked", l_arm, false);
-                current.setBooleanPredicate("tucked", r_arm, false);
-                current.setBooleanPredicate("post-grasped", l_arm, false);
-                current.setBooleanPredicate("post-grasped", r_arm, false);
+                current.setObjectFluent("arm-position", l_arm, "untucked");
+                current.setObjectFluent("arm-position", r_arm, "untucked");
             } else if(a.name == "tuck-arms") {
                 ROS_ASSERT(result.tuck_left == true);
                 ROS_ASSERT(result.tuck_right == true);
                 valid_name = true;
-
-                current.setBooleanPredicate("tucked", l_arm, true);
-                current.setBooleanPredicate("tucked", r_arm, true);
-                current.setBooleanPredicate("untucked", l_arm, false);
-                current.setBooleanPredicate("untucked", r_arm, false);
-                current.setBooleanPredicate("post-grasped", l_arm, false);
-                current.setBooleanPredicate("post-grasped", r_arm, false);
+                current.setObjectFluent("arm-position", l_arm, "tucked");
+                current.setObjectFluent("arm-position", r_arm, "tucked");
             } else if(a.name == "tuck-left-untuck-right") {
                 ROS_ASSERT(result.tuck_left == true);
                 ROS_ASSERT(result.tuck_right == false);
                 valid_name = true;
-
-                current.setBooleanPredicate("tucked", l_arm, true);
-                current.setBooleanPredicate("untucked", r_arm, true);
-                current.setBooleanPredicate("untucked", l_arm, false);
-                current.setBooleanPredicate("tucked", r_arm, false);
-                current.setBooleanPredicate("post-grasped", l_arm, false);
-                current.setBooleanPredicate("post-grasped", r_arm, false);
+                current.setObjectFluent("arm-position", l_arm, "tucked");
+                current.setObjectFluent("arm-position", r_arm, "untucked");
             } else if(a.name == "untuck-left-tuck-right") {
                 ROS_ASSERT(result.tuck_left == false);
                 ROS_ASSERT(result.tuck_right == true);
                 valid_name = true;
-
-                current.setBooleanPredicate("untucked", l_arm, true);
-                current.setBooleanPredicate("tucked", r_arm, true);
-                current.setBooleanPredicate("tucked", l_arm, false);
-                current.setBooleanPredicate("untucked", r_arm, false);
-                current.setBooleanPredicate("post-grasped", l_arm, false);
-                current.setBooleanPredicate("post-grasped", r_arm, false);
+                current.setObjectFluent("arm-position", l_arm, "untucked");
+                current.setObjectFluent("arm-position", r_arm, "tucked");
             }
         }
     }

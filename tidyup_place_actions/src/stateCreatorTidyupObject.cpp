@@ -1,15 +1,15 @@
-#include "tidyup_grasp_actions/stateCreatorGraspObject.h"
+#include "tidyup_place_actions/stateCreatorTidyupObject.h"
 #include <pluginlib/class_list_macros.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <angles/angles.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, state_creator_grasp_object,
-        tidyup_grasp_actions::StateCreatorGraspObject, continual_planning_executive::StateCreator)
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, state_creator_tidyup_object,
+        tidyup_place_actions::StateCreatorTidyupObject, continual_planning_executive::StateCreator)
 
-namespace tidyup_grasp_actions 
+namespace tidyup_place_actions
 {
 
-    StateCreatorGraspObject::StateCreatorGraspObject()
+    StateCreatorTidyupObject::StateCreatorTidyupObject()
     {
         ros::NodeHandle nhPriv("~");
         nhPriv.param("nav_target_tolerance_xy", _goalToleranceXY, 0.5);
@@ -51,24 +51,23 @@ namespace tidyup_grasp_actions
         }
     }
 
-    StateCreatorGraspObject::~StateCreatorGraspObject()
+    StateCreatorTidyupObject::~StateCreatorTidyupObject()
     {
     }
 
-    bool StateCreatorGraspObject::fillState(SymbolicState & state)
+    bool StateCreatorTidyupObject::fillState(SymbolicState & state)
     {
         tf::StampedTransform transform;
         try{
-            _tf.lookupTransform("/map", "/base_link",  
-                    ros::Time(0), transform);
+            _tf.lookupTransform("/map", "/base_link", ros::Time(0), transform);
         }
         catch (tf::TransformException ex){
             ROS_ERROR("%s",ex.what());
             return false;
         }
 
-        // Check if we are at any grasp_locations 
-        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets = 
+        // Check if we are at any grasp_locations
+        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets =
             state.getTypedObjects().equal_range("grasp_location");
 
         vector<string> paramList;
@@ -180,6 +179,8 @@ namespace tidyup_grasp_actions
         if(s_PublishLocationsAsMarkers)
             publishLocationsAsMarkers(state);
 
+        // TODO: tidy_locations
+
         return true;
     }
 
@@ -187,8 +188,9 @@ namespace tidyup_grasp_actions
      * Publish markers for locations:
      * grasp_locations are yellow or green if the robot is at the location
      * the robot location is white or blue if the robot is at the location
+     * TODO: add tidy_locations
      */
-    void StateCreatorGraspObject::publishLocationsAsMarkers(const SymbolicState & state)
+    void StateCreatorTidyupObject::publishLocationsAsMarkers(const SymbolicState & state)
     {
         if(!_markerPub) {
             ROS_WARN("%s: _markerPub invalid.", __func__);
@@ -197,8 +199,8 @@ namespace tidyup_grasp_actions
 
         visualization_msgs::MarkerArray ma;
 
-        // Check if we are at any grasp_locations 
-        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets = 
+        // Check if we are at any grasp_locations
+        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets =
             state.getTypedObjects().equal_range("grasp_location");
 
         vector<string> paramList;
@@ -223,7 +225,7 @@ namespace tidyup_grasp_actions
                 ROS_ERROR("%s: target object: %s - no y-location.", __func__, target.c_str());
                 continue;
             }
-            
+
             p.name = "at-base";
             bool at = false;
             if(!state.hasBooleanPredicate(p, &at)) {

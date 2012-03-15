@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/PostGraspPositionAction.h>
 
-namespace tidyup_grasp_actions
+namespace tidyup_place_actions
 {
 
     class ActionExecutorPostGraspPosition : public ActionExecutorActionlib<tidyup_msgs::PostGraspPositionAction,

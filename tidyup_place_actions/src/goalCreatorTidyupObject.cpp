@@ -1,23 +1,23 @@
-#include "tidyup_grasp_actions/goalCreatorGraspObject.h"
+#include "tidyup_place_actions/goalCreatorTidyupObject.h"
 #include "hardcoded_facts/geometryPoses.h"
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_grasp_actions, goal_creator_grasp_object,
-        tidyup_grasp_actions::GoalCreatorGraspObject, continual_planning_executive::GoalCreator)
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, goal_creator_grasp_object,
+        tidyup_place_actions::GoalCreatorTidyupObject, continual_planning_executive::GoalCreator)
 
-namespace tidyup_grasp_actions 
+namespace tidyup_place_actions
 {
 
-    GoalCreatorGraspObject::GoalCreatorGraspObject()
+    GoalCreatorTidyupObject::GoalCreatorTidyupObject()
     {
     }
 
-    GoalCreatorGraspObject::~GoalCreatorGraspObject()
+    GoalCreatorTidyupObject::~GoalCreatorTidyupObject()
     {
     }
 
-    bool GoalCreatorGraspObject::fillStateAndGoal(SymbolicState & currentState, SymbolicState & goal)
+    bool GoalCreatorTidyupObject::fillStateAndGoal(SymbolicState & currentState, SymbolicState & goal)
     {
         ros::NodeHandle nhPriv("~");
 
@@ -55,11 +55,11 @@ namespace tidyup_grasp_actions
         }
 
         // a bit hacky: init currentState here
-        // TODO: fix this, r_arm won't work for non-tuck domain any more
-        currentState.addObject("right_arm", "r_arm");
         currentState.setBooleanPredicate("handFree", "right_arm", true);
-        currentState.addObject("left_arm", "l_arm");
-        currentState.setBooleanPredicate("handFree", "left_arm", true);
+        currentState.setBooleanPredicate("handFree", "right_arm", true);
+        // TODO: read from params
+        currentState.setBooleanPredicate("canGrasp", "left_arm", true);
+        currentState.setBooleanPredicate("canGrasp", "left_arm", false);
 
         return true;
     }
