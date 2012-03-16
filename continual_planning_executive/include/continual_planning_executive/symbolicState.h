@@ -20,7 +20,7 @@ using std::pair;
 using std::make_pair;
 #include <ostream>
 
-inline bool double_equals(double d1, double d2) 
+inline bool double_equals(double d1, double d2)
 {
     return fabs(d1 - d2) < 0.0001;
 }
@@ -64,7 +64,7 @@ class SymbolicState
         // Setter/Getter
 
         /// Add an object to the list of objects.
-        void addObject(string obj, string type); 
+        void addObject(string obj, string type);
 
         /// Remove an object from the state.
         /**
@@ -101,6 +101,9 @@ class SymbolicState
         /// Set all object fluents with name to value.
         void setAllObjectFluents(string name, string value);
 
+        /// Create a forall statement for a object type with the specified predicate and value.
+        /// Useful for goal conditions.
+        void setForEachGoalStatement(string objectType, string predicateName, bool value);
 
         /// Determine if this state has the given predicate.
         /**
@@ -114,11 +117,11 @@ class SymbolicState
 
         /// Does state fulfill this state?
         /**
-         * Check if the other state fulfills this (partial) state, i.e. for each predicate in this state, there is a 
+         * Check if the other state fulfills this (partial) state, i.e. for each predicate in this state, there is a
          * corresponding one in the other state and it has the same truth value.
          * Predicates in the other state that do not exist in this state are ignored.
          * Numeric fluents need to be the same up to double_equals.
-         * 
+         *
          * Commonly this is a goal state and the other state is the current state.
          *
          * \returns true, if for each predicate in this state, there is a consistent one in other.
@@ -143,7 +146,7 @@ class SymbolicState
 
     protected:
         /// split string at " "
-        vector<string> buildParameterList(string params); 
+        vector<string> buildParameterList(string params) const;
 
     protected:
         multimap<string, string> _typedObjects;    ///< Map from type to it objects of this same type.
@@ -153,6 +156,9 @@ class SymbolicState
         map<Predicate, bool> _booleanPredicates;
         map<Predicate, double> _numericalFluents;
         map<Predicate, string> _objectFluents;
+        // foreach statements
+        typedef multimap<string, pair<string, bool> > ForEachGoalStatements;
+        ForEachGoalStatements _forEachGoalStatements;
 
         typedef map<Predicate, bool>::value_type BooleanPredicateEntry;
         typedef map<Predicate, double>::value_type NumericalFluentEntry;
