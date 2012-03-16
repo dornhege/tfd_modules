@@ -56,20 +56,8 @@ namespace tidyup_place_actions
 //            goal.setBooleanPredicate("searched", np.first, true);
         }
 
-        goal.setForEachBooleanPredicate("grasp_location", "searched", true);
-        goal.setForEachBooleanPredicate("movable_object", "tidy", true);
-
-        // add objects to goal state
-//        ROS_WARN("looking for objects in state:");
-//        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objects =
-//                currentState.getTypedObjects().equal_range("movable_object");
-//        for(SymbolicState::TypedObjectConstIterator it = objects.first; it != objects.second; it++)
-//        {
-//            string objectName = it->second;
-//            // put them in the right place
-//            ROS_WARN("added object tidy predicate to goal for: %s", objectName.c_str());
-//            goal.setBooleanPredicate("tidy", objectName, true);
-//        }
+        goal.setForEachGoalStatement("grasp_location", "searched", true);
+        goal.setForEachGoalStatement("movable_object", "tidy", true);
 
         // a bit hacky: init currentState here
         currentState.setBooleanPredicate("hand-free", "right_arm", true);
