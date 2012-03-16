@@ -3,7 +3,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, goal_creator_grasp_object,
+PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, goal_creator_tidyup_object,
         tidyup_place_actions::GoalCreatorTidyupObject, continual_planning_executive::GoalCreator)
 
 namespace tidyup_place_actions
@@ -27,6 +27,8 @@ namespace tidyup_place_actions
             ROS_ERROR("Could not get ~goal_locations parameter.");
             return false;
         }
+        // TODO: load object locations
+        // TODO: load tidy locations
 
         // at the targets to state and goal
         GeometryPoses goalLocations;
@@ -51,15 +53,33 @@ namespace tidyup_place_actions
             currentState.setNumericalFluent("qz", np.first, np.second.pose.orientation.z);
             currentState.setNumericalFluent("qw", np.first, np.second.pose.orientation.w);
             // make them clean
-            goal.setBooleanPredicate("clean", np.first, true);
+//            goal.setBooleanPredicate("searched", np.first, true);
         }
 
+        goal.setForEachBooleanPredicate("grasp_location", "searched", true);
+        goal.setForEachBooleanPredicate("movable_object", "tidy", true);
+
+        // add objects to goal state
+//        ROS_WARN("looking for objects in state:");
+//        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objects =
+//                currentState.getTypedObjects().equal_range("movable_object");
+//        for(SymbolicState::TypedObjectConstIterator it = objects.first; it != objects.second; it++)
+//        {
+//            string objectName = it->second;
+//            // put them in the right place
+//            ROS_WARN("added object tidy predicate to goal for: %s", objectName.c_str());
+//            goal.setBooleanPredicate("tidy", objectName, true);
+//        }
+
         // a bit hacky: init currentState here
-        currentState.setBooleanPredicate("handFree", "right_arm", true);
-        currentState.setBooleanPredicate("handFree", "right_arm", true);
-        // TODO: read from params
-        currentState.setBooleanPredicate("canGrasp", "left_arm", true);
-        currentState.setBooleanPredicate("canGrasp", "left_arm", false);
+        currentState.setBooleanPredicate("hand-free", "right_arm", true);
+        currentState.setBooleanPredicate("hand-free", "left_arm", true);
+//        // TODO: read from params
+        currentState.setBooleanPredicate("can-grasp", "right_arm", true);
+        currentState.setBooleanPredicate("can-grasp", "left_arm", false);
+
+        currentState.setObjectFluent("arm-position", "right_arm", "unknown_armpos");
+        currentState.setObjectFluent("arm-position", "left_arm", "unknown_armpos");
 
         return true;
     }

@@ -8,7 +8,7 @@ PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_place_object,
 namespace tidyup_place_actions
 {
 
-    bool ActionExecutorTidyupPlaceObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
+    bool ActionExecutorTidyupPlaceObject::fillGoal(tidyup_msgs::PlaceObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
         ROS_ASSERT(a.parameters.size() == 4);
@@ -28,9 +28,9 @@ namespace tidyup_place_actions
         }
 
         // set target
-        goal.target.name = targetName;
-        goal.target.reachable_left_arm = false;
-        goal.target.reachable_right_arm = false;
+//        goal.position.name = targetName;
+//        goal.left_arm = false;
+//        goal.right_arm = false;
 
         // set the target pose from state
         Predicate p;
@@ -38,33 +38,33 @@ namespace tidyup_place_actions
         p.parameters.push_back(objectPose);
 
         p.name = "frame-id";
-        if(!current.hasObjectFluent(p, &goal.target.pose.header.frame_id))
+        if(!current.hasObjectFluent(p, &goal.position.header.frame_id))
             return false;
         p.name = "timestamp";
         double ts;
         if(!current.hasNumericalFluent(p, &ts))
             return false;
-        goal.target.pose.header.stamp = ros::Time(ts);
+        goal.position.header.stamp = ros::Time(ts);
         p.name = "x";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.position.x))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.position.x))
             return false;
         p.name = "y";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.position.y))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.position.y))
             return false;
         p.name = "z";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.position.z))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.position.z))
             return false;
         p.name = "qx";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.x))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.orientation.x))
             return false;
         p.name = "qy";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.y))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.orientation.y))
             return false;
         p.name = "qz";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.z))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.orientation.z))
             return false;
         p.name = "qw";
-        if(!current.hasNumericalFluent(p, &goal.target.pose.pose.orientation.w))
+        if(!current.hasNumericalFluent(p, &goal.position.pose.orientation.w))
             return false;
 
         // set target reachable from state
@@ -75,19 +75,19 @@ namespace tidyup_place_actions
         bool reachableLeft;
         if(!current.hasBooleanPredicate(p, &reachableLeft))
             return false;
-        goal.target.reachable_left_arm = reachableLeft;
+//        goal.position.reachable_left_arm = reachableLeft;
 
         p.parameters[3] = "right_arm";
         bool reachableRight;
         if(!current.hasBooleanPredicate(p, &reachableRight))
             return false;
-        goal.target.reachable_right_arm = reachableRight;
+//        goal.position.reachable_right_arm = reachableRight;
 
         return (goal.left_arm || goal.right_arm);
     }
 
     void ActionExecutorTidyupPlaceObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
-            const tidyup_msgs::GraspObjectResult & result,
+            const tidyup_msgs::PlaceObjectResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("PlaceObject returned result: %s", result.result.c_str());
