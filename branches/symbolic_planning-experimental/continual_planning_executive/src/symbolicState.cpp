@@ -229,6 +229,10 @@ void SymbolicState::setAllObjectFluents(string name, string value)
     }
 }
 
+void SymbolicState::setForEachGoalStatement(string objectType, string predicateName, bool value)
+{
+    _forEachGoalStatements.insert(pair<string, pair<string, bool> >(objectType, pair<string, bool>(predicateName, value)));
+}
 
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
 {
@@ -249,7 +253,7 @@ bool SymbolicState::hasNumericalFluent(const Predicate & p, double* value) const
         *value = it->second;
     return true;
 }
-        
+
 bool SymbolicState::hasObjectFluent(const Predicate & p, string* value) const
 {
     map<Predicate, string>::const_iterator it = _objectFluents.find(p);
@@ -291,6 +295,27 @@ bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
         // and they need to be the same value
         if(value != of.second)
             return false;
+    }
+
+    // evaluate foreach goal statements
+    forEach(const ForEachGoalStatements::value_type & fobp, _forEachGoalStatements) {
+        string objectType = fobp.first;
+        // check for all objects of the specified type
+        pair< multimap<string,string>::const_iterator, multimap<string,string>::const_iterator > ret;
+        ret = _typedObjects.equal_range(objectType);
+        for(multimap<string,string>::const_iterator objectIt = ret.first; objectIt != ret.second; objectIt++)
+        {
+            Predicate bp;
+            bp.name = fobp.second.first;
+            bp.parameters = buildParameterList(objectIt->second);
+            bool value;
+            // state needs to have every goal predicate
+            if(!state.hasBooleanPredicate(bp, &value))
+                return false;
+            // and they need to be the same truth value
+            if(value != fobp.second.second)
+                return false;
+        }
     }
 
     return true;
@@ -407,7 +432,7 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
 void SymbolicState::toPDDLGoal(std::ostream & os) const
 {
     // prevent empty conjunction in goal
-    if(_booleanPredicates.empty() && _numericalFluents.empty()) {
+    if(_booleanPredicates.empty() && _numericalFluents.empty() && _forEachGoalStatements.empty()) {
         os << "  (:goal " << std::endl;
         os << "  )" << std::endl;
         return;
@@ -426,11 +451,22 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     forEach(const ObjectFluentEntry & of, _objectFluents) {
         os << "    (= " << of.first << " " << of.second << ")" << std::endl;
     }
+
+    // from: multimap<objectType, pair<predicateName, value> >
+    // produce: (forall (?o - objectType) (predicateName ?o))
+    // or:      (forall (?o - objectType) (not (predicateName ?o)))
+    forEach(const ForEachGoalStatements::value_type & p, _forEachGoalStatements) {
+        os << "    (forall (?o - " << p.first << ") (";
+        if(p.second.second)
+            os << p.second.first << " ?o))" << std::endl;
+        else
+            os << "not (" << p.second.first << " ?o)))" << std::endl;
+    }
     os << "  ))" << std::endl;
 }
 
 
-vector<string> SymbolicState::buildParameterList(string params)
+vector<string> SymbolicState::buildParameterList(string params) const
 {
     vector<string> ret;
 
