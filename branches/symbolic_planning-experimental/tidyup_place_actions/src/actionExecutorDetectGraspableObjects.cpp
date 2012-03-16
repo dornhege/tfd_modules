@@ -26,6 +26,7 @@ namespace tidyup_place_actions
     bool ActionExecutorDetectGraspableObjects::fillGoal(tidyup_msgs::DetectGraspableObjects::Request & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
+        ROS_WARN("fillGoal");
         return true;
     }
 
@@ -33,6 +34,7 @@ namespace tidyup_place_actions
             tidyup_msgs::DetectGraspableObjects::Response & response,
             const DurativeAction & a, SymbolicState & current)
     {
+        ROS_WARN("updateState: ");
         if(!success)
             return;
 
@@ -40,6 +42,7 @@ namespace tidyup_place_actions
         std::string location = a.parameters.at(0);
 
         std::vector<tidyup_msgs::GraspableObject> objects = response.objects;
+        ROS_WARN("updateState: got %d objects", objects.size());
 
         if(s_RequestGraspability) {
             tidyup_msgs::RequestObjectsGraspability reqSrv;
@@ -81,7 +84,7 @@ namespace tidyup_place_actions
             current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
         }
 
-        current.setBooleanPredicate("detected-objects", location, true);
+        current.setBooleanPredicate("searched", location, true);
         current.setBooleanPredicate("recent-detected-objects", location, true);
     }
 

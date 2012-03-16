@@ -176,10 +176,10 @@ namespace tidyup_place_actions
                 state.setBooleanPredicate("can-navigate", target + " l0", true);
         }
 
+        // TODO: tidy_locations
+
         if(s_PublishLocationsAsMarkers)
             publishLocationsAsMarkers(state);
-
-        // TODO: tidy_locations
 
         return true;
     }

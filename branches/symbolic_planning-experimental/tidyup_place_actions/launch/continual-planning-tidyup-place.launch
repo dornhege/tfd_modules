@@ -3,7 +3,7 @@
 
     <!-- start executive -->
     <node pkg="continual_planning_executive" type="continual_planning_executive" args="" respawn="false" name="continual_planning_executive" output="screen" >
-        <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup-place/domain_modules.pddl" />
+        <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup-putdown/domain_modules.pddl" />
 
         <param name="goal_locations" value="$(find tidyup_bringup)/data/locations_lab.dat" />
 
@@ -16,7 +16,7 @@
         <param name="nav_target_tolerance_relative_to_move_base" value="false" />
         <param name="nav_base_local_planner_ns" value="/move_base_node/TrajectoryPlannerROS" />
 
-        <rosparam command="load" file="$(find tidyup_grasp_actions)/config/tidyup_place_actions.yaml" />
+        <rosparam command="load" file="$(find tidyup_place_actions)/config/tidyup_place_actions.yaml" />
         <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
         <!-- navstack_init "fixed_frame" "goal_tolerance used in planner requests" 
              "goal_tolerance is relative to move_base's xy_goal_tolerance either
