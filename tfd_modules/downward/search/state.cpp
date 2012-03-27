@@ -75,6 +75,18 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
     }
 
+    // The scheduled module effects of the new state are precisely the
+    // scheduled module effects of the predecessor state plus those at-end
+    // module effects of the given operator whose at-start conditions are
+    // satisfied.
+    for(int i = 0; i < op.get_mod_effs_end().size(); i++) {
+        const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
+        if(mod_eff.does_fire(predecessor)) {
+            scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
+                        mod_eff));
+        }
+    }
+
     // Update values affected by an at-start effect of the operator.
     for(int i = 0; i < op.get_pre_post_start().size(); i++) {
         const PrePost &pre_post = op.get_pre_post_start()[i];
@@ -88,7 +100,6 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
     }
 
-    // TODO eps internally
     // Update start module effects
     for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
         const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
@@ -116,20 +127,24 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
             eff.time_increment -= sep;
         }
     }
-    g_axiom_evaluator->evaluate(*this);
 
-    // TODO eps internally?
-    // The scheduled module effects of the new state are precisely the
-    // scheduled module effects of the predecessor state plus those at-end
-    // module effects of the given operator whose at-start conditions are
-    // satisfied.
-    for(int i = 0; i < op.get_mod_effs_end().size(); i++) {
-        const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
-        if(mod_eff.does_fire(predecessor)) {
-            scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
-                        mod_eff));
+    // same for module effects
+    for(int i = 0; i < scheduled_module_effects.size(); i++) {
+        ScheduledModuleEffect &eff = scheduled_module_effects[i];
+        if((eff.time_increment + EPSILON < sep) &&
+                         satisfies(eff.cond_end)) {
+            apply_module_effect(eff.module->internal_name);
+        }
+        if(eff.time_increment + EPSILON < sep) {
+            scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
+            i--;
+        } else {
+            eff.time_increment -= sep;
         }
     }
+
+    g_axiom_evaluator->evaluate(*this);
+
 
     // The persistent over-all conditions of the new state are
     // precisely the persistent over-all conditions of the predecessor
@@ -227,17 +242,17 @@ TimeStampedState TimeStampedState::let_time_pass(
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
-        g_axiom_evaluator->evaluate(succ);
 
-        // TODO eps internally
         // Apply module effects as well!
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
-            if(double_equals(mod_eff.time_increment, time_diff)
-                    && succ.satisfies(mod_eff.cond_end)) {
+            if((mod_eff.time_increment < time_diff + EPSILON) &&
+                    succ.satisfies(mod_eff.cond_end)) {
                 succ.apply_module_effect(mod_eff.module->internal_name);
             }
         }
+
+        g_axiom_evaluator->evaluate(succ);
     }
 
     // The scheduled effects of the new state are precisely the
@@ -258,7 +273,6 @@ TimeStampedState TimeStampedState::let_time_pass(
         }
     }
 
-    // TODO eps internally
     // The scheduled module effects of the new state are precisely the
     // scheduled module effects of the predecessor state minus those
     // whose scheduled time point has been reached and minus those
@@ -268,10 +282,9 @@ TimeStampedState TimeStampedState::let_time_pass(
     }
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.scheduled_module_effects.size(); i++) {
-            const ScheduledModuleEffect &mod_eff =
-                succ.scheduled_module_effects[i];
-            if(double_equals(mod_eff.time_increment, 0) || !succ.satisfies(
-                        mod_eff.cond_overall)) {
+            const ScheduledModuleEffect &mod_eff = succ.scheduled_module_effects[i];
+            if((mod_eff.time_increment < EPSILON) ||
+                !succ.satisfies(mod_eff.cond_overall)) {
                 succ.scheduled_module_effects.erase(
                         succ.scheduled_module_effects.begin() + i);
                 i--;
