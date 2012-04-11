@@ -11,10 +11,10 @@ namespace tidyup_place_actions
     bool ActionExecutorTidyupGraspObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
-        ROS_ASSERT(a.parameters.size() == 3);
+        ROS_ASSERT(a.parameters.size() == 4);
         string location = a.parameters[0];
-        string targetName = a.parameters[1];
-        string arm = a.parameters[2];
+        string object = a.parameters[1];
+        string arm = a.parameters[3];
 
         // set arm
         goal.left_arm = false;
@@ -27,13 +27,18 @@ namespace tidyup_place_actions
         }
 
         // set target
-        goal.target.name = targetName;
+        goal.target.name = object;
         goal.target.reachable_left_arm = false;
         goal.target.reachable_right_arm = false;
 
         // set the target pose from state
         Predicate p;
-        p.parameters.push_back(targetName);
+        p.name = "at-object";
+        p.parameters.push_back(object);
+        string objectPose;
+        if(!current.hasObjectFluent(p, &objectPose))
+            return false;
+        p.parameters[0] = objectPose;
 
         p.name = "frame-id";
         if(!current.hasObjectFluent(p, &goal.target.pose.header.frame_id))
@@ -67,6 +72,7 @@ namespace tidyup_place_actions
 
         // set target reachable from state
         p.name = "graspable-from";
+        p.parameters[0] = object;
         p.parameters.push_back(location);
 
         p.parameters.push_back("left_arm");
@@ -91,12 +97,16 @@ namespace tidyup_place_actions
         ROS_INFO("GraspObject returned result: %s", result.result.c_str());
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("Grasping succeeded.");
-            ROS_ASSERT(a.parameters.size() == 3);
-            string targetName = a.parameters[1];
-            string arm = a.parameters[2];
+            ROS_ASSERT(a.parameters.size() == 4);
+            string location = a.parameters[0];
+            string object = a.parameters[1];
+            string arm = a.parameters[3];
             current.setObjectFluent("arm-position", arm, "unknown_armpos");
-            current.setBooleanPredicate("handFree", arm, false);
-            current.setBooleanPredicate("grasped", targetName + " " + arm, true);
+            current.setBooleanPredicate("hand-free", arm, false);
+            current.setBooleanPredicate("grasped", object + " " + arm, true);
+            current.setObjectFluent("at-object", object, "unknown_pose");
+            current.setBooleanPredicate("graspable-from", object + " " + location + " left_arm", false);
+            current.setBooleanPredicate("graspable-from", object + " " + location + " right_arm", false);
         }
     }
 
