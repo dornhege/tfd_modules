@@ -13,8 +13,8 @@ namespace tidyup_place_actions
     {
         ROS_ASSERT(a.parameters.size() == 4);
         string location = a.parameters[0];
-        string targetName = a.parameters[1];
-        string objectPose = a.parameters[2];
+        string object = a.parameters[1];
+        string targetPose = a.parameters[2];
         string arm = a.parameters[3];
 
         // set arm
@@ -27,15 +27,9 @@ namespace tidyup_place_actions
             goal.right_arm = true;
         }
 
-        // set target
-//        goal.position.name = targetName;
-//        goal.left_arm = false;
-//        goal.right_arm = false;
-
         // set the target pose from state
         Predicate p;
-        p.parameters.push_back(targetName);
-        p.parameters.push_back(objectPose);
+        p.parameters.push_back(targetPose);
 
         p.name = "frame-id";
         if(!current.hasObjectFluent(p, &goal.position.header.frame_id))
@@ -67,22 +61,6 @@ namespace tidyup_place_actions
         if(!current.hasNumericalFluent(p, &goal.position.pose.orientation.w))
             return false;
 
-        // set target reachable from state
-        p.name = "can-putdown";
-        p.parameters.push_back(location);
-
-        p.parameters.push_back("left_arm");
-        bool reachableLeft;
-        if(!current.hasBooleanPredicate(p, &reachableLeft))
-            return false;
-//        goal.position.reachable_left_arm = reachableLeft;
-
-        p.parameters[3] = "right_arm";
-        bool reachableRight;
-        if(!current.hasBooleanPredicate(p, &reachableRight))
-            return false;
-//        goal.position.reachable_right_arm = reachableRight;
-
         return (goal.left_arm || goal.right_arm);
     }
 
@@ -99,8 +77,34 @@ namespace tidyup_place_actions
             string arm = a.parameters[3];
             current.setObjectFluent("arm-position", arm, "unknown_armpos");
             current.setObjectFluent("at-object", targetName, objectPose);
-            current.setBooleanPredicate("handFree", arm, true);
+            current.setBooleanPredicate("hand-free", arm, true);
             current.setBooleanPredicate("grasped", targetName + " " + arm, false);
+
+            // for any object arm location: can-putdown false
+            pair< multimap<string,string>::const_iterator, multimap<string,string>::const_iterator > objectRange;
+            objectRange = current.getTypedObjects().equal_range("movable_object");
+            pair< multimap<string,string>::const_iterator, multimap<string,string>::const_iterator > locationRange;
+            locationRange = current.getTypedObjects().equal_range("grasp_location");
+            vector<string> parameters;
+            parameters.push_back("object");
+            parameters.push_back(objectPose);
+            parameters.push_back("arm");
+            parameters.push_back("grasp_location");
+            for(multimap<string,string>::const_iterator locationIterator = locationRange.first;
+                    locationIterator != locationRange.second; locationIterator++)
+            {
+                for(multimap<string,string>::const_iterator objectIterator = objectRange.first;
+                        objectIterator != objectRange.second; objectIterator++)
+                {
+                    // (can-putdown ?o ?p ?a ?l)
+                    parameters[0] = objectIterator->second;
+                    parameters[3] = locationIterator->second;
+                    parameters[2] = "right_arm";
+                    current.setBooleanPredicate("can-putdown", parameters, false);
+                    parameters[2] = "left_arm";
+                    current.setBooleanPredicate("can-putdown", parameters, false);
+                }
+            }
         }
     }
 
