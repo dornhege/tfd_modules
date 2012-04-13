@@ -14,7 +14,7 @@ namespace tidyup_place_actions
         goal.tuck_left = false;
         goal.tuck_right = false;
 
-        ROS_ASSERT(a.parameters.size() == 2);
+        ROS_ASSERT(a.parameters.size() == 1);
         string l_arm = a.parameters[0];
         string r_arm = a.parameters[1];
         ROS_ASSERT(l_arm == "left_arm");
