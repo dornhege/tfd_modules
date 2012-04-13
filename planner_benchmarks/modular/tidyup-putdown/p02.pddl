@@ -80,6 +80,7 @@
 
     (:goal
         (and
+            (forall (?a - arm) (hand-free ?a))
             (forall (?l - search_location) (cleared ?l))
             (forall (?o - movable_object) (tidy ?o))
         )

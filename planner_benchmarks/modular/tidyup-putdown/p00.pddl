@@ -13,10 +13,10 @@
    (:init 
        ; ROBOT 
        (at-base robot_init_pose)
-       ;(canGrasp left_arm)
-       (canGrasp right_arm)
-       (handFree left_arm)
-       (handFree right_arm)
+       ;(can-grasp left_arm)
+       (can-grasp right_arm)
+       (hand-free left_arm)
+       (hand-free right_arm)
        (= (arm-position left_arm) arm_unknown)
        (= (arm-position right_arm) arm_unknown)
 
@@ -79,9 +79,9 @@
 
     (:goal
         (and
-            ;(forall (?a - arm) (hand-free ?a))
+            (forall (?a - arm) (hand-free ?a))
             (forall (?l - search_location) (cleared ?l))
-            ;(forall (?o - movable_object) (tidy ?o))
+            (forall (?o - movable_object) (tidy ?o))
         )
     )
 )

@@ -14,12 +14,12 @@
    (:init 
        ; ROBOT 
        (at-base lg0)
-       ;(canGrasp left_arm)
-       (canGrasp right_arm)
-       (handFree left_arm)
-       (handFree right_arm)
-       (= (arm-position left_arm) untucked)
-       (= (arm-position right_arm) untucked)
+       ;(can-grasp left_arm)
+       (can-grasp right_arm)
+       (hand-free left_arm)
+       (hand-free right_arm)
+       (= (arm-position left_arm) arm_at_side)
+       (= (arm-position right_arm) arm_at_side)
        
        (recent-detected-objects lg0)
        (searched lg0)
