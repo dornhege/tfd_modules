@@ -14,12 +14,12 @@
    (:init 
        ; ROBOT 
        (at-base table_location)
-       ;(canGrasp left_arm)
-       (canGrasp right_arm)
-       (handFree left_arm)
-       (handFree right_arm)
-       (= (arm-position left_arm) tucked)
-       (= (arm-position right_arm) unknown_armpos)
+       ;(can-grasp left_arm)
+       (can-grasp right_arm)
+       (hand-free left_arm)
+       (hand-free right_arm)
+       (= (arm-position left_arm) arm_at_side)
+       (= (arm-position right_arm) arm_unknown)
        
        (searched lg0)
        (= (at-object bottle) goal_table_pos0)
