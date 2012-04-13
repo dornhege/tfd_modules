@@ -17,8 +17,8 @@
        (canGrasp right_arm)
        (handFree left_arm)
        (handFree right_arm)
-       (= (arm-position left_arm) unknown_armpos)
-       (= (arm-position right_arm) unknown_armpos)
+       (= (arm-position left_arm) arm_unknown)
+       (= (arm-position right_arm) arm_unknown)
 
        ; NAVIGATION 
        (can-navigate robot_init_pose lg0)
@@ -79,8 +79,9 @@
 
     (:goal
         (and
+            ;(forall (?a - arm) (hand-free ?a))
             (forall (?l - search_location) (cleared ?l))
-            (forall (?o - movable_object) (tidy ?o))
+            ;(forall (?o - movable_object) (tidy ?o))
         )
     )
 )
