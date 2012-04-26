@@ -1,0 +1,13 @@
+<launch>
+
+    <node pkg="actionlib" type="axserver.py" args="/learned_grasping/learned_grasping_action tidyup_msgs/GraspObject" respawn="false" name="grasp_object" output="screen" />
+    
+    <node pkg="actionlib" type="axserver.py" args="/learned_grasping/learned_placing_action tidyup_msgs/PlaceObject" respawn="false" name="place_object" output="screen" />
+    
+    <node pkg="actionlib" type="axserver.py" args="/learned_grasping/post_grasp_position_action tidyup_msgs/PostGraspPosition" respawn="false" name="post_grasp_position" output="screen" />
+
+    <node pkg="fr_tools" type="sxserver.py" args="/tidyup/request_graspable_objects tidyup_msgs/DetectGraspableObjects" respawn="false" name="detect_graspable_objects" output="screen" />
+
+    <node pkg="fr_tools" type="sxserver.py" args="/learned_grasping/request_objects_graspability tidyup_msgs/RequestObjectsGraspability" respawn="false" name="request_objects_graspability" output="screen" />
+
+</launch>
