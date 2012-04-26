@@ -48,6 +48,7 @@ namespace tidyup_place_actions
 
         if(s_PublishLocationsAsMarkers) {
             _markerPub = nhPriv.advertise<visualization_msgs::MarkerArray>("location_markers", 5, true);
+            ROS_INFO("marker topic: %s", _markerPub.getTopic().c_str());
         }
     }
 

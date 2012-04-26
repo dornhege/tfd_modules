@@ -27,7 +27,7 @@ rosbuild_add_library(tidyup_place_actions
     src/goalCreatorTidyupObject.cpp
     src/actionExecutorDetectGraspableObjects.cpp
     src/actionExecutorPostGraspPosition.cpp
-    src/actionExecutorTuckArms.cpp
+    src/actionExecutorArmToSide.cpp
     src/actionExecutorTidyupPlaceObject.cpp
     src/actionExecutorTidyupGraspObject.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)

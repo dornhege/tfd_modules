@@ -56,7 +56,6 @@ namespace tidyup_place_actions
             parameters[0] = np.first;
             currentState.setBooleanPredicate("belongs-to", parameters, true);
         }
-        // TODO: set tidy predicates somewhere...
 
         // load grasp_locations
         if(!nhPriv.getParam("grasp_locations", locationsFile)) {
@@ -91,14 +90,14 @@ namespace tidyup_place_actions
         goal.setForEachGoalStatement("arm", "hand-free", true);
 
         // a bit hacky: init currentState here
-        currentState.setBooleanPredicate("hand-free", "right_arm", true);
-        currentState.setBooleanPredicate("hand-free", "left_arm", true);
+//        currentState.setBooleanPredicate("hand-free", "right_arm", true);
+//        currentState.setBooleanPredicate("hand-free", "left_arm", true);
 
         currentState.setBooleanPredicate("can-grasp", "right_arm", true);
         currentState.setBooleanPredicate("can-grasp", "left_arm", true);
 
-        currentState.setObjectFluent("arm-position", "right_arm", "unknown_armpos");
-        currentState.setObjectFluent("arm-position", "left_arm", "unknown_armpos");
+        currentState.setObjectFluent("arm-position", "right_arm", "arm_unknown");
+        currentState.setObjectFluent("arm-position", "left_arm", "arm_unknown");
 
         return true;
     }

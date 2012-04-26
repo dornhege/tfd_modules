@@ -51,10 +51,27 @@ namespace tidyup_place_actions
             }
         }
 
+        // HACK: remove objects form state, which were detected from this location
+        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectRange =
+                current.getTypedObjects().equal_range("movable_object");
+        for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
+                objectIterator != objectRange.second; objectIterator++)
+        {
+            string object = objectIterator->second;
+            if (StringUtil::startsWith(object, location))
+            {
+                current.removeObject(object, true);
+                current.removeObject(object+"_pose", true);
+            }
+        }
+
         for(std::vector<tidyup_msgs::GraspableObject>::iterator it = objects.begin();
                 it != objects.end(); it++)
         {
             tidyup_msgs::GraspableObject & object = *it;
+
+            // HACK: change object name to contain the detection loaction
+            object.name = location + "_" + object.name;
 
             current.addObject(object.name, "movable_object");
             if(object.pose.header.frame_id.empty()) {
@@ -154,36 +171,6 @@ namespace tidyup_place_actions
 //                current.setBooleanPredicate("can-putdown", parameters, true);
 //            }
         }
-
-        // assume any movable_object can be put to any known object_pose
-        // for all movable_objects object_locations and arms: add missing can-putdown predicates
-//        vector<string> parameters;
-//        parameters.push_back("movable_object");
-//        parameters.push_back("objec_pose");
-//        parameters.push_back("arm");
-//        parameters.push_back("grasp_location");
-//        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectPoseRange =
-//                    current.getTypedObjects().equal_range("object_pose");
-//        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> locationRange =
-//                    current.getTypedObjects().equal_range("grasp_location");
-//        pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectRange =
-//                    current.getTypedObjects().equal_range("movable_object");
-//        for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
-//                objectIterator != objectRange.second; objectIterator++)
-//        {
-//
-//
-//
-//            // (can-putdown ?o - movable_object ?p - object_pose ?a - arm ?g - grasp_location)
-//            parameters[0] = objectIterator->second;
-////            parameters[1] = poseIt->second;
-//            parameters[2] = "right_arm";
-//            current.setBooleanPredicate("can-putdown", parameters, true);
-//            parameters[2] = "left_arm";
-//            current.setBooleanPredicate("can-putdown", parameters, true);
-//        }
-
-
         current.setBooleanPredicate("searched", location, true);
         current.setBooleanPredicate("recent-detected-objects", location, true);
     }

@@ -3,13 +3,13 @@
         <description>An action executor that grasps an object.</description>
     </class>
     <class name="tidyup_place_actions/action_executor_place_object" type="tidyup_place_actions::ActionExecutorTidyupPlaceObject" base_class_type="continual_planning_executive::ActionExecutorInterface">
-        <description>An action executor that putsdown an object onto a static object.</description>
+        <description>An action executor that puts down an object onto a static object.</description>
     </class>
     <class name="tidyup_place_actions/action_executor_post_grasp_position" type="tidyup_place_actions::ActionExecutorPostGraspPosition" base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that moves an arm to post grasp position.</description>
     </class>
-    <class name="tidyup_place_actions/action_executor_tuck_arms" type="tidyup_place_actions::ActionExecutorTuckArms" base_class_type="continual_planning_executive::ActionExecutorInterface">
-        <description>An action executor that tucks/untucks the arms.</description>
+    <class name="tidyup_place_actions/action_executor_arm_to_side" type="tidyup_place_actions::ActionExecutorArmToSide" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves the specified arm to a side position save for driving or sensing.</description>
     </class>
     <class name="tidyup_place_actions/action_executor_detect_graspable_objects" type="tidyup_place_actions::ActionExecutorDetectGraspableObjects" base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that calls object detection for grasping.</description>
