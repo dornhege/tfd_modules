@@ -1,0 +1,23 @@
+<library path="lib/libtidyup_place_actions">
+    <class name="tidyup_place_actions/action_executor_grasp_object" type="tidyup_place_actions::ActionExecutorTidyupGraspObject" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that grasps an object.</description>
+    </class>
+    <class name="tidyup_place_actions/action_executor_place_object" type="tidyup_place_actions::ActionExecutorTidyupPlaceObject" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that puts down an object onto a static object.</description>
+    </class>
+    <class name="tidyup_place_actions/action_executor_post_grasp_position" type="tidyup_place_actions::ActionExecutorPostGraspPosition" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves an arm to post grasp position.</description>
+    </class>
+    <class name="tidyup_place_actions/action_executor_arm_to_side" type="tidyup_place_actions::ActionExecutorArmToSide" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves the specified arm to a side position save for driving or sensing.</description>
+    </class>
+    <class name="tidyup_place_actions/action_executor_detect_graspable_objects" type="tidyup_place_actions::ActionExecutorDetectGraspableObjects" base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that calls object detection for grasping.</description>
+    </class>
+    <class name="tidyup_place_actions/state_creator_tidyup_object" type="tidyup_place_actions::StateCreatorTidyupObject" base_class_type="continual_planning_executive::StateCreator">
+        <description>Creates a dummy state.</description>
+    </class>
+    <class name="tidyup_place_actions/goal_creator_tidyup_object" type="tidyup_place_actions::GoalCreatorTidyupObject" base_class_type="continual_planning_executive::GoalCreator">
+        <description>Creates a dummy goal.</description>
+    </class>
+</library>

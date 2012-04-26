@@ -1,0 +1,33 @@
+<launch>
+    <rosparam command="load" ns="tfd_modules" file="$(find tfd_modules)/config/tfd_modules_params_timeout_5min_nontemporal.yaml" />
+
+    <!-- start executive -->
+    <node pkg="continual_planning_executive" type="continual_planning_executive" args="" respawn="false" name="continual_planning_executive" output="screen" >
+        <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup-putdown/domain_modules.pddl" />
+
+        <!-- <param name="goal_locations" value="$(find tidyup_bringup)/data/locations_lab.dat" /> -->
+        <param name="grasp_locations" value="$(find tidyup_place_actions)/launch/grasp_locations.dat" />
+        <param name="object_locations" value="$(find tidyup_place_actions)/launch/object_locations.dat" />
+
+        <!-- tolerance to use when determining if navigation has reached a target (i.e. we are AT a target)
+            if nav_target_tolerance_relative_to_move_base is true, nav_base_local_planner_ns should give
+            the namespace that holds the xy_goal_tolerance parameter the base_local_planner uses.
+        -->
+        <param name="nav_target_tolerance_xy" value="0.25" />
+        <param name="nav_target_tolerance_yaw" value="0.25" />
+        <param name="nav_target_tolerance_relative_to_move_base" value="false" />
+        <param name="nav_base_local_planner_ns" value="/move_base_node/TrajectoryPlannerROS" />
+
+        <rosparam command="load" file="$(find tidyup_place_actions)/config/tidyup_place_actions.yaml" />
+        <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
+        <!-- navstack_init "fixed_frame" "goal_tolerance used in planner requests" 
+             "goal_tolerance is relative to move_base's xy_goal_tolerance either
+             0 for false or the namespace to base_local_planner params"  -->
+        <rosparam param="planner_options">
+            - (navstack_init@libplanner_modules_pr2.so /map 0.05 /move_base_node/TrajectoryPlannerROS)
+        </rosparam>
+        <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
+    </node>
+
+</launch>
+
