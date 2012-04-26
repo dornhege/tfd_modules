@@ -41,7 +41,7 @@
         (belongs-to ?p - object_pose ?s - static_object)    ; is ?p a pose located at/in ?s
 
         (can-grasp ?a - arm)                           ; is this arm allowed to grasp objects?
-        (hand-free ?a - arm)                           ; nothing grasped in arm ?
+        ;(hand-free ?a - arm)                          ; nothing grasped in arm ? -> now a derived predicate
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
 
         (tidy-location ?o ?s)                       ; if ?o is on ?s it is considered tidied 
@@ -97,12 +97,13 @@
         )
         :effect
         (and 
-            (at end (not (hand-free ?a)))
+            ;(at end (not (hand-free ?a)))
             (at end (grasped ?o ?a))
             (at end (assign (at-object ?o) unknown_pose))
             (at start (assign (arm-position ?a) arm_unknown))
             ; force re-detect objects after grasp
             (at end (not (searched ?l)))
+            (at end (not (recent-detected-objects ?l)))
             ; the object has been removed, therefore not graspable from any location or with any arm
             (forall (?_a - arm) (forall (?_l - grasp_location) (at end (not (graspable-from ?o ?_l ?_a))))) 
         )
@@ -123,13 +124,13 @@
         )
         :effect
         (and 
-            (at end (hand-free ?a))
+            ;(at end (hand-free ?a))
             (at end (not (grasped ?o ?a)))
             (at end (assign (at-object ?o) ?p))
             (at start (assign (arm-position ?a) arm_unknown))
             ; the object has placed here, therefore it is graspable from this location (with any arm)
             ; TDOD: remove later: graspable-from is set by object detection (module)
-            (forall (?_a - arm) (at end (graspable-from ?o ?l ?_a)))
+            ;(forall (?_a - arm) (at end (graspable-from ?o ?l ?_a)))
             ; force re-detect objects after putdown
             (at end (not (recent-detected-objects ?l)))
         )
@@ -217,6 +218,16 @@
         (not 
             (exists (?o - movable_object)
                 (= (at-object ?o) ?p)
+            )
+        )
+    )
+
+    ; A hand is free, iff no movable_object is grasped in it
+    (:derived
+        (hand-free ?a - arm)
+        (not 
+            (exists (?_o - movable_object)
+                (grasped ?_o ?a)
             )
         )
     )

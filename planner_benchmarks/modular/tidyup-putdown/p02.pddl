@@ -16,8 +16,8 @@
        (at-base robot_init_pose)
        ;(can-grasp left_arm)
        (can-grasp right_arm)
-       (hand-free left_arm)
-       (hand-free right_arm)
+       ;(hand-free left_arm)
+       ;(hand-free right_arm)
        (= (arm-position left_arm) arm_unknown)
        (= (arm-position right_arm) arm_unknown)
 
@@ -25,16 +25,20 @@
        (can-navigate robot_init_pose lg0)
        (can-navigate robot_init_pose lg1)
        (can-navigate robot_init_pose lg2)
+       (can-navigate robot_init_pose table_location)
        (can-navigate lg0 lg1)
        (can-navigate lg0 lg2)
-       (can-navigate lg1 lg2)
        (can-navigate lg0 table_location)
+       (can-navigate lg1 lg0)
+       (can-navigate lg1 lg2)
        (can-navigate lg1 table_location)
+       (can-navigate lg2 lg0)
+       (can-navigate lg2 lg1)
        (can-navigate lg2 table_location)
        (can-navigate table_location lg0)
        (can-navigate table_location lg1)
        (can-navigate table_location lg2)
-
+     
        ; OBJECT POSES 
        (belongs-to goal_table_pos0 goal_table)
        (belongs-to goal_table_pos1 goal_table)
@@ -80,7 +84,8 @@
 
     (:goal
         (and
-            (forall (?a - arm) (hand-free ?a))
+            ;(forall (?a - arm) (hand-free ?a))
+            (forall (?a - arm) (not (exists (?_o - movable_object) (grasped ?_o ?a))))
             (forall (?l - search_location) (cleared ?l))
             (forall (?o - movable_object) (tidy ?o))
         )
