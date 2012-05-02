@@ -72,13 +72,13 @@ void navstack_init(int argc, char** argv)
 
    // init service query
    s_NodeHandle = new ros::NodeHandle();
-   while(!ros::service::waitForService("move_base_node/make_plan", ros::Duration(3.0))) {
-      ROS_ERROR("Service move_base_node/make_plan not available - waiting.");
+   while(!ros::service::waitForService("move_base/make_plan", ros::Duration(3.0))) {
+      ROS_ERROR("Service move_base/make_plan not available - waiting.");
    }
 
-   s_GetPlan = s_NodeHandle->serviceClient<nav_msgs::GetPlan>("move_base_node/make_plan", true);
+   s_GetPlan = s_NodeHandle->serviceClient<nav_msgs::GetPlan>("move_base/make_plan", true);
    if(!s_GetPlan) {
-      ROS_FATAL("Could not initialize get plan service from move_base_node/make_plan (client name: %s)", s_GetPlan.getService().c_str());
+      ROS_FATAL("Could not initialize get plan service from move_base/make_plan (client name: %s)", s_GetPlan.getService().c_str());
    }
 
    ROS_INFO("Initialized Navstack Module.\n");
