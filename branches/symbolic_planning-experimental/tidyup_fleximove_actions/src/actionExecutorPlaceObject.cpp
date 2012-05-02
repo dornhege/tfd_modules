@@ -1,14 +1,14 @@
-#include "tidyup_place_actions/actionExecutorTidyupPlaceObject.h"
+#include "tidyup_fleximove_actions/actionExecutorPlaceObject.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_place_object,
-        tidyup_place_actions::ActionExecutorTidyupPlaceObject,
+PLUGINLIB_DECLARE_CLASS(tidyup_fleximove_actions, action_executor_place_object,
+        tidyup_fleximove_actions::ActionExecutorPlaceObject,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
-    bool ActionExecutorTidyupPlaceObject::fillGoal(tidyup_msgs::PlaceObjectGoal & goal,
+    bool ActionExecutorPlaceObject::fillGoal(tidyup_msgs::PlaceObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
         ROS_ASSERT(a.parameters.size() == 4);
@@ -64,7 +64,7 @@ namespace tidyup_place_actions
         return (goal.left_arm || goal.right_arm);
     }
 
-    void ActionExecutorTidyupPlaceObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+    void ActionExecutorPlaceObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
             const tidyup_msgs::PlaceObjectResult & result,
             const DurativeAction & a, SymbolicState & current)
     {

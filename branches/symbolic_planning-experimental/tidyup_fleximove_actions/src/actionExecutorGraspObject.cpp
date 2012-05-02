@@ -1,14 +1,14 @@
-#include "tidyup_place_actions/actionExecutorTidyupGraspObject.h"
+#include "tidyup_fleximove_actions/actionExecutorGraspObject.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_grasp_object,
-        tidyup_place_actions::ActionExecutorTidyupGraspObject,
+PLUGINLIB_DECLARE_CLASS(tidyup_fleximove_actions, action_executor_grasp_object,
+        tidyup_fleximove_actions::ActionExecutorGraspObject,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
-    bool ActionExecutorTidyupGraspObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
+    bool ActionExecutorGraspObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
         ROS_ASSERT(a.parameters.size() == 4);
@@ -90,7 +90,7 @@ namespace tidyup_place_actions
         return (goal.left_arm || goal.right_arm);
     }
 
-    void ActionExecutorTidyupGraspObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+    void ActionExecutorGraspObject::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
             const tidyup_msgs::GraspObjectResult & result,
             const DurativeAction & a, SymbolicState & current)
     {

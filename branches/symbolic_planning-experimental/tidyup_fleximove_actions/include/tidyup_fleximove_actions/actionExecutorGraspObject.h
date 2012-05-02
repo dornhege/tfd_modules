@@ -5,10 +5,10 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/GraspObjectAction.h>
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
-    class ActionExecutorTidyupGraspObject : public ActionExecutorActionlib<tidyup_msgs::GraspObjectAction,
+    class ActionExecutorGraspObject : public ActionExecutorActionlib<tidyup_msgs::GraspObjectAction,
                                                     tidyup_msgs::GraspObjectGoal, tidyup_msgs::GraspObjectResult>
     {
         public:

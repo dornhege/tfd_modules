@@ -1,11 +1,11 @@
-#include "tidyup_place_actions/actionExecutorArmToSide.h"
+#include "tidyup_fleximove_actions/actionExecutorArmToSide.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_arm_to_side,
-        tidyup_place_actions::ActionExecutorArmToSide,
+PLUGINLIB_DECLARE_CLASS(tidyup_fleximove_actions, action_executor_arm_to_side,
+        tidyup_fleximove_actions::ActionExecutorArmToSide,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
     bool ActionExecutorArmToSide::fillGoal(pr2_python_services::ArmToSideGoal & goal,
@@ -33,7 +33,7 @@ namespace tidyup_place_actions
             ROS_INFO("Arm Side Position succeeded.");
             ROS_ASSERT(a.parameters.size() == 1);
             string arm = a.parameters[0];
-            current.setObjectFluent("arm-position", arm, "arm_at_side");
+            current.setObjectFluent("arm-state", arm, "arm_side");
         }
     }
 
