@@ -17,7 +17,7 @@
   <depend package="hardcoded_facts"/>
   <depend package="pr2_common_action_msgs"/>
   <depend package="visualization_msgs"/>
-  <depend package="gki_utils"/>
+  <!-- depend package="gki_utils"/ -->
   <depend package="pr2_python_services"/>
 
   <export>

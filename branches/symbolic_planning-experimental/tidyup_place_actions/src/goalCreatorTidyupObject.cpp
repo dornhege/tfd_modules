@@ -22,7 +22,10 @@ namespace tidyup_place_actions
         ros::NodeHandle nhPriv("~");
 
         // static objects
-        currentState.addObject("sink", "static_object"); // tidy location for plates & glasses
+        string kitchenTable = "kitchen_table";
+        currentState.addObject(kitchenTable, "static_object");
+//        currentState.addObject("kitchen_shelf", "static_object");
+//        currentState.addObject("kitchen_door", "door");
 
         // load object_locations
         std::string locationsFile;
@@ -37,7 +40,7 @@ namespace tidyup_place_actions
         }
         vector<string> parameters;
         parameters.push_back("object_pose_name");
-        parameters.push_back("sink");
+        parameters.push_back(kitchenTable);
         forEach(const GeometryPoses::NamedPose & np, locations.getPoses()) {
             currentState.addObject(np.first, "object_pose");
             goal.addObject(np.first, "object_pose");
