@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/DetectGraspableObjects.h>
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
     class ActionExecutorDetectGraspableObjects : public ActionExecutorService<tidyup_msgs::DetectGraspableObjects>

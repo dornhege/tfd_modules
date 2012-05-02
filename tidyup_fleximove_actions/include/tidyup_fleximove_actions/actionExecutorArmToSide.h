@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <pr2_python_services/ArmToSideAction.h>
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
     class ActionExecutorArmToSide : public ActionExecutorActionlib<pr2_python_services::ArmToSideAction,

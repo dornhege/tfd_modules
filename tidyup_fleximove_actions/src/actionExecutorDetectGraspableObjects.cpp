@@ -1,12 +1,12 @@
-#include "tidyup_place_actions/actionExecutorDetectGraspableObjects.h"
+#include "tidyup_fleximove_actions/actionExecutorDetectGraspableObjects.h"
 #include <pluginlib/class_list_macros.h>
 #include <tidyup_msgs/RequestObjectsGraspability.h>
 #include <gki_utils/stringutil.h>
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_detect_graspable_objects,
-        tidyup_place_actions::ActionExecutorDetectGraspableObjects,
+PLUGINLIB_DECLARE_CLASS(tidyup_fleximove_actions, action_executor_detect_graspable_objects,
+        tidyup_fleximove_actions::ActionExecutorDetectGraspableObjects,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
     void ActionExecutorDetectGraspableObjects::initialize(const std::deque<std::string> & arguments)
     {

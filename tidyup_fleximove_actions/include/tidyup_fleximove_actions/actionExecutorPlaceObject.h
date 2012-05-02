@@ -5,10 +5,10 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/PlaceObjectAction.h>
 
-namespace tidyup_place_actions
+namespace tidyup_fleximove_actions
 {
 
-    class ActionExecutorTidyupPlaceObject : public ActionExecutorActionlib<tidyup_msgs::PlaceObjectAction,
+    class ActionExecutorPlaceObject : public ActionExecutorActionlib<tidyup_msgs::PlaceObjectAction,
                                                     tidyup_msgs::PlaceObjectGoal, tidyup_msgs::PlaceObjectResult>
     {
         public:

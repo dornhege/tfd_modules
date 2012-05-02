@@ -1,8 +1,0 @@
-state_creators:
-    - tidyup_grasp_actions/state_creator_grasp_object
-goal_creators:
-    - tidyup_grasp_actions/goal_creator_grasp_object
-action_executors:
-    - tidyup_grasp_actions/action_executor_detect_graspable_objects detect-objects /tidyup/request_graspable_objects
-    - tidyup_grasp_actions/action_executor_grasp_object grasp /learned_grasping/learned_grasping_action
-    - planner_navigation_actions/action_executor_ros_navigation drive-base move_base

@@ -9,11 +9,11 @@
 namespace tidyup_place_actions 
 {
 
-    class StateCreatorTidyupObject : public continual_planning_executive::StateCreator
+    class StateCreatorTidyupObjects : public continual_planning_executive::StateCreator
     {
         public:
-            StateCreatorTidyupObject();
-            ~StateCreatorTidyupObject();
+            StateCreatorTidyupObjects();
+            ~StateCreatorTidyupObjects();
 
             virtual bool fillState(SymbolicState & state);
 
