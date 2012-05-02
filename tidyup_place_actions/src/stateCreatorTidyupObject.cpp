@@ -167,6 +167,7 @@ namespace tidyup_place_actions
         }
 
         // can-navigate is always true for now
+        // TODO: can-navigate should consider door state
         for(SymbolicState::TypedObjectConstIterator it = targets.first; it != targets.second; it++) {
             string target = it->second;
             for(SymbolicState::TypedObjectConstIterator it2 = targets.first; it2 != targets.second; it2++) {

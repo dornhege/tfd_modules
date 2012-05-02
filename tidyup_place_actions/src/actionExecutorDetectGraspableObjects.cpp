@@ -1,7 +1,7 @@
 #include "tidyup_place_actions/actionExecutorDetectGraspableObjects.h"
 #include <pluginlib/class_list_macros.h>
 #include <tidyup_msgs/RequestObjectsGraspability.h>
-#include <gki_utils/stringutil.h>
+#include "stringutil.h"
 PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_detect_graspable_objects,
         tidyup_place_actions::ActionExecutorDetectGraspableObjects,
         continual_planning_executive::ActionExecutorInterface)
