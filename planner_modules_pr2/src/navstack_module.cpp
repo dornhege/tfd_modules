@@ -7,7 +7,11 @@ using std::map;
 #include <utility>
 using std::pair; using std::make_pair;
 #include <boost/foreach.hpp>
-#define forEach BOOST_FOREACH
+#ifdef __CDT_PARSER__
+    #define forEach(a, b) for(a : b)
+#else
+    #define forEach BOOST_FOREACH
+#endif
 #include <sys/times.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
