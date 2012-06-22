@@ -1,0 +1,23 @@
+
+#ifndef <[Namespace]>_<[Type]><[Name]>_plannerCall_H_
+#define <[Namespace]>_<[Type]><[Name]>_plannerCall_H_
+
+#include "State.h"
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+<[ReturnType]> <[Type]><[Name]>(const State* currentState,
+<[Arguments]>        int relaxed,
+        modules::plannerContextPtr context,
+        modules::plannerContextCompareType contextComp,
+        bool & tookContext);
+
+}
+
+}
+
+#endif 

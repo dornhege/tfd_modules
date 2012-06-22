@@ -1,0 +1,23 @@
+
+#include "<[Type]><[Name]>.h"
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+<[ReturnType]> <[Type]><[Name]>(const State* currentState,
+<[Arguments]>        int relaxed,
+        modules::plannerContextPtr context,
+        modules::plannerContextCompareType contextComp,
+        bool & tookContext)
+{
+    // TODO: implement functionality here
+<[DefaultReturn]>
+}
+
+}
+
+}
+
