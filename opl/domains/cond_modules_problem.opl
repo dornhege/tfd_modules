@@ -1,0 +1,63 @@
+Problem openDoors(Domain RobotExploration)
+{
+    Location location1
+    {
+        x = 5;
+        y = 1;
+    }
+
+    Location location0
+    {
+        x = 1;
+        y = 1;
+    }
+
+    Location location2
+    {
+        x = 0;
+        y = 0;
+    }
+
+    Location location3
+    {
+        x = 5.1;
+        y = 1.1;
+    }
+
+    Location location4
+    {
+        x = 0.9;
+        y = 0.8;
+    }
+
+    Robot robot0
+    {
+        currentLocation = location2;
+    }
+
+    Door door0
+    {
+        currentLocation = location3;
+    }
+
+    Door door1
+    {
+        currentLocation = location4;
+    }
+    
+    isReachable(location1, location4);
+    isReachable(location4, location1);
+    isReachable(location2, location3);
+    isReachable(location3, location2);
+    isReachable(location1, location2);
+    isReachable(location2, location1);
+    isReachable(location2, location4);
+    isReachable(location4, location2);
+    isReachable(location2, location0);
+    isReachable(location0, location2);
+
+    Goal
+    {
+		and (door0.isOpen(), door1.isOpen());
+    }
+}

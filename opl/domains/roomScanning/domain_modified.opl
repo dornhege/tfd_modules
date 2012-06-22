@@ -1,0 +1,79 @@
+Domain RoomScanning
+{
+  Type Pose
+  {
+    number x; number y; number z;
+    number qx; number qy; number qz; number qw;
+    ConditionModule isReachableFrom(Pose origin);
+  }
+
+  Type Target : Pose
+  {
+    boolean explored;
+  }
+  
+  Type Door
+  {
+    Pose approachPose;
+    boolean open;
+  }
+
+  Type Robot
+  {
+    Pose currentPose;
+    boolean busy;
+    DurationModule driveDuration(Pose destination);
+      
+    DurativeAction drive(Pose destination)
+    {
+      Duration {driveDuration(destination);}
+      Condition
+      {
+        and (atStart (not( equals(currentPose, destination))), 
+            atStart (not (busy)),
+            atStart (destination.isReachableFrom(currentPose)));
+      }
+      Effect
+      {
+        and (atStart (busy),
+            atEnd (assign (currentPose, destination)),
+            atEnd (not (busy)));
+      }
+    }
+
+    DurativeAction openDoor(Door door1)
+    {
+      Duration {100.0;}
+      Condition
+      {
+        and (atStart (not (busy)),
+            atStart (equals (currentPose, door1.approachPose)),
+            atStart (not (door1.open)));
+      }
+      Effect
+      {
+        and (atStart (busy),
+            atEnd (not (busy)),
+            atEnd (door1.open));
+      }
+    }
+    
+    DurativeAction scan(Target poi)
+    {
+      Duration{20.0;}
+      Condition
+      {
+        and (atStart (not (busy)),
+            atStart (equals(currentPose, poi)),
+            atStart (not (poi.explored)));
+      }
+      Effect
+      {
+        and (atStart (busy),
+            atEnd (not (busy)),
+            atEnd (poi.explored));
+      }
+    }
+  }
+}
+
