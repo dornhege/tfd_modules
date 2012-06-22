@@ -1,0 +1,147 @@
+Problem CrewPlanning_3crew_2day_80utilization(Domain CrewPlanningOpl)
+{
+    Day d0
+    {
+        next(d1);
+    }
+    Day d1
+    {
+        next(d2);
+        initiated;
+    }
+    Day d2
+    {
+        next(d3);
+    }
+    Day d3;
+    CrewMember c1
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    CrewMember c2
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    CrewMember c3
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    MedicalState ms1;
+    MedicalState ms2;
+    MedicalState ms3;
+    FilterState spaceshipFilter;
+    RPCM rpcm2;
+    ExerEquipment e1
+    {
+        unused;
+    }
+    ExerEquipment e2
+    {
+        unused;
+    }
+    ExerEquipment e3
+    {
+        unused;
+    }
+    PayloadAct pa1_1;
+    PayloadAct pa1_2;
+    PayloadAct pa1_3;
+    PayloadAct pa1_4;
+    PayloadAct pa1_5;
+    PayloadAct pa1_6;
+    PayloadAct pa1_7;
+    PayloadAct pa1_8;
+    PayloadAct pa1_9;
+    PayloadAct pa1_10;
+    PayloadAct pa1_11;
+    PayloadAct pa1_12;
+    PayloadAct pa1_13;
+    PayloadAct pa1_14;
+    PayloadAct pa1_15;
+    PayloadAct pa1_16;
+    PayloadAct pa1_17;
+    PayloadAct pa1_18;
+    PayloadAct pa1_19;
+    PayloadAct pa2_1;
+    PayloadAct pa2_2;
+    PayloadAct pa2_3;
+    PayloadAct pa2_4;
+    PayloadAct pa2_5;
+    PayloadAct pa2_6;
+    PayloadAct pa2_7;
+    PayloadAct pa2_8;
+    PayloadAct pa2_9;
+    PayloadAct pa2_10;
+    PayloadAct pa2_11;
+    PayloadAct pa2_12;
+    PayloadAct pa2_13;
+    PayloadAct pa2_14;
+    PayloadAct pa2_15;
+    PayloadAct pa2_16;
+    PayloadAct pa2_17;
+    PayloadAct pa2_18;
+    
+    Goal
+    {
+		and (
+		    c1.doneSleep(d1), 
+            c1.doneSleep(d2), 
+            c2.doneSleep(d1), 
+            c2.doneSleep(d2), 
+            c3.doneSleep(d1), 
+            c3.doneSleep(d2), 
+            d3.initiated,
+            
+            ms2.finished(d1),
+            ms3.finished(d1),
+            ms2.finished(d2),
+
+            spaceshipFilter.changed(d2),
+            
+            rpcm2.done(d2),
+            
+            pa1_2.completed(d1),
+            pa1_3.completed(d1),
+            pa1_4.completed(d1),
+            pa1_5.completed(d1),
+            pa1_6.completed(d1),
+            pa1_7.completed(d1),
+            pa1_8.completed(d1),
+            pa1_9.completed(d1),
+            pa1_10.completed(d1),
+            pa1_11.completed(d1),
+            pa1_12.completed(d1),
+            pa1_13.completed(d1),
+            pa1_14.completed(d1),
+            pa1_15.completed(d1),
+            pa1_16.completed(d1),
+            pa1_17.completed(d1),
+            pa1_18.completed(d1),
+            pa1_19.completed(d1),
+            pa2_1.completed(d2),
+            pa2_2.completed(d2),
+            pa2_3.completed(d2),
+            pa2_4.completed(d2),
+            pa2_5.completed(d2),
+            pa2_6.completed(d2),
+            pa2_7.completed(d2),
+            pa2_8.completed(d2),
+            pa2_9.completed(d2),
+            pa2_10.completed(d2),
+            pa2_11.completed(d2),
+            pa2_12.completed(d2),
+            pa2_13.completed(d2),
+            pa2_14.completed(d2),
+            pa2_15.completed(d2),
+            pa2_16.completed(d2),
+            pa2_17.completed(d2),
+            pa2_18.completed(d2),
+            pa1_1.completed(d1));
+    }
+}

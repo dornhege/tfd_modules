@@ -1,0 +1,133 @@
+Domain RobotExploration
+{
+    CostModule driveDuration(Location start, Location destination)
+    {
+        driveDuration@libtfd_opl_RobotExploration.so;
+    }
+    
+//    ConditionModule isReachable(Location origin, Location destination)
+//    {
+//        isReachable@libtfd_opl_RobotExploration.so;
+//    }
+
+    Type Robot
+    {
+        Location currentLocation();
+        boolean isBusy;
+        
+        DurativeAction drive(Location start, Location destination)
+        {
+            Duration 
+            {
+                driveDuration(start, destination);
+            }
+            
+            Condition
+            {
+                and ( 
+                    atStart (equals(currentLocation, start)), 
+                    atStart (not( equals(this.currentLocation(), destination))), 
+                    atStart (not (isBusy)),
+                    atStart (not (destination.blocked())),
+                    atStart (isReachable (this.currentLocation(), destination))
+                );
+            }
+            
+            Effect
+            {
+                and ( 
+                    atStart (this.isBusy()),
+                    atStart (destination.blocked()),
+                    atEnd (not (this.currentLocation().blocked())),
+                    atEnd (assign (this.currentLocation(), destination)),
+                    atEnd (not (this.isBusy()))
+                );
+            }
+        }
+
+        DurativeAction openDoor(Door door1)
+        {
+            Duration 
+            {
+                1.0;
+            }
+            
+            Condition
+            {
+                and ( 
+                    atStart (not (this.isBusy())),
+                    atStart (this.currentLocation().isNear(door1.currentLocation())),
+                    atStart (not (door1.isOpen()))
+                );
+            }
+            
+            Effect
+            {
+                and (
+                    atStart (this.isBusy()),
+                    atEnd (not (this.isBusy())),
+                    atEnd (door1.isOpen()),
+                    atEnd (not (door1.currentLocation().blocked()))
+                );
+            }
+        }
+        
+        DurativeAction scan(Target poi)
+        {
+            Duration 
+            {
+                2.0;
+            }
+            
+            Condition
+            {
+                and ( 
+                    atStart (not (this.isBusy())),
+                    atStart (equals(this.currentLocation(), poi.currentLocation())),
+                    atStart (not (poi.explored()))
+                );
+            }
+            
+            Effect
+            {
+                and (
+                    atStart (this.isBusy()),
+                    atEnd (not (this.isBusy())),
+                    atEnd (poi.explored())
+                );
+            }
+        }
+    }
+    
+    Type Location
+    {
+        float x();
+        float y();
+        boolean blocked();
+        
+        ConditionModule isNear(Location other)
+        {
+            isNear@libtfd_opl_RobotExploration.so;
+        }
+    }
+    
+    Type Target
+    {
+        Location currentLocation();
+        boolean explored();
+    }
+    
+    Type Movable
+    {
+        Location currentLocation();
+    }
+    
+    Type Door : Movable
+    {
+        boolean isOpen();
+    }
+
+	// global predicates and fluents
+	boolean isReachable(Location origin, Location destination);
+}
+

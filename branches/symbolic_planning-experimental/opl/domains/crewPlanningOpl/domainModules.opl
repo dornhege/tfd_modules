@@ -1,0 +1,281 @@
+// conversion of the crew planning strips domain
+// extended with a module call to measure module overhead
+Domain CrewPlanningOpl
+{
+    Type MedicalState
+    {
+        boolean finished(Day d);
+    }
+    Type FilterState
+    {
+        boolean changed(Day d);
+    }
+    Type Day
+    {
+        boolean next(Day d2);
+        boolean initiated;
+        DurativeAction initialize(Day previous)
+        {
+            Duration {1440;}
+            Condition
+            {
+                and(atStart(previous.initiated), 
+                overall(previous.next(this)));
+            }
+            Effect
+            {
+                and(atEnd(this.initiated));
+            }
+        }
+    }
+    Type CrewMember
+    {
+        ConditionModule availableModule
+        {
+            availableModule@libtfd_opl_CrewPlanningOpl.so;
+        }
+        boolean available;
+        boolean currentDay(Day d);
+        boolean doneSleep(Day d);
+        boolean donePreSleep(Day d);
+        boolean donePostSleep(Day d);
+        boolean doneDPC(Day d);
+        boolean doneMeal(Day d);
+        boolean doneExercise(Day d);
+        
+        DurativeAction postSleep(Day d1, Day d2)
+        {
+            Duration {195;}
+            Condition
+            {
+                and(atStart(this.doneSleep(d1)), 
+                atStart(this.currentDay(d1)), 
+                overall(d1.next(d2)), 
+                atStart(d2.initiated));
+            }
+            Effect
+            {
+                and(atStart(not(this.currentDay(d1))), 
+                atEnd(this.currentDay(d2)), 
+                atEnd(this.available), 
+                atEnd(this.donePostSleep(d2)));
+            }
+        }
+        DurativeAction haveMeal(Day d)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(this.donePostSleep(d)), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(this.doneMeal(d)));
+            }
+        }
+        DurativeAction exercise(Day d, ExerEquipment e)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(this.donePostSleep(d)), 
+                atStart(e.unused), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atStart(not(e.unused)), 
+                atEnd(e.unused), 
+                atEnd(this.doneExercise(d)));
+            }
+        }
+        DurativeAction sleep(Day d)
+        {
+            Duration {600;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(this.doneExercise(d)), 
+                atStart(this.doneMeal(d)), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.doneSleep(d)));
+            }
+        }
+        DurativeAction changeFilter(Day d, FilterState fs)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(fs.changed(d)));
+            }
+        }
+        DurativeAction medicalConference(Day d, MedicalState ms)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ms.finished(d)));
+            }
+        }
+        DurativeAction conductPayloadActivity(PayloadAct pa)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule)); 
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(pa.done));
+            }
+        }
+        DurativeAction reportPayloadActivityAtDeadline(Day d, PayloadAct pa)
+        {
+            Duration {1;}
+            Condition
+            {
+                and(overall(this.currentDay(d)), 
+                atStart(pa.done));
+            }
+            Effect
+            {
+                and(atEnd(pa.completed(d)));
+            }
+        }
+        DurativeAction firstReconfigureThermalLoops(RPCM ps)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ps.doneFirstReconfigureThermalLoop));
+            }
+        }
+        DurativeAction removeSleepStation(RPCM ps)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ps.doneRemoveSleepStation));
+            }
+        }
+        DurativeAction replaceRPCM(RPCM ps)
+        {
+            Duration {180;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(ps.doneRemoveSleepStation), 
+                atStart(ps.doneFirstReconfigureThermalLoop));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ps.doneReplace));
+            }
+        }
+        DurativeAction assembleSleepStation(RPCM ps)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(ps.doneReplace));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ps.doneAssembleSleepStation));
+            }
+        }
+        DurativeAction secondReconfigureThermalLoops(RPCM ps)
+        {
+            Duration {60;}
+            Condition
+            {
+                and(atStart(this.availableModule), 
+                atStart(ps.doneReplace));
+            }
+            Effect
+            {
+                and(atStart(not(this.available)), 
+                atEnd(this.available), 
+                atEnd(ps.doneSecondReconfigureThermalLoop));
+            }
+        }
+        DurativeAction finishRPCM(RPCM ps, Day d)
+        {
+            Duration {1;}
+            Condition
+            {
+                and(atStart(ps.doneAssembleSleepStation), 
+                atStart(ps.doneSecondReconfigureThermalLoop), 
+                overall(this.currentDay(d)));
+            }
+            Effect
+            {
+                and(atEnd(ps.done(d)));
+            }
+        }
+    }
+    Type PayloadAct
+    {
+        boolean done;
+        boolean completed(Day d);
+    }
+    Type ExerEquipment
+    {
+        boolean unused;
+    }
+    Type RPCM
+    {
+        boolean doneRemoveSleepStation;
+        boolean doneFirstReconfigureThermalLoop;
+        boolean doneReplace;
+        boolean doneAssembleSleepStation;
+        boolean doneSecondReconfigureThermalLoop;
+        boolean done(Day d);
+    }
+    
+}
+

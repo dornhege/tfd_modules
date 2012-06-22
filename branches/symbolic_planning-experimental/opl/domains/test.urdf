@@ -1,0 +1,390 @@
+<?xml version="1.0"?>
+    
+   <model:physical name="office-walls"
+   
+       xmlns:xi="http://www.w3.org/2001/XInclude"
+          xmlns:gazebo="http://playerstage.sourceforge.net/gazebo/xmlschema/#gz"
+          xmlns:model="http://playerstage.sourceforge.net/gazebo/xmlschema/#model"
+          xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+          xmlns:body="http://playerstage.sourceforge.net/gazebo/xmlschema/#body"
+         xmlns:geom="http://playerstage.sourceforge.net/gazebo/xmlschema/#geom"
+         xmlns:joint="http://playerstage.sourceforge.net/gazebo/xmlschema/#joint"
+         xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+         xmlns:rendering="http://playerstage.sourceforge.net/gazebo/xmlschema/#rendering"
+         xmlns:renderable="http://playerstage.sourceforge.net/gazebo/xmlschema/#renderable"
+         xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+         xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics"
+  >
+  
+  <link name="world"/>
+  
+      <xyz>  0.0 0.0 0.0</xyz>
+      <rpy>   0.0    0.0    0.0</rpy>
+      <static>true</static>
+  
+  
+  
+  <!--  wall up   -->
+    <body:box name="wall_up_body">
+      <xyz>  0   3  0.0</xyz>
+      <rpy>   0.0    0.0    0.0</rpy>
+      <static>true</static>
+        <geom:box name="wall_up_geom">
+         
+          <mesh>default</mesh>
+          <size> 6.1 0.1 4</size>
+  
+          <visual>
+            <size> 6.1 0.1 4</size>
+            <material>Gazebo/White</material>
+            <mesh>unit_box</mesh>
+          </visual>
+        </geom:box>
+       </body:box>
+  
+  
+  
+  
+  
+  <!--  wall down   -->
+    <body:box name="wall_down_body">
+      <xyz>  0 0.0  0.0</xyz>
+      <rpy>   0.0    0.0    0.0</rpy>
+      <static>true</static>
+        <geom:box name="wall_down_geom">
+         
+          <mesh>default</mesh>
+          <size> 6.1   0.1  4</size>
+  
+          <visual>
+            <size> 6.1   0.1  4</size>
+            <material>Gazebo/White</material>
+            <mesh>unit_box</mesh>
+          </visual>
+        </geom:box>
+       </body:box>
+  
+  
+  
+  <!--    Here start the wall with a door    -->
+  
+  <!--  wall left  part1 right-->
+  <body:box name="wall_left_right_body">
+      <xyz>  -2.95  2.05  0 </xyz>
+      <rpy>   0.0    0.0    0.0</rpy>
+      <static>true</static>
+        <geom:box name="wall_left_right_geom">
+          <mesh>default</mesh>
+          <size> 0.2   1.9  2</size>
+          <visual>
+            <size> 0.2   1.9  2</size>
+            <material>Gazebo/White</material>
+            <mesh>unit_box</mesh>
+          </visual>
+        </geom:box>
+       </body:box>
+  
+  
+  <!--  wall left  part3  left-->
+  <body:box name="wall_left_left_body">
+      <xyz>  -2.95  0.125  0  </xyz>
+      <rpy>   0.0    0.0    0.0</rpy>
+      <static>true</static>
+        <geom:box name="wall_left_left_geom">
+          <mesh>default</mesh>
+          <size> 0.2   0.25  2</size>
+          <visual>
+            <size> 0.2  0.25   2</size>
+            <material>Gazebo/White</material>
+            <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--  wall left  up -->
+   <body:box name="wall_left_up_body">
+     <xyz>  -2.95  1.5  1.05 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_left_up_geom">
+         <mesh>default</mesh>
+         <size> 0.2  3  0.1</size>
+         <visual>
+           <size> 0.2  3   0.1</size>
+           <material>Gazebo/White</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ <!--  wall left up_up -->
+   <body:box name="wall_left_up_up_body">
+     <xyz>  -3   1.5   1.95 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_left_up_up_geom">
+         <mesh>default</mesh>
+         <size> 0.1   3    0.1</size>
+         <visual>
+           <size> 0.1   3   0.1</size>
+           <material>Gazebo/White</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ <!--  wall left Glass-->
+   <body:box name="wall_left_Glass_body">
+     <xyz>  -3  1.5  1.5 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_left_Glass_geom">
+         <mesh>default</mesh>
+         <size> 0.005   3    0.8</size>
+         <visual>
+           <size> 0.005   3    0.8</size>
+           <material>Gazebo/EpuckBody</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--    Here start the wall with windows    -->
+ 
+ <!--  wall right  part1 right-->
+   <body:box name="wall_right1_body">
+     <xyz>  3  0.15   0 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right1_geom">
+         <mesh>default</mesh>
+         <size> 0.15   0.395  4</size>
+         <visual>
+           <size> 0.15   0.395  4</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--  wall right  part2 left-->
+   <body:box name="wall_right2_body">
+     <xyz>  3  2.85   0 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right2_geom">
+         <mesh>default</mesh>
+         <size>0.07   0.25  3</size>
+         <visual>
+           <size> 0.15   0.395  4</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+      
+      
+ <!--  wall right  part3 down-->
+   <body:box name="wall_right3_body">
+     <xyz>  3   1.5  -0.53</xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right3_geom">
+         <mesh>default</mesh>
+         <size> 0.1   3    1</size>
+         <visual>
+           <size> 0.1   3   1</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ <!--  wall right part4 middel-->
+   <body:box name="wall_part3_body">
+     <xyz>  3   1.5   0.0 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_part3_geom">
+         <mesh>default</mesh>
+         <size> 0.2   0.2    4</size>
+         <visual>
+           <size> 0.2   0.2   4</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ <!--  wall right up_up -->
+   <body:box name="wall_right_up_body">
+     <xyz>  3   1.5   1.95 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right_up_geom">
+         <mesh>default</mesh>
+         <size> 0.1   3    0.1</size>
+         <visual>
+           <size> 0.1   3   0.1</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--  wall right up_middel -->
+   <body:box name="wall_right_up_middel_body">
+     <xyz>  3   1.5   1.5 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right_up_middel_geom">
+         <mesh>default</mesh>
+         <size> 0.1   3    0.03</size>
+         <visual>
+           <size> 0.1   3   0.03</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ <!--  wall right up_down -->
+   <body:box name="wall_right_up_down_body">
+     <xyz>  3   1.5   1.035 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right_up_down_geom">
+         <mesh>default</mesh>
+         <size> 0.02   1.5    0.014</size>
+         <visual>
+           <size> 0.1   3   0.028</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--  wall right  obstacle right -->
+   <body:box name="wall_right_obstacle_right_body">
+     <xyz>  3   0.875   1.265 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right_obstacle_right_geom">
+         <mesh>default</mesh>
+         <size> 0.05   1.1    0.435</size>
+         <visual>
+           <size> 0.05   1.1   0.435</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ <!--  wall right  obstacle left
+   <body:box name="wall_right_obstacle_left_body">
+     <xyz>  3   2.125   1.265 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="wall_right_obstacle_left_geom">
+         <mesh>default</mesh>
+         <size> 0.05   1.1    0.435</size>
+         <visual>
+           <size> 0.05   1.1   0.435</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ -->
+ 
+ <!--  Window Glass left-->
+   <body:box name="window_glass_left_body">
+     <xyz>  3   2.125   1.725 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="window_glass_left_geom">
+         <mesh>default</mesh>
+         <size> 0.005   1.1    0.435</size>
+         <visual>
+           <size> 0.005   1.1   0.435</size>
+           <material>Gazebo/EpuckBody</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <!--  Window Glass right-->
+   <body:box name="window_glass_right_body">
+     <xyz>  3  0.875  1.725 </xyz>
+     <rpy>   0.0    0.0    0.0</rpy>
+     <static>true</static>
+       <geom:box name="window_glass_right_geom">
+         <mesh>default</mesh>
+         <size> 0.005   1.1    0.435</size>
+         <visual>
+           <size> 0.005   1.1    0.435</size>
+           <material>Gazebo/EpuckBody</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ 
+ <!--  wall right  T up-->
+   <body:box name="wall_T_up_body">
+     <xyz>  2.83   1.5   -0.1 </xyz>
+     <rpy>   0.0    0.0    0 </rpy>
+     <static>true</static>
+       <geom:box name="wall_T_up_geom">
+         <mesh>default</mesh>
+         <size> 0.05   0.5    0.05</size>
+         <visual>
+           <size> 0.34   3   0.15</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ <!--  wall right  T down-->
+   <body:box name="wall_T_down_body">
+     <xyz>  2.83   1.5   -0.55 </xyz>
+     <rpy>   0.0    0.0    -0.55</rpy>
+     <static>true</static>
+       <geom:box name="wall_T_down_geom">
+         <mesh>default</mesh>
+         <size> 0.1   0.05    0.5</size>
+         <visual>
+           <size> 0.339   0.13   0.9</size>
+           <material>Gazebo/Grey</material>
+           <mesh>unit_box</mesh>
+         </visual>
+       </geom:box>
+      </body:box>
+ 
+ 
+ 
+ </model:physical>
+
