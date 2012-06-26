@@ -1,0 +1,22 @@
+<library path="lib/libtidyup_actions">
+    <class name="tidyup_actions/action_executor_pickup" type="tidyup_actions::ActionExecutorPickup"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for picking up objects</description>
+    </class>
+    <class name="tidyup_actions/action_executor_putdown" type="tidyup_actions::ActionExecutorPutdown"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for putting down objects</description>
+    </class>
+    <class name="tidyup_actions/action_executor_detect_door_state" type="tidyup_actions::ActionExecutorDetectDoorState"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for detecting the state of a door</description>
+    </class>
+    <class name="tidyup_actions/action_executor_open_door" type="tidyup_actions::ActionExecutorOpenDoor"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for opening doors</description>
+    </class>
+    <class name="tidyup_actions/action_executor_drive_through_door" type="tidyup_actions::ActionExecutorDriveThroughDoor"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for driving from one to another door location</description>
+    </class>
+</library>

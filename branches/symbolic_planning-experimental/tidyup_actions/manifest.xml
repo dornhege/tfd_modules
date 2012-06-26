@@ -12,6 +12,10 @@
   <depend package="continual_planning_executive"/>
   <depend package="roscpp"/>
 
+  <export>
+      <continual_planning_executive plugin="${prefix}/tidyup_actions_plugins.xml" />
+  </export>
+
 </package>
 
 
