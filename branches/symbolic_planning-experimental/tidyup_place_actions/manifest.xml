@@ -17,8 +17,6 @@
   <depend package="hardcoded_facts"/>
   <depend package="pr2_common_action_msgs"/>
   <depend package="visualization_msgs"/>
-  <!-- depend package="gki_utils"/ -->
-  <depend package="pr2_python_services"/>
 
   <export>
       <continual_planning_executive plugin="${prefix}/tidyup_place_actions_plugins.xml" />

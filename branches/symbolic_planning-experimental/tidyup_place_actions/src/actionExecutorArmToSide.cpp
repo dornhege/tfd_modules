@@ -8,23 +8,22 @@ PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_arm_to_side,
 namespace tidyup_place_actions
 {
 
-    bool ActionExecutorArmToSide::fillGoal(pr2_python_services::ArmToSideGoal & goal,
+    bool ActionExecutorArmToSide::fillGoal(tidyup_msgs::ArmToSideGoal & goal,
                         const DurativeAction & a, const SymbolicState & current)
     {
         ROS_ASSERT(a.parameters.size() == 1);
-        goal.arm = a.parameters[0];
-        if(goal.arm == "left_arm") {
-            return true;
+        if(a.parameters[0] == "left_arm") {
+            goal.left_arm = true;
         }
-        if(goal.arm == "right_arm") {
-            return true;
+        if(a.parameters[0] == "right_arm") {
+            goal.right_arm = true;
         }
 
-        return false;
+        return true;
     }
 
     void ActionExecutorArmToSide::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
-    		const pr2_python_services::ArmToSideResult & result,
+    		const tidyup_msgs::ArmToSideResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("ArmToSide returned result: %s", result.result.c_str());
