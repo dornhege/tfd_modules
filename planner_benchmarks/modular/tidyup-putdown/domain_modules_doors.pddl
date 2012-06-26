@@ -24,6 +24,7 @@
         (costDrive ?start ?goal - location cost pathCost@libplanner_modules_pr2.so)
         (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libplanner_modules_pr2.so)
         (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location (?o - movable_object) effect updatePutdownPose@libplanner_modules_pr2.so)
+        ;;; TODO
     )
 
     (:constants
@@ -112,6 +113,8 @@
             (at end ([updatePutdownPose ?o ?a ?s ?l])) 
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (not (searched ?l)))
+            (at end (not (recent-detected-objects ?l)))
+            (at end (graspable-from ?o ?l ?a))
         )
     )
 
@@ -168,7 +171,7 @@
         )
     )
 
-        (:durative-action drive-base
+    (:durative-action drive-base
         :parameters (?s - location ?g - location)
         :duration (= ?duration [costDrive ?s ?g])
         :condition 
@@ -207,7 +210,7 @@
         )
     )
 
-      (:durative-action arm-to-carry
+    (:durative-action arm-to-carry
         :parameters (?a - arm)
         :duration (= ?duration 1.0)
         :condition 
