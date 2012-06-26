@@ -20,7 +20,7 @@
     )
 
     (:modules
-        (costDrive ?start ?goal - location cost pathCost@libplanner_modules_pr2.so)
+        (costDrive ?start ?goal - location cost fullbody_pathCost@libplanner_modules_pr2.so)
       ; TODO connectivity module or set flag: use_cost_modules_for_applicablility
     )
 
