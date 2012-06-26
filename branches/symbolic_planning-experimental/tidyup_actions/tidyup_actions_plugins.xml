@@ -24,4 +24,8 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for moving an arm to the side</description>
     </class>
+    <class name="tidyup_actions/action_executor_arm_to_carry" type="tidyup_actions::ActionExecutorArmToCarry"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>An action executor that moves an arm to a carry position.</description>
+    </class>
 </library>

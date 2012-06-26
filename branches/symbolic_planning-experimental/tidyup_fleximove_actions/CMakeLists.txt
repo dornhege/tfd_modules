@@ -26,7 +26,6 @@ rosbuild_add_library(tidyup_fleximove_actions
     src/stateCreatorTidyupObjects.cpp
     src/goalCreatorTidyupObjects.cpp
     src/actionExecutorDetectGraspableObjects.cpp
-    src/actionExecutorArmToCarry.cpp
     src/actionExecutorPlaceObject.cpp
     src/actionExecutorGraspObject.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
