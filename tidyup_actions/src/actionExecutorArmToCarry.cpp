@@ -1,12 +1,28 @@
-#include "tidyup_fleximove_actions/actionExecutorArmToCarry.h"
+#include "tidyup_actions/actionExecutorArmToCarry.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_fleximove_actions, action_executor_post_grasp_position,
-        tidyup_fleximove_actions::ActionExecutorArmToCarry,
+PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_arm_to_carry,
+        tidyup_actions::ActionExecutorArmToCarry,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_fleximove_actions
+namespace tidyup_actions
 {
+
+    void ActionExecutorArmToCarry::initialize(const std::deque<std::string> & arguments)
+    {
+        ActionExecutorActionlib<tidyup_msgs::PostGraspPositionAction, tidyup_msgs::PostGraspPositionGoal,
+        tidyup_msgs::PostGraspPositionResult>::initialize(arguments);
+
+        _armStatePredicateName = "arm-state";
+        _armAtCarryConstantName = "arm_carrying";
+
+        if(arguments.size() >= 3) {     // 3rd param: arm-state predicate name
+            _armStatePredicateName = arguments[2];
+        }
+        if(arguments.size() >= 4) {     // 4th param: arm_at_side constant name
+            _armAtCarryConstantName = arguments[3];
+        }   
+    }               
 
     bool ActionExecutorArmToCarry::fillGoal(tidyup_msgs::PostGraspPositionGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
@@ -35,7 +51,7 @@ namespace tidyup_fleximove_actions
             ROS_INFO("Post Grasp Position succeeded.");
             ROS_ASSERT(a.parameters.size() == 1);
             string arm = a.parameters[0];
-            current.setObjectFluent("arm-state", arm, "arm_carrying");
+            current.setObjectFluent(_armStatePredicateName, arm, _armAtCarryConstantName);
         }
     }
 

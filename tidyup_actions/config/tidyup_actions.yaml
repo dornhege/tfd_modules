@@ -2,4 +2,5 @@ state_creators:
 goal_creators:
 action_executors:
     - tidyup_actions/action_executor_arm_to_side arm-to-side /arm_to_side arm-state arm_at_side
+    - tidyup_actions/action_executor_arm_to_carry arm-to-carry /learned_grasping/post_grasp_position_action arm-state arm_at_carry
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base
