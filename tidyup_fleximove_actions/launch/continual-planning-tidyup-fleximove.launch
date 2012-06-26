@@ -18,7 +18,7 @@
         <param name="nav_target_tolerance_relative_to_move_base" value="false" />
         <param name="nav_base_local_planner_ns" value="/move_base_node/TrajectoryPlannerROS" />
 
-        <rosparam command="load" file="$(find tidyup_place_actions)/config/tidyup_place_actions.yaml" />
+        <rosparam command="load" file="$(find tidyup_fleximove_actions)/config/tidyup_place_actions.yaml" />
         <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
         <!-- navstack_init "fixed_frame" "goal_tolerance used in planner requests" 
              "goal_tolerance is relative to move_base's xy_goal_tolerance either
