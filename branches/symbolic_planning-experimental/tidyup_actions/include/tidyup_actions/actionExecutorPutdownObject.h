@@ -8,7 +8,7 @@
 namespace tidyup_actions
 {
 
-    class ActionExecutorPlaceObject : public ActionExecutorActionlib<tidyup_msgs::PlaceObjectAction,
+    class ActionExecutorPutdownObject : public ActionExecutorActionlib<tidyup_msgs::PlaceObjectAction,
                                                     tidyup_msgs::PlaceObjectGoal, tidyup_msgs::PlaceObjectResult>
     {
         public:

@@ -11,7 +11,21 @@ namespace tidyup_actions
     bool ActionExecutorOpenDoor::fillGoal(tidyup_msgs::OpenDoorGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
+        ROS_ASSERT(a.parameters.size() == 3);
+        string location = a.parameters[0];
+        string door = a.parameters[1];
+        string arm = a.parameters[2];
 
+        // set arm
+        goal.left_arm = false;
+        goal.right_arm = false;
+        if(arm == "left_arm") {
+            goal.left_arm = true;
+        }
+        if(arm == "right_arm") {
+            goal.right_arm = true;
+        }
+        return goal.right_arm || goal.left_arm;
     }
 
     void ActionExecutorOpenDoor::updateState(const actionlib::SimpleClientGoalState & actionReturnState,
@@ -21,7 +35,12 @@ namespace tidyup_actions
         ROS_INFO("OpenDoor returned result");
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("OpenDoor succeeded.");
-
+            ROS_ASSERT(a.parameters.size() == 3);
+            string location = a.parameters[0];
+            string door = a.parameters[1];
+            string arm = a.parameters[2];
+            current.setBooleanPredicate("door-open", door, true);
+            current.setObjectFluent("arm-state", arm, "arm_unknown");
         }
     }
 

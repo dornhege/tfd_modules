@@ -8,7 +8,7 @@
 namespace tidyup_actions
 {
 
-    class ActionExecutorMoveBase : public ActionExecutorActionlib<move_base_msgs::MoveBaseAction,
+    class ActionExecutorDriveThroughDoor : public ActionExecutorActionlib<move_base_msgs::MoveBaseAction,
                                                     move_base_msgs::MoveBaseGoal, move_base_msgs::MoveBaseResult>
     {
         public:

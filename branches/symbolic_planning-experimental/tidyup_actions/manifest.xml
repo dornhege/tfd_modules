@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/tidyup_actions</url>
   <depend package="tidyup_msgs"/>
+  <depend package="move_base_msgs"/>
   <depend package="continual_planning_executive"/>
   <depend package="roscpp"/>
 

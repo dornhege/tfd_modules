@@ -8,7 +8,7 @@
 namespace tidyup_actions
 {
 
-    class ActionExecutorGraspObject : public ActionExecutorActionlib<tidyup_msgs::GraspObjectAction,
+    class ActionExecutorPickupObject : public ActionExecutorActionlib<tidyup_msgs::GraspObjectAction,
                                                     tidyup_msgs::GraspObjectGoal, tidyup_msgs::GraspObjectResult>
     {
         public:

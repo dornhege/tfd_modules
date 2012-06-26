@@ -8,9 +8,10 @@
 namespace tidyup_actions
 {
 
-    class ActionExecutorDetectDoorState : public ActionExecutorService<tidyup_msgs::DetectDoorState>
+   class ActionExecutorDetectDoorState : public ActionExecutorService<tidyup_msgs::DetectDoorState>
     {
         public:
+            virtual void initialize(const std::deque<std::string> & arguments);
             virtual bool fillGoal(tidyup_msgs::DetectDoorState::Request & goal,
                     const DurativeAction & a, const SymbolicState & current);
 
