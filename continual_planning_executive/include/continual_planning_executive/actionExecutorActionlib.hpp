@@ -28,7 +28,8 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
       /// Initialize the executor by creating the ActionClient.
       /**
        * \param [in] arguments should be name of action (as in the plan),
-       *    and the name of the action server to connect to.
+       *    and the name of the action server to connect to,
+       *    e.g. "driveBase move_base"
        */
       virtual void initialize(const std::deque<std::string> & arguments);
 
