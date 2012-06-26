@@ -19,4 +19,9 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for driving from one to another door location</description>
     </class>
+
+    <class name="tidyup_actions/action_executor_arm_to_side" type="tidyup_actions::ActionExecutorArmToSide"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for moving an arm to the side</description>
+    </class>
 </library>

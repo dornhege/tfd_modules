@@ -7,5 +7,5 @@ action_executors:
     - tidyup_place_actions/action_executor_grasp_object grasp /learned_grasping/learned_grasping_action
     - tidyup_place_actions/action_executor_place_object place /learned_grasping/learned_placing_action
     - tidyup_place_actions/action_executor_post_grasp_position move-to-post-grasp /learned_grasping/post_grasp_position_action
-    - tidyup_place_actions/action_executor_arm_to_side arm-to-side /arm_to_side
+    - tidyup_actions/action_executor_arm_to_side arm-to-side /arm_to_side arm-position arm_at_side
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base
