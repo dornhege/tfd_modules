@@ -1,0 +1,28 @@
+\#include "$NAMESPACE/actionExecutor${ACTION}.h"
+\#include <pluginlib/class_list_macros.h>
+
+PLUGINLIB_DECLARE_CLASS($NAMESPACE, action_executor_${ACTION_UNDERSCORED},
+        $NAMESPACE::ActionExecutor${ACTION},
+        continual_planning_executive::ActionExecutorInterface)
+
+namespace $NAMESPACE
+{
+
+    bool ActionExecutor${ACTION}::fillGoal($PACKAGE::${ACTION}::Request & goal,
+            const DurativeAction & a, const SymbolicState & current)
+    {
+
+    }
+
+    void ActionExecutor${ACTION}::updateState(bool success, $PACKAGE::${ACTION}::Response & response,
+            const DurativeAction & a, SymbolicState & current)
+    {
+        ROS_INFO("${ACTION} returned result");
+        if(success) {
+            ROS_INFO("${ACTION} succeeded.");
+
+        }
+    }
+
+};
+

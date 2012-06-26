@@ -28,7 +28,7 @@ def make_caps(name):
 
 if __name__=="__main__":
     if len(sys.argv) < 3:
-        print "Usage %s action namespace" % sys.argv[0]
+        print "Usage %s action namespace [s]" % sys.argv[0], "(if 's' is given at the end a service action executor is created"
         sys.exit(1)
     action_pkg, action_name = sys.argv[1].split("/")
     namespace = sys.argv[2]
@@ -45,7 +45,13 @@ if __name__=="__main__":
         print "Could not find package://continual_planning_executive/scripts directory"
         sys.exit(1)
 
-    header_template = Template(file=os.path.join(tmpl_dir, "actionExecutor.h.tmpl"),
+    header_tmpl_name = "actionExecutor.h.tmpl"
+    cpp_tmpl_name = "actionExecutor.cpp.tmpl"
+    if len(sys.argv) >= 4 and sys.argv[3] == "s":
+        header_tmpl_name = "actionExecutorService.h.tmpl"
+        cpp_tmpl_name = "actionExecutorService.cpp.tmpl"
+
+    header_template = Template(file=os.path.join(tmpl_dir, header_tmpl_name),
             searchList=[{'PACKAGE'  : action_pkg,
                          'ACTION'   : action_name,
                          'ACTION_CAPS'   : action_caps,
@@ -55,7 +61,7 @@ if __name__=="__main__":
     f.write(str(header_template))
     f.close()
 
-    cpp_template = Template(file=os.path.join(tmpl_dir, "actionExecutor.cpp.tmpl"),
+    cpp_template = Template(file=os.path.join(tmpl_dir, cpp_tmpl_name),
             searchList=[{'PACKAGE'  : action_pkg,
                          'ACTION'   : action_name,
                          'ACTION_CAPS'   : action_caps,
