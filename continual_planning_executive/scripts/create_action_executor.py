@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+import roslib
 from Cheetah.Template import Template
 import sys
+import os
 import string
 
 # UpperCamelCase -> [upper, camel, case]
@@ -38,7 +40,12 @@ if __name__=="__main__":
     #print action_caps
     #print namespace
 
-    header_template = Template(file="actionExecutor.h.tmpl", 
+    tmpl_dir = roslib.packages.get_pkg_subdir("continual_planning_executive", "scripts", False)
+    if not tmpl_dir:
+        print "Could not find package://continual_planning_executive/scripts directory"
+        sys.exit(1)
+
+    header_template = Template(file=os.path.join(tmpl_dir, "actionExecutor.h.tmpl"),
             searchList=[{'PACKAGE'  : action_pkg,
                          'ACTION'   : action_name,
                          'ACTION_CAPS'   : action_caps,
@@ -48,7 +55,7 @@ if __name__=="__main__":
     f.write(str(header_template))
     f.close()
 
-    cpp_template = Template(file="actionExecutor.cpp.tmpl", 
+    cpp_template = Template(file=os.path.join(tmpl_dir, "actionExecutor.cpp.tmpl"),
             searchList=[{'PACKAGE'  : action_pkg,
                          'ACTION'   : action_name,
                          'ACTION_CAPS'   : action_caps,
