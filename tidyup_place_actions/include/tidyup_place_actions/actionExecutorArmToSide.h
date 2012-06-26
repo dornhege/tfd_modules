@@ -3,19 +3,19 @@
 
 #include "continual_planning_executive/actionExecutorActionlib.hpp"
 #include "continual_planning_executive/symbolicState.h"
-#include <pr2_python_services/ArmToSideAction.h>
+#include <tidyup_msgs/ArmToSideAction.h>
 
 namespace tidyup_place_actions
 {
 
-    class ActionExecutorArmToSide : public ActionExecutorActionlib<pr2_python_services::ArmToSideAction,
-    pr2_python_services::ArmToSideGoal, pr2_python_services::ArmToSideResult>
+    class ActionExecutorArmToSide : public ActionExecutorActionlib<tidyup_msgs::ArmToSideAction,
+    tidyup_msgs::ArmToSideGoal, tidyup_msgs::ArmToSideResult>
     {
         public:
-            virtual bool fillGoal(pr2_python_services::ArmToSideGoal & goal,
+            virtual bool fillGoal(tidyup_msgs::ArmToSideGoal & goal,
                     const DurativeAction & a, const SymbolicState & current);
 
-            virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState, const pr2_python_services::ArmToSideResult & result,
+            virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState, const tidyup_msgs::ArmToSideResult & result,
                     const DurativeAction & a, SymbolicState & current);
     };
 
