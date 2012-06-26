@@ -30,6 +30,7 @@
     (:constants
         left_arm right_arm - arm
         arm_at_side arm_at_carry arm_unknown - arm_state
+        robot_location - location
     )
 
     (:predicates
@@ -207,6 +208,7 @@
             (at start (not (at-base ?s)))
             (at end (at-base ?g))
             (at end (not (door-state-known ?d)))
+            ; set robot_location to goal room
         )
     )
 
