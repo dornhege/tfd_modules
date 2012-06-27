@@ -12,6 +12,7 @@ namespace tidyup_actions
     StateCreatorRobotPose::StateCreatorRobotPose()
     {
         ros::NodeHandle nhPriv("~");
+        ros::NodeHandle nh;
         nhPriv.param("nav_target_tolerance_xy", _goalToleranceXY, 0.5);
         nhPriv.param("nav_target_tolerance_yaw", _goalToleranceYaw, 0.26);  //15deg
 
@@ -21,11 +22,23 @@ namespace tidyup_actions
             // relative mode: 1. get the namespace for base_local_planner
             std::string base_local_planner_ns;
             if(!nhPriv.getParam("nav_base_local_planner_ns", base_local_planner_ns)) {
-                // TODO can we estimate this?
-                ROS_ERROR("nav_target_tolerance_relative_to_move_base was true, but nav_base_local_planner_ns is not set - falling back to absolute mode.");
-            } else { // success: 2. get the xy_goal_tolerance
+                ROS_WARN("nav_target_tolerance_relative_to_move_base set, but nav_base_local_planner_ns not set - trying to estimate");
+                std::string local_planner;
+                if(!nh.getParam("move_base_node/base_local_planner", local_planner)) {
+                    ROS_ERROR("move_base_node/base_local_planner not set - falling back to absolute mode.");
+                } else {
+                    // dwa_local_planner/DWAPlannerROS -> DWAPlannerROS
+                    std::string::size_type x = local_planner.find_last_of("/");
+                    if(x == std::string::npos)
+                        base_local_planner_ns = local_planner;
+                    else
+                        base_local_planner_ns = local_planner.substr(x + 1);
+                    ROS_INFO("Estimated base_local_planner_ns to %s.", base_local_planner_ns.c_str());
+                }
+            }
+            
+            if(!base_local_planner_ns.empty()) { // success: 2. get the xy_goal_tolerance
                 double move_base_tol_xy;
-                ros::NodeHandle nh;
                 if(!nh.getParam(base_local_planner_ns + "/xy_goal_tolerance", move_base_tol_xy)) {
                     ROS_ERROR_STREAM("nav_target_tolerance_relative_to_move_base was true, but "
                             << (base_local_planner_ns + "/xy_goal_tolerance") << " was not set"
