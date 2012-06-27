@@ -5,7 +5,7 @@
 #include "continual_planning_executive/symbolicState.h"
 #include <tidyup_msgs/DetectGraspableObjects.h>
 
-namespace tidyup_place_actions
+namespace tidyup_actions
 {
 
     class ActionExecutorDetectObjects : public ActionExecutorService<tidyup_msgs::DetectGraspableObjects>
@@ -19,11 +19,10 @@ namespace tidyup_place_actions
             virtual void updateState(bool success, tidyup_msgs::DetectGraspableObjects::Response & response,
                     const DurativeAction & a, SymbolicState & current);
 
-        protected:
-            ros::ServiceClient _serviceClientGraspability;
-
         private:
-            static const bool s_RequestGraspability = false;
+            ros::ServiceClient serviceClientGraspability;
+            bool requestGraspability;
+            string tidyLocationName;
     };
 
 };
