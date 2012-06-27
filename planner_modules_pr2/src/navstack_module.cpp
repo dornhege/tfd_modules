@@ -48,14 +48,35 @@ void navstack_init(int argc, char** argv)
         g_GoalTolerance = 0.5;
     }
 
+    ros::NodeHandle nh;
+    std::string base_local_planner_ns;
     if(strcmp(argv[3], "0") == 0) {
         ROS_INFO("Using absolute goal tolerance.");
-    } else { // relative goal tolerance, argv[3] contains the base_local_planner namespace
+    } else if(strcmp(argv[3], "1") == 0) {
+        ROS_INFO("Trying to estimate base_local_planner namespace");
+        
+        std::string local_planner;
+        if(!nh.getParam("move_base_node/base_local_planner", local_planner)
+                && !nh.getParam("move_base/base_local_planner", local_planner)) {
+            ROS_ERROR("move_base(_node)/base_local_planner not set - falling back to absolute mode.");
+        } else {
+            // dwa_local_planner/DWAPlannerROS -> DWAPlannerROS
+            std::string::size_type x = local_planner.find_last_of("/");
+            if(x == std::string::npos)
+                base_local_planner_ns = local_planner;
+            else
+                base_local_planner_ns = local_planner.substr(x + 1);
+            ROS_INFO("Estimated base_local_planner_ns to %s.", base_local_planner_ns.c_str());
+        }
+    } else {
+        base_local_planner_ns = argv[3];
+    }
+
+    if(!base_local_planner_ns.empty()) {
+        // relative goal tolerance, argv[3] contains the base_local_planner namespace
         ROS_INFO("Using relative goal tolerance.");
         // get base_local_planner's xy_goal_tolerance
-        std::string base_local_planner_ns = argv[3];
         double move_base_tol;
-        ros::NodeHandle nh;
         if(!nh.getParam(base_local_planner_ns + "/xy_goal_tolerance", move_base_tol)) {
             ROS_ERROR_STREAM("requested relative goal tolerance, but "
                     << (base_local_planner_ns + "/xy_goal_tolerance") << " was not set"
