@@ -1,5 +1,5 @@
 state_creators:
-    - tidyup_place_actions/state_creator_tidyup_object
+    - tidyup_actions/state_creator_robot_pose robot_pose pose - - 
 goal_creators:
     - tidyup_place_actions/goal_creator_tidyup_object
 action_executors:

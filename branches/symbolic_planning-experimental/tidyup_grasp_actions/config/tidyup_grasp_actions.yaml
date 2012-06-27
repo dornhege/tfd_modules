@@ -1,5 +1,5 @@
 state_creators:
-    - tidyup_grasp_actions/state_creator_grasp_object
+    - tidyup_actions/state_creator_robot_pose l0 location at-base grasp_location
 goal_creators:
     - tidyup_grasp_actions/goal_creator_grasp_object
 action_executors:

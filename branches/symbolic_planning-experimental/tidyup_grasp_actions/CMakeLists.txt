@@ -23,7 +23,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(tidyup_grasp_actions
-    src/stateCreatorGraspObject.cpp
     src/goalCreatorGraspObject.cpp
     src/actionExecutorDetectGraspableObjects.cpp
     src/actionExecutorPostGraspPosition.cpp

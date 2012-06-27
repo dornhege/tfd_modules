@@ -21,6 +21,9 @@ namespace continual_planning_executive
             StateCreator() {}
             virtual ~StateCreator() {}
 
+            /// Initialize the action from a list of arguments - should be called after creating the interface.
+            virtual void initialize(const std::deque<std::string> & arguments) {}
+
             virtual bool fillState(SymbolicState & state) = 0;
     };
 

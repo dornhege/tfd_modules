@@ -11,9 +11,6 @@
     <class name="tidyup_grasp_actions/action_executor_detect_graspable_objects" type="tidyup_grasp_actions::ActionExecutorDetectGraspableObjects" base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that calls object detection for grasping.</description>
     </class>
-    <class name="tidyup_grasp_actions/state_creator_grasp_object" type="tidyup_grasp_actions::StateCreatorGraspObject" base_class_type="continual_planning_executive::StateCreator">
-        <description>Creates a dummy state.</description>
-    </class>
     <class name="tidyup_grasp_actions/goal_creator_grasp_object" type="tidyup_grasp_actions::GoalCreatorGraspObject" base_class_type="continual_planning_executive::GoalCreator">
         <description>Creates a dummy goal.</description>
     </class>
