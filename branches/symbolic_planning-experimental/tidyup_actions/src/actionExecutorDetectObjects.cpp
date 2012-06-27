@@ -2,22 +2,37 @@
 #include <pluginlib/class_list_macros.h>
 #include <tidyup_msgs/RequestObjectsGraspability.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_place_actions, action_executor_detect_graspable_objects,
-        tidyup_place_actions::ActionExecutorDetectObjects,
+PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_detect_objects,
+        tidyup_actions::ActionExecutorDetectObjects,
         continual_planning_executive::ActionExecutorInterface)
 
-namespace tidyup_place_actions
+namespace tidyup_actions
 {
     void ActionExecutorDetectObjects::initialize(const std::deque<std::string> & arguments)
     {
         ActionExecutorService<tidyup_msgs::DetectGraspableObjects>::initialize(arguments);
+        requestGraspability = true;
+        string graspabilityServiceName = "/learned_grasping/request_objects_graspability";
+        tidyLocationName = "kitchen_table";
+
+        if (arguments.size() >= 3)
+        {
+            if (arguments[2] == "NULL")
+            {
+                requestGraspability = false;
+                graspabilityServiceName = arguments[2];
+            }
+        }
+        if (arguments.size() >= 4)
+        {
+            tidyLocationName = arguments[3];
+        }
 
         ROS_ASSERT(_nh);
-
-        if(s_RequestGraspability) {
-            _serviceClientGraspability = _nh->serviceClient<tidyup_msgs::RequestObjectsGraspability>(
-                    "/learned_grasping/request_objects_graspability");
-            if(!_serviceClientGraspability) {
+        if(requestGraspability) {
+            serviceClientGraspability = _nh->serviceClient<tidyup_msgs::RequestObjectsGraspability>(
+                    graspabilityServiceName);
+            if(!serviceClientGraspability) {
                 ROS_FATAL("Could not initialize service for RequestObjectsGraspability.");
             }
         }
@@ -42,10 +57,10 @@ namespace tidyup_place_actions
             current.setBooleanPredicate("recent-detected-objects", location, true);
 
             std::vector<tidyup_msgs::GraspableObject>& objects = response.objects;
-            if(s_RequestGraspability) {
+            if(requestGraspability) {
                 tidyup_msgs::RequestObjectsGraspability request;
                 request.request.objects = objects;
-                if(!_serviceClientGraspability.call(request)) {
+                if(!serviceClientGraspability.call(request)) {
                     ROS_ERROR("Failed to call RequestObjectsGraspability service.");
                 } else {
                     objects = request.response.objects;
@@ -93,10 +108,10 @@ namespace tidyup_place_actions
                 current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
                 current.setObjectFluent("object-detected-from", object.name, location);
                 // tidy-location: (tidy-location ?o ?s)
-                current.setBooleanPredicate("tidy-location", object.name + " kitchen_table", true);
+                current.setBooleanPredicate("tidy-location", object.name + " " + tidyLocationName, true);
 
                 // add graspable predicates from current location
-                if(s_RequestGraspability)
+                if(requestGraspability)
                 {
                     current.setBooleanPredicate("graspable-from", object.name + " " + location + " left_arm",
                            object.reachable_left_arm);
