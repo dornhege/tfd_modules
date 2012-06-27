@@ -20,6 +20,21 @@ static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_Sta
 static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>* s_ActionExecutorLoader = NULL;
 
+std::deque<std::string> splitString(const std::string & s, const char* delim)
+{
+    std::deque<std::string> elems;
+    std::string::size_type lastPos = 0;
+    std::string::size_type pos     = 0;
+
+    do {
+        pos = s.find_first_of(delim, lastPos);
+        elems.push_back(s.substr(lastPos, pos - lastPos));
+        lastPos = pos + 1;
+    } while(std::string::npos != pos);
+
+    return elems;
+}
+
 bool loadStateCreators(ros::NodeHandle & nh)
 {
     try {
@@ -51,10 +66,17 @@ bool loadStateCreators(ros::NodeHandle & nh)
             ROS_ERROR("state_creators entry %d is not of type string.", i);
             return false;
         }
-        std::string state_creator_name = xmlRpc[i];
+        // This should be name + params
+        std::deque<std::string> state_creator_entry = splitString(xmlRpc[i], " ");
+        ROS_ASSERT(state_creator_entry.size() >= 1);
+
+        std::string state_creator_name = state_creator_entry.at(0);
+        state_creator_entry.pop_front();  // no only params left
+
         ROS_INFO("Loading state creator %s", state_creator_name.c_str());
         try {
             continual_planning_executive::StateCreator* sc = s_StateCreatorLoader->createClassInstance(state_creator_name);
+            sc->initialize(state_creator_entry);
             s_ContinualPlanning._stateCreators.push_back(sc);
         } catch(pluginlib::PluginlibException & ex) {
             ROS_ERROR("Failed to load StateCreator instance for: %s. Error: %s.",
@@ -96,10 +118,17 @@ bool loadGoalCreators(ros::NodeHandle & nh)
             ROS_ERROR("goal_creators entry %d is not of type string.", i);
             return false;
         }
-        std::string goal_creator_name = xmlRpc[i];
+        // This should be name + params
+        std::deque<std::string> goal_creator_entry = splitString(xmlRpc[i], " ");
+        ROS_ASSERT(goal_creator_entry.size() >= 1);
+
+        std::string goal_creator_name = goal_creator_entry.at(0);
+        goal_creator_entry.pop_front();  // no only params left
+
         ROS_INFO("Loading goal creator %s", goal_creator_name.c_str());
         try {
             continual_planning_executive::GoalCreator* gc = s_GoalCreatorLoader->createClassInstance(goal_creator_name);
+            gc->initialize(goal_creator_entry);
             if(!gc->fillStateAndGoal(s_ContinualPlanning._currentState, s_ContinualPlanning._goal)) {
                 ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
                 return false;
@@ -113,21 +142,6 @@ bool loadGoalCreators(ros::NodeHandle & nh)
 
     ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning._goal);
     return true;
-}
-
-std::deque<std::string> splitString(const std::string & s, const char* delim)
-{
-    std::deque<std::string> elems;
-    std::string::size_type lastPos = 0;
-    std::string::size_type pos     = 0;
-
-    do {
-        pos = s.find_first_of(delim, lastPos);
-        elems.push_back(s.substr(lastPos, pos - lastPos));
-        lastPos = pos + 1;
-    } while(std::string::npos != pos);
-
-    return elems;
 }
 
 bool loadActionExecutors(ros::NodeHandle & nh)
