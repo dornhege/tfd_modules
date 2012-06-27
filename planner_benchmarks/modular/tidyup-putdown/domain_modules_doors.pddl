@@ -68,6 +68,7 @@
         (arm-state ?a - arm) - arm_state
         (belongs-to-door ?l - door_location) - door 
         (location-in-room ?l - location) - room 
+        (object-detected-from ?o - movable_object) - manipulation_location
     )
 
     ; while at ?l grasp ?o from ?s using ?a
@@ -81,8 +82,9 @@
             (at start (on ?o ?s))
             (at start (hand-free ?a))
             (at start (graspable-from ?o ?l ?a)) 
-            (at start (arms-drive-pose))
             (at start (recent-detected-objects ?l))
+            (at start (= (object-detected-from ?o) ?l))
+            (at start (arms-drive-pose))
         )
         :effect
         (and 
@@ -106,6 +108,7 @@
             (at start (grasped ?o ?a))
             (at start ([canPutdown ?o ?a ?s ?l]))
             (at start (recent-detected-objects ?l))
+            (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
         )
         :effect
@@ -147,13 +150,14 @@
         :condition 
         (and
             (at start (at-base ?l))
+            (= (belongs-to-door ?l - door_location) ?d)
             (at start (not (door-state-known ?d)))
             (at start (arms-drive-pose))
         )
         :effect 
         (and
             (at end (door-state-known ?d))
-        )
+         )
     )
 
     (:durative-action open-door
@@ -162,6 +166,7 @@
         :condition 
         (and
             (at start (at-base ?l))
+            (= (belongs-to-door ?l - door_location) ?d)
             (at start (door-state-known ?d))
             (at start (not (door-open ?d)))
             (at start (arm-free ?a))
@@ -169,6 +174,7 @@
         )
         :effect 
         (and
+            (at start (assign (arm-state ?a) arm_unknown))
             (at end (door-open ?d))
         )
     )
