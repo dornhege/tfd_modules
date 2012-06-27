@@ -10,4 +10,4 @@ action_executors:
     - tidyup_grasp_actions/action_executor_tuck_arms tuck-arms tuck_arms
     - tidyup_grasp_actions/action_executor_tuck_arms tuck-left-untuck-right tuck_arms
     - tidyup_grasp_actions/action_executor_tuck_arms untuck-left-tuck-right tuck_arms
-    - planner_navigation_actions/action_executor_ros_navigation drive-base move_base
+    - planner_navigation_actions/action_executor_ros_navigation drive-base move_base start recent-detected-objects false

@@ -8,4 +8,3 @@ action_executors:
     - tidyup_place_actions/action_executor_place_object place /learned_grasping/learned_placing_action
     - tidyup_actions/action_executor_arm_to_carry arm-to-carry /learned_grasping/post_grasp_position_action arm-state arm_carrying
     - tidyup_actions/action_executor_arm_to_side arm-to-side /arm_to_side arm-state arm_side
-    - planner_navigation_actions/action_executor_ros_navigation drive-base move_base
