@@ -23,9 +23,10 @@
         <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
         <!-- navstack_init "fixed_frame" "goal_tolerance used in planner requests" 
              "goal_tolerance is relative to move_base's xy_goal_tolerance either
-             0 for false or the namespace to base_local_planner params"  -->
+             0 for false or the namespace to base_local_planner params" 
+             1 means - guess namespace -->
         <rosparam param="planner_options">
-            - (navstack_init@libplanner_modules_pr2.so /map 0.05 /move_base/TrajectoryPlannerROS)
+            - (navstack_init@libplanner_modules_pr2.so /map 0.05 1)
         </rosparam>
         <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
     </node>
