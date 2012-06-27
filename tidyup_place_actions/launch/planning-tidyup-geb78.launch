@@ -16,7 +16,7 @@
         <param name="nav_target_tolerance_xy" value="0.25" />
         <param name="nav_target_tolerance_yaw" value="0.25" />
         <param name="nav_target_tolerance_relative_to_move_base" value="false" />
-          <param name="nav_base_local_planner_ns" value="/move_base/TrajectoryPlannerROS" />
+        <param name="nav_base_local_planner_ns" value="/move_base/TrajectoryPlannerROS" />
 
         <rosparam command="load" file="$(find tidyup_place_actions)/config/tidyup_place_actions.yaml" />
         <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
