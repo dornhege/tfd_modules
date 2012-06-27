@@ -45,6 +45,8 @@
         (graspable-from ?o - movable_object ?g - manipulation_location ?a - arm)  ; is ?o graspable from ?g with ?a
         (on ?p - movable_object ?s - static_object)    ; is object ?o on static object ?s
 
+        (static-object-at-location ?s - static_object ?g - manipulation_location)   ; can ?s be manipulated from ?g
+
         (can-grasp ?a - arm)                           ; is this arm allowed to grasp objects?
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
 
@@ -85,6 +87,7 @@
             (at start (recent-detected-objects ?l))
             (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
+            (at start (static-object-at-location ?s ?l))
         )
         :effect
         (and 
@@ -110,6 +113,7 @@
             (at start (recent-detected-objects ?l))
             (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
+            (at start (static-object-at-location ?s ?l))
         )
         :effect
         (and 
