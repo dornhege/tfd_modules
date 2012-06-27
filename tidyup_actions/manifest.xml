@@ -12,6 +12,8 @@
   <depend package="move_base_msgs"/>
   <depend package="continual_planning_executive"/>
   <depend package="roscpp"/>
+  <depend package="tf"/>
+  <depend package="visualization_msgs"/>
 
   <export>
       <continual_planning_executive plugin="${prefix}/tidyup_actions_plugins.xml" />

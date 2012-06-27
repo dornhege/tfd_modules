@@ -1,4 +1,5 @@
 state_creators:
+    - tidyup_actions/state_creator_robot_pose robot_location location at-base location
 goal_creators:
 action_executors:
     - tidyup_actions/action_executor_arm_to_side arm-to-side /arm_to_side arm-state arm_at_side
