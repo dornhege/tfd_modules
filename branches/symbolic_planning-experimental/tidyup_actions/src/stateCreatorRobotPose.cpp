@@ -24,8 +24,9 @@ namespace tidyup_actions
             if(!nhPriv.getParam("nav_base_local_planner_ns", base_local_planner_ns)) {
                 ROS_WARN("nav_target_tolerance_relative_to_move_base set, but nav_base_local_planner_ns not set - trying to estimate");
                 std::string local_planner;
-                if(!nh.getParam("move_base_node/base_local_planner", local_planner)) {
-                    ROS_ERROR("move_base_node/base_local_planner not set - falling back to absolute mode.");
+                if(!nh.getParam("move_base_node/base_local_planner", local_planner)
+                        && !nh.getParam("move_base/base_local_planner", local_planner)) {
+                    ROS_ERROR("move_base(_node)/base_local_planner not set - falling back to absolute mode.");
                 } else {
                     // dwa_local_planner/DWAPlannerROS -> DWAPlannerROS
                     std::string::size_type x = local_planner.find_last_of("/");
