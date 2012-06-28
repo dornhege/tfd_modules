@@ -33,6 +33,9 @@
         <description>An action executor that moves an arm to a carry position.</description>
     </class>
     
+    <class name="tidyup_actions/goal_creator_tidyup_objects" type="tidyup_actions::GoalCreatorTidyupObjects" base_class_type="continual_planning_executive::GoalCreator">
+        <description>Loads manipulation locations from a config file for static objects and doors and assigns them to their respective rooms.</description>
+    </class>
     <class name="tidyup_actions/state_creator_robot_pose" type="tidyup_actions::StateCreatorRobotPose" base_class_type="continual_planning_executive::StateCreator">
         <description>Sets the current robot pose in the state and possible at-style predicates.</description>
     </class>
