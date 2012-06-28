@@ -8,7 +8,6 @@
         location - pose                 ; a pose for the robot base
         manipulation_location - location       ; a location that grasp actions can be applied from
                                         ; (e.g. a location at a table)
-        search_location - manipulation_location    ; a grasp location that should be searched for objects
         door_location - location        ; a location to open or close a door
         room                            ; a room, see constants
 
@@ -257,20 +256,6 @@
         (not 
             (exists (?_o - movable_object)
                 (grasped ?_o ?a)
-            )
-        )
-    )
-
-    ; A search_location is cleared if it was searched a least once
-    ; and there are no more graspable objects at the location
-    (:derived
-        (cleared ?l - search_location)
-        (and
-            (searched ?l)
-            (not 
-                (exists (?o - movable_object)
-                    (exists (?a - arm) (graspable-from ?o ?l ?a))
-                ) 
             )
         )
     )
