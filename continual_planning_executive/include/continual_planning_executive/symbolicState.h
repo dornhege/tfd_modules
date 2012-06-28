@@ -2,7 +2,11 @@
 #define SYMBOLIC_STATE_H
 
 #include <boost/foreach.hpp>
+#ifdef __CDT_PARSER__
+#define forEach(a, b) for(a : b)
+#else
 #define forEach BOOST_FOREACH
+#endif
 #include <math.h>
 
 #include <stdarg.h>
