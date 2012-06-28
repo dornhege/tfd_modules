@@ -2,6 +2,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <map>
+#include <set>
+using std::set;
 using std::map;
 #include <utility>
 using std::pair; using std::make_pair;
@@ -12,6 +14,8 @@ using std::pair; using std::make_pair;
 #include <tf/transform_listener.h>
 #include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
 #include <arm_navigation_msgs/convert_messages.h>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 
 VERIFY_CONDITIONCHECKER_DEF(canPutdown);
 VERIFY_APPLYEFFECT_DEF(updatePutdownPose);
@@ -20,7 +24,11 @@ string g_WorldFrame;
 ros::NodeHandle* g_NodeHandle = NULL;
 ros::ServiceClient g_GetPutdownPose;
 
-// TODO caching
+// all params + blocking_objs -> success + the chosen putdown pose
+typedef map< boost::tuple<string,string,string,string, set<string> >,
+        pair<bool, geometry_msgs::PoseStamped> > PutdownCache;
+
+PutdownCache g_PutdownCache;
 
 void putdown_init(int argc, char** argv)
 {
@@ -43,6 +51,11 @@ void putdown_init(int argc, char** argv)
     if(!g_GetPutdownPose) {
         ROS_FATAL("Could not initialize get putdown service from %s (client name: %s)", service_name.c_str(), g_GetPutdownPose.getService().c_str());
     }
+
+    // empty key/no key maps to no pose
+    PutdownCache::key_type empty_key;
+    //g_PutdownCache.insert(make_pair(empty_key, make_pair(false, geometry_msgs::PoseStamped())));
+    g_PutdownCache[empty_key] = make_pair(false, geometry_msgs::PoseStamped());
 
     ROS_INFO("Initialized Putdown Module.\n");
 }
@@ -117,6 +130,30 @@ void fillPoseStamped(geometry_msgs::PoseStamped & pose, const NumericalFluentLis
     pose.pose.orientation.w = fluents[startIdx + 6].value;
 }
 
+bool fillObjectsOnStatic(predicateCallbackType predicateCallback, Parameter static_object,
+        vector<Parameter> & objects_on_static)
+{
+    PredicateList* list = NULL;
+    if(!predicateCallback(list)) {
+        ROS_ERROR("predicateCallback failed.");
+        return false;
+    }
+    ROS_ASSERT(list != NULL);
+    for(PredicateList::iterator it = list->begin(); it != list->end(); it++) {
+        Predicate p = *it;
+        if(!p.value)
+            continue;
+        if(p.name != "on")
+            continue;
+        ROS_ASSERT(p.parameters.size() == 2);   // (on movable static)
+        if(p.parameters.back().value == static_object.value) {
+            objects_on_static.push_back(p.parameters.front());
+        }
+    }
+
+    return true;
+}
+
 bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request)
 {
@@ -128,23 +165,9 @@ bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackTy
     Parameter arm = parameterList[3];
 
     // get objects on static object from planner interface
-    PredicateList* list = NULL;
-    if(!predicateCallback(list)) {
-        ROS_ERROR("predicateCallback failed.");
-        return false;
-    }
-    ROS_ASSERT(list != NULL);
     vector<Parameter> objects_on_static;
-    for(PredicateList::iterator it = list->begin(); it != list->end(); it++) {
-        Predicate p = *it;
-        if(!p.value)
-            continue;
-        if(p.name != "on")
-            continue;
-        ROS_ASSERT(p.parameters.size() == 2);   // (on movable static)
-        if(p.parameters.back().value == static_object.value) {
-            objects_on_static.push_back(p.parameters.front());
-        }
+    if(!fillObjectsOnStatic(predicateCallback, static_object, objects_on_static)) {
+        return false;
     }
 
     // get poses for everything from planner interface
@@ -182,6 +205,34 @@ bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackTy
     return true;
 }
 
+PutdownCache::key_type createCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback)
+{
+    PutdownCache::key_type ret;
+
+    ROS_ASSERT(parameterList.size() == 4);
+    Parameter robot_location = parameterList[0];
+    Parameter putdown_object = parameterList[1];
+    Parameter static_object = parameterList[2];
+    Parameter arm = parameterList[3];
+
+    vector<Parameter> objects_on_static;
+    if(!fillObjectsOnStatic(predicateCallback, static_object, objects_on_static)) {
+        return ret;
+    }
+    set<string> blocking_objects;
+    forEach(Parameter & p, objects_on_static) {
+        blocking_objects.insert(p.value);
+    }
+
+    ret.get<0>() = robot_location.value;
+    ret.get<1>() = putdown_object.value;
+    ret.get<2>() = static_object.value;
+    ret.get<3>() = arm.value;
+    ret.get<4>() = blocking_objects;
+
+    return ret;
+}
+
 double canPutdown(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
@@ -194,12 +245,20 @@ double canPutdown(const ParameterList & parameterList,
         }
     }
 
+    PutdownCache::key_type key = createCacheKey(parameterList, predicateCallback);
+    PutdownCache::iterator it = g_PutdownCache.find(key);
+    if(it != g_PutdownCache.end()) {
+        return it->second.first ? 0 : INFINITE_COST;    // mapped first should be success.
+    }
+
     tidyup_msgs::GetPutdownPose srv;
     // we don't care about the content, if we can successfully get one, we canPutdown!
     if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
+        g_PutdownCache[key] = make_pair(false, geometry_msgs::PoseStamped());
         return INFINITE_COST;
     }
 
+    g_PutdownCache[key] = make_pair(true, srv.response.putdown_pose);
     return 0;
 }
 
@@ -207,7 +266,18 @@ int updatePutdownPose(const ParameterList & parameterList, predicateCallbackType
         numericalFluentCallbackType numericalFluentCallback, std::vector<double> & writtenVars)
 {
     tidyup_msgs::GetPutdownPose srv;
-    if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
+
+    PutdownCache::key_type key = createCacheKey(parameterList, predicateCallback);
+    PutdownCache::iterator it = g_PutdownCache.find(key);
+
+    if(it != g_PutdownCache.end()) {
+        if(!it->second.first) {
+            ROS_ERROR("updatePutdownPose called and cache said no pose was found.");
+            return 1;
+        }
+        // cache found set putdown_pose
+        srv.response.putdown_pose = it->second.second;
+    } else if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
         ROS_ERROR("updatePutdownPose called and getPutdownPoses failed to produce one.");
         return 1;
     }
