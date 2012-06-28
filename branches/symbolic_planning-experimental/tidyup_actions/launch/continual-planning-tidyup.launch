@@ -3,7 +3,7 @@
 
     <!-- start executive -->
     <node pkg="continual_planning_executive" type="continual_planning_executive" args="" respawn="false" name="continual_planning_executive" output="screen" >
-        <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup-putdown/domain_modules_doors.pddl" />
+        <param name="domain_file" value="$(find planner_benchmarks)/modular/tidyup/domain_modules.pddl" />
 
         <param name="locations" value="$(find tidyup_actions)/launch/locations.dat" />
 
