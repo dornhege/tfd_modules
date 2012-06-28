@@ -10,6 +10,8 @@ using std::pair; using std::make_pair;
 #include <sys/times.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
+#include <arm_navigation_msgs/convert_messages.h>
 
 VERIFY_CONDITIONCHECKER_DEF(canPutdown);
 VERIFY_APPLYEFFECT_DEF(updatePutdownPose);
@@ -46,9 +48,47 @@ void putdown_init(int argc, char** argv)
 }
 
 bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType predicateCallback,
-        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Response & putdownPoses)
+        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose & srv)
 {
+    if(!fillPutdownRequest(parameterList, predicateCallback, numericalFluentCallback, srv.request)) {
+        return false;
+    }
 
+    if(!g_GetPutdownPose) {
+        ROS_ERROR("Persistent service connection to %s failed.", g_GetPutdownPose.getService().c_str());
+        // FIXME reconnect - this shouldn't happen.
+        return false;
+    }
+
+    // statistics about using the ros service
+    static double plannerCalls = 0;
+    static ros::Duration totalCallsTime = ros::Duration(0.0);
+    plannerCalls += 1.0;
+    ros::Time callStartTime = ros::Time::now();
+
+    // perform the actual path planner call
+    if(g_GetPutdownPose.call(srv)) {
+        if(g_Debug) {
+            ros::Time callEndTime = ros::Time::now();
+            ros::Duration dt = callEndTime - callStartTime;
+            totalCallsTime += dt;
+            ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).",
+                    dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
+        }
+
+        if(srv.response.error_code.val == arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS) {
+            ROS_INFO("Got a putdown pose.");
+            return true;
+        }
+
+        ROS_WARN("GetPutdownPose failed. Reason: %s (%d)",
+                arm_navigation_msgs::armNavigationErrorCodeToString(srv.response.error_code).c_str(),
+                srv.response.error_code.val);
+        return false;
+    }
+
+    ROS_ERROR("Failed to call service %s.", g_GetPutdownPose.getService().c_str());
+    return false;
 }
 
 void addPoseRequest(NumericalFluentList & nfRequest, Parameter objectId)
@@ -154,14 +194,32 @@ double canPutdown(const ParameterList & parameterList,
         }
     }
 
-    double cost = INFINITE_COST;
+    tidyup_msgs::GetPutdownPose srv;
+    // we don't care about the content, if we can successfully get one, we canPutdown!
+    if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
+        return INFINITE_COST;
+    }
 
-    return cost;
+    return 0;
 }
 
 int updatePutdownPose(const ParameterList & parameterList, predicateCallbackType predicateCallback, 
         numericalFluentCallbackType numericalFluentCallback, std::vector<double> & writtenVars)
 {
+    tidyup_msgs::GetPutdownPose srv;
+    if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
+        ROS_ERROR("updatePutdownPose called and getPutdownPoses failed to produce one.");
+        return 1;
+    }
+
+    // write the pose to state:
+    writtenVars[0] = srv.response.putdown_pose.pose.position.x;
+    writtenVars[1] = srv.response.putdown_pose.pose.position.y;
+    writtenVars[2] = srv.response.putdown_pose.pose.position.z;
+    writtenVars[3] = srv.response.putdown_pose.pose.orientation.x;
+    writtenVars[4] = srv.response.putdown_pose.pose.orientation.y;
+    writtenVars[5] = srv.response.putdown_pose.pose.orientation.z;
+    writtenVars[6] = srv.response.putdown_pose.pose.orientation.w;
 
     return 0;
 }
