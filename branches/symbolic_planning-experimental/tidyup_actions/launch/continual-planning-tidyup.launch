@@ -24,6 +24,7 @@
              1 means - guess namespace -->
         <rosparam param="planner_options">
             - (navstack_init@libplanner_modules_pr2.so /map 0.05 1)
+            - (putdown_init@libplanner_modules_pr2.so /map)
         </rosparam>
         <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
     </node>
