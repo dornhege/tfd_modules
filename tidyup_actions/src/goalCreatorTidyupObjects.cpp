@@ -42,8 +42,6 @@ namespace tidyup_actions
         std::set<string> static_objects;
         forEach(const GeometryPoses::NamedPose & np, locations.getPoses()) {
             const string& location = np.first;
-            currentState.addObject(location, "manipulation_location");
-            goal.addObject(location, "manipulation_location");
             currentState.setNumericalFluent("timestamp", location, np.second.header.stamp.toSec());
             currentState.addObject(np.second.header.frame_id, "frameid");
             currentState.setObjectFluent("frame-id", location, np.second.header.frame_id);
@@ -60,29 +58,25 @@ namespace tidyup_actions
             const vector<string>& nameParts = StringUtil::split(location, "_");
             const string& room = nameParts[nameParts.size()-1];
             const string& type = nameParts[0];
-            if (rooms.find(room) == rooms.end())
-            {
-                rooms.insert(room);
-                currentState.addObject(room, "room");
-            }
+            rooms.insert(room);
+            currentState.addObject(room, "room");
             currentState.setObjectFluent("location-in-room", location, room);
-            if (StringUtil::startsWith(type, "table"))
+
+            if (StringUtil::startsWith(type, "door"))
             {
-                if (static_objects.find(type) == static_objects.end())
-                {
-                    static_objects.insert(type);
-                    currentState.addObject(type, "static_object");
-                }
-                currentState.setBooleanPredicate("static-object-at-location", type + " " + location, true);
-            }
-            else if (StringUtil::startsWith(type, "door"))
-            {
-                if (doors.find(type) == doors.end())
-                {
-                    doors.insert(type);
-                    currentState.addObject(type, "door");
-                }
+                doors.insert(type);
+                currentState.addObject(type, "door");
                 currentState.setObjectFluent("belongs-to-door", location, type);
+                currentState.addObject(location, "door_location");
+                goal.addObject(location, "door_location");
+            }
+            else
+            {
+                static_objects.insert(type);
+                currentState.addObject(type, "static_object");
+                currentState.setBooleanPredicate("static-object-at-location", type + " " + location, true);
+                currentState.addObject(location, "manipulation_location");
+                goal.addObject(location, "manipulation_location");
             }
         }
 
@@ -93,8 +87,8 @@ namespace tidyup_actions
         currentState.setBooleanPredicate("can-grasp", "right_arm", true);
         currentState.setBooleanPredicate("can-grasp", "left_arm", true);
 
-        currentState.setObjectFluent("arm-position", "right_arm", "arm_unknown");
-        currentState.setObjectFluent("arm-position", "left_arm", "arm_unknown");
+        currentState.setObjectFluent("arm-state", "right_arm", "arm_unknown");
+        currentState.setObjectFluent("arm-state", "left_arm", "arm_unknown");
 
         return true;
     }
