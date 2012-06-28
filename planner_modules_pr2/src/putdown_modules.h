@@ -6,17 +6,27 @@
 #include <string>
 #include <utility>
 #include <ros/ros.h>
+#include <tidyup_msgs/GetPutdownPose.h>
 
 using namespace modules;
 
 /**
- * Simple module implementation for ROS navigation stack.
- *
- * Directly queries the move_base_node/make_plan service for each
- * cost request by the planner.
+ * Simple module implementation for getting putdown poses from a service.
  */
 
 static const bool g_Debug = false;
+
+/// Retrieve a response with putdownPoses from the service.
+/**
+ * \returns true on success.
+ */
+bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType predicateCallback,
+        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Response & putdownPoses);
+
+/// Fill the GetPutdownPose Request from the planner state.
+bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackType predicateCallback,
+        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request);
+
 
 #ifdef __cplusplus
 extern "C" {

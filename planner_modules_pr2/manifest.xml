@@ -11,6 +11,7 @@
   <depend package="nav_msgs"/>
   <depend package="tf"/>
   <depend package="planner_benchmarks"/>
+  <depend package="tidyup_msgs"/>
 
 </package>
 
