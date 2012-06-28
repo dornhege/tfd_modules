@@ -114,45 +114,6 @@ set(search_SOURCES
    downward/search/state.cpp
    downward/search/successor_generator.cpp)
 
-set(opl_SOURCES
-   downward/opl/Domain.cpp
-   downward/opl/DurativeAction.cpp
-   downward/opl/Element.cpp
-   downward/opl/Fluent.cpp
-   downward/opl/Function.cpp
-   downward/opl/Initialization.cpp
-   downward/opl/InterfaceGenerator.cpp
-   downward/opl/KeyWordList.cpp
-   downward/opl/Module.cpp
-   downward/opl/NamedList.cpp
-   downward/opl/Number.cpp
-   downward/opl/Object.cpp
-   downward/opl/OPLSemantic.cpp
-   downward/opl/Problem.cpp
-   downward/opl/StringConstant.cpp
-   downward/opl/stringutil.cpp
-   downward/opl/SymbolAccess.cpp
-   downward/opl/SymbolDefinition.cpp
-   downward/opl/Type.cpp
-   downward/opl/parsing/DomainStructure.cpp
-   downward/opl/parsing/DurativeActionStructure.cpp
-   downward/opl/parsing/ElementDetector.cpp
-   downward/opl/parsing/FluentStructure.cpp
-   downward/opl/parsing/FunctionStructure.cpp
-   downward/opl/parsing/InitializationStructure.cpp
-   downward/opl/parsing/ModuleStructure.cpp
-   downward/opl/parsing/NamedListStructure.cpp
-   downward/opl/parsing/NumberStructure.cpp
-   downward/opl/parsing/ObjectStructure.cpp
-   downward/opl/parsing/Parser.cpp
-   downward/opl/parsing/ParseUnit.cpp
-   downward/opl/parsing/ProblemStructure.cpp
-   downward/opl/parsing/StringStructure.cpp
-   downward/opl/parsing/SymbolAccessStructure.cpp
-   downward/opl/parsing/SymbolDefinitionStructure.cpp
-   downward/opl/parsing/Translator.cpp
-   downward/opl/parsing/TypeStructure.cpp)
-
 set(opl_interface_SOURCES
    downward/opl/interface/AbstractState.cpp
    downward/opl/interface/AbstractStateFactory.cpp
