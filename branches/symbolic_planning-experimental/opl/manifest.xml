@@ -10,8 +10,9 @@
   <url>http://ros.org/wiki/opl</url>
 
   <depend package="roscpp" />
-  <depend package="tfd_modules" />
-  <rosdep name="qt4" />
+  <depend package="rospy" />
+  <!--depend package="tfd_modules" /-->
+  <!--rosdep name="qt4" /-->
 
 </package>
 

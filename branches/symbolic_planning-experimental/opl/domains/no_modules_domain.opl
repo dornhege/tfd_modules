@@ -2,12 +2,12 @@ Domain RobotExploration
 {
     Type Robot
     {
-        Location currentLocation();
-        boolean isBusy();
+        Location currentLocation;
+        boolean isBusy;
         
-        DurativeAction drive(Location destination)
+        Action drive(Location destination)
         {
-            Duration 
+            Cost 
             {
                 2.5;
             }
@@ -15,25 +15,25 @@ Domain RobotExploration
             Condition
             {
                 and ( 
-                    atStart( not( equals(this.currentLocation(), destination))), 
-                    atStart (not (this.isBusy())),
-                    overall (isReachable (this.currentLocation(), destination))
+                    atStart( not( equals(this.currentLocation, destination))), 
+                    atStart (not (this.isBusy)),
+                    overall (isReachable (this.currentLocation, destination))
                 );
             }
             
             Effect
             {
                 and ( 
-                    atStart (this.isBusy()),
-                    atEnd (assign (this.currentLocation(), destination)),
-                    atEnd (not (this.isBusy()))
+                    atStart (this.isBusy),
+                    atEnd (assign (this.currentLocation, destination)),
+                    atEnd (not (this.isBusy))
                 );
             }
         }
 
-        DurativeAction openDoor(Door door1)
+        Action openDoor(Door door1)
         {
-            Duration 
+            Cost 
             {
                 1.0;
             }
@@ -41,18 +41,18 @@ Domain RobotExploration
             Condition
             {
                 and ( 
-                    atStart (not (this.isBusy())),
-                    atStart (this.currentLocation().isNear(door1.currentLocation())),
-                    atStart (not (door1.isOpen()))
+                    atStart (not (this.isBusy)),
+                    atStart (this.currentLocation.isNear(door1.currentLocation)),
+                    atStart (not (door1.isOpen))
                 );
             }
             
             Effect
             {
                 and (
-                    atStart (this.isBusy()),
-                    atEnd (not (this.isBusy())),
-                    atEnd (door1.isOpen())
+                    atStart (this.isBusy),
+                    atEnd (not (this.isBusy)),
+                    atEnd (door1.isOpen)
                 );
             }
         }
@@ -60,31 +60,30 @@ Domain RobotExploration
     
     Type Location
     {
-        float x();
-        float y();
+        float x;
+        float y;
         
         boolean isNear(Location other);
     }
     
     Type Target
     {
-        Location currentLocation();
-        boolean explored();
+        Location currentLocation;
+        boolean explored;
     }
     
     Type Movable
     {
-        Location currentLocation();
+        Location currentLocation;
     }
     
     Type Door : Movable
     {
-        boolean isOpen();
+        boolean isOpen;
     }
-
-	// global predicates and fluents
+    // bla
     boolean isReachable(Location origin, Location destination);
-	Robot activeRobot();
+	Robot activeRobot;
 	float missionTime(Robot aRobot);
 }
 
