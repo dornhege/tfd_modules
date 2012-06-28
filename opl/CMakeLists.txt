@@ -21,6 +21,45 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
+set(opl_SOURCES
+   src/Domain.cpp
+   src/DurativeAction.cpp
+   src/Element.cpp
+   src/Fluent.cpp
+   src/Function.cpp
+   src/Initialization.cpp
+   src/InterfaceGenerator.cpp
+   src/KeyWordList.cpp
+   src/Module.cpp
+   src/NamedList.cpp
+   src/Number.cpp
+   src/Object.cpp
+   src/OPLSemantic.cpp
+   src/Problem.cpp
+   src/StringConstant.cpp
+   src/stringutil.cpp
+   src/SymbolAccess.cpp
+   src/SymbolDefinition.cpp
+   src/Type.cpp
+   src/parsing/DomainStructure.cpp
+   src/parsing/DurativeActionStructure.cpp
+   src/parsing/ElementDetector.cpp
+   src/parsing/FluentStructure.cpp
+   src/parsing/FunctionStructure.cpp
+   src/parsing/InitializationStructure.cpp
+   src/parsing/ModuleStructure.cpp
+   src/parsing/NamedListStructure.cpp
+   src/parsing/NumberStructure.cpp
+   src/parsing/ObjectStructure.cpp
+   src/parsing/Parser.cpp
+   src/parsing/ParseUnit.cpp
+   src/parsing/ProblemStructure.cpp
+   src/parsing/StringStructure.cpp
+   src/parsing/SymbolAccessStructure.cpp
+   src/parsing/SymbolDefinitionStructure.cpp
+   src/parsing/Translator.cpp
+   src/parsing/TypeStructure.cpp)
+
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
@@ -28,3 +67,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+#rosbuild_add_library(opl ${opl_SOURCES})
+#rosbuild_add_executable(opl_translate_domain src/opl_translate_domain.cpp)
+#target_link_libraries(opl_translate_domain opl dl)
+#rosbuild_add_executable(opl_translate_problem src/opl_translate_problem.cpp)
+#target_link_libraries(opl_translate_problem opl dl)
+

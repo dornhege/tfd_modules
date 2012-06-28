@@ -1,0 +1,34 @@
+# OPL grammar version 0.1
+<ws> := [     
+]+
+<lbrace> := ws?, '{', ws?
+<rbrace> := ws?, '}', ws?
+<lbracket> := ws?, '(', ws?
+<rbracket> := ws?, ')', ws?
+<semicolon> := ws?, ';', ws?
+<comma> := ws?, ',', ws?
+<colon> := ws?, ':', ws?
+>name< := [a-zA-Z], [a-zA-Z0-9_]*
+
+# domain
+domain := 'Domain', !, ws, name, lbrace, (type / action / module / effectmodule / fluent)*, rbrace
+type := 'Type', !, ws, name, (colon, name)?, lbrace, (action / module / effectmodule / fluent)*, rbrace
+module := ( ('ConditionModule' / 'CostModule'), !, ws, name, optional_arguments?, semicolon)
+effectmodule := 'EffectModule', !, ws, name, lbrace, (symbol, semicolon)*, rbrace
+fluent := ('boolean' / 'number' / name), !, ws, name, optional_arguments?, semicolon
+optional_arguments := lbracket, argument,(comma, argument)*, rbracket
+argument := name, ws, name
+action := 'Action', !, ws, name, optional_arguments?,lbrace, cost, condition, effect, rbrace
+cost := 'Cost', !, lbrace, number / symbol, semicolon, rbrace
+condition := 'Condition', !, lbrace, function, semicolon, rbrace
+effect := 'Effect', !, lbrace, function, semicolon, rbrace
+function := function_name, lbracket, !, (function / symbol), (comma, (function / symbol))*, rbracket
+>function_name< := 'and' / 'or' / 'not' / 'atStart' / 'atEnd' / 'overall' / 'assign' / 'equals'
+symbol := (('this', !) / (name, !,(lbracket, symbol, (comma, symbol)*, rbracket)?) ), ('.', scoped_symbol)?
+scoped_symbol := name,(lbracket, symbol, (comma, symbol)*, rbracket)?, ('.', scoped_symbol)?
+
+# problem
+problem := 'Problem', !, name, lbracket, name, rbracket, lbrace, (object / initialization)*, goal, rbrace
+object := name, name, semicolon / (lbrace, (initialization)*, rbrace)
+initialization := name / (name, '=', number) / (name, '=', name)
+goal := 'Goal', !, lbrace, function, rbrace
