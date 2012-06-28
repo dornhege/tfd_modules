@@ -13,7 +13,7 @@ namespace tidyup_actions
         ActionExecutorService<tidyup_msgs::DetectGraspableObjects>::initialize(arguments);
         requestGraspability = true;
         string graspabilityServiceName = "/learned_grasping/request_objects_graspability";
-        tidyLocationName = "kitchen_table";
+        tidyLocationName = "table1";
 
         if (arguments.size() >= 3)
         {
@@ -67,11 +67,35 @@ namespace tidyup_actions
                 }
             }
 
-            // remove objects form state, which were previously detected from this location
+            // find correct static object and set the "on" predicate
             Predicate p;
-            p.name = "detected-from";
+            string static_object;
+            p.name = "static-object-at-location";
+            p.parameters.push_back("object");
+            p.parameters.push_back(location);
             pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectRange =
-                    current.getTypedObjects().equal_range("movable_object");
+                    current.getTypedObjects().equal_range("static_object");
+            for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
+                    objectIterator != objectRange.second; objectIterator++)
+            {
+                string object = objectIterator->second;
+                p.parameters[0] = object;
+                bool value = false;
+                if (current.hasBooleanPredicate(p, &value))
+                {
+                    if (value)
+                    {
+                        static_object = object;
+                        break;
+                    }
+                }
+            }
+            ROS_ASSERT(static_object != "");
+
+            // remove objects form state, which were previously detected from this location
+            p.name = "detected-from";
+            p.parameters.pop_back();
+            objectRange = current.getTypedObjects().equal_range("movable_object");
             for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
                     objectIterator != objectRange.second; objectIterator++)
             {
