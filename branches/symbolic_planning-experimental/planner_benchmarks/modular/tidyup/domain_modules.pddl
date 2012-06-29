@@ -153,7 +153,7 @@
         :condition 
         (and
             (at start (at-base ?l))
-            (at start (= (belongs-to-door ?l - door_location) ?d))
+            (at start (= (belongs-to-door ?l) ?d))
             (at start (not (door-state-known ?d)))
             (at start (arms-drive-pose))
         )
@@ -169,10 +169,10 @@
         :condition 
         (and
             (at start (at-base ?l))
-            (at start (= (belongs-to-door ?l - door_location) ?d))
+            (at start (= (belongs-to-door ?l) ?d))
             (at start (door-state-known ?d))
             (at start (not (door-open ?d)))
-            (at start (arm-free ?a))
+            (at start (hand-free ?a))
             (at start (arms-drive-pose))
         )
         :effect 
