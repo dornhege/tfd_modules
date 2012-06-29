@@ -3,7 +3,7 @@ state_creators:
 goal_creators:
     - tidyup_actions/goal_creator_tidyup_objects
 action_executors:
-    - tidyup_actions/action_executor_arm_to_side arm-to-side /arm_to_side arm-state arm_at_side
+    - tidyup_actions/action_executor_arm_to_side arm-to-side /learned_grasping/side_position_action arm-state arm_at_side
     - tidyup_actions/action_executor_arm_to_carry arm-to-carry /learned_grasping/post_grasp_position_action arm-state arm_at_carry
-    - tidyup_actions/action_executor_detect_objects detect-objects /learned_grasping/post_grasp_position_action table_name graspability_service_name
+    - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects table_name graspability_service_name
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base start recent-detected-objects false
