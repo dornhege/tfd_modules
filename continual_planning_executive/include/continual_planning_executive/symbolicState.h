@@ -68,7 +68,17 @@ class SymbolicState
         // Setter/Getter
 
         /// Add an object to the list of objects.
+        /**
+         * The object will be entered for type and all its supertypes.
+         * Thus all super types have to be defined by addSuperType before.
+         */
         void addObject(string obj, string type);
+
+        /// e.g. door_location - location
+        void addSuperType(string type, string supertype);
+
+        /// Output the super types map.
+        void printSuperTypes();
 
         /// Remove an object from the state.
         /**
@@ -152,8 +162,24 @@ class SymbolicState
         /// split string at " "
         vector<string> buildParameterList(string params) const;
 
+        /// \returns true, if type is the most specific type for obj
+        /**
+         * door_location - location
+         *
+         * doorl1 - door_location -> true
+         * doorl1 - location -> false
+         */
+        bool isMostSpecificType(string obj, string type) const;
+
     protected:
-        multimap<string, string> _typedObjects;    ///< Map from type to it objects of this same type.
+        /// Map from type to objects of this same type
+        /**
+         * should also contain entries for all supertypes, e.g.:
+         * l1_door1 has an entry for door_location and for location (given addSuperType was inserted) 
+         * */
+        multimap<string, string> _typedObjects;
+
+        multimap<string, string> _superTypes;      ///< Type -> Supertypes (including type)
 
         // The only possible parameters for the following predicates should be those in the _typedObjects list.
         // matched strings in _objectFluents should also only be from _typedObjects and of the correct type
