@@ -56,7 +56,7 @@ namespace tidyup_actions
             ROS_ERROR("Could not get ~locations parameter.");
             return false;
         }
-        ROS_WARN("file_name: %s", locationsFile.c_str());
+        ROS_INFO("%s: file_name: %s", __PRETTY_FUNCTION__, locationsFile.c_str());
         GeometryPoses locations = GeometryPoses();
         if(!locations.load(locationsFile)) {
             ROS_ERROR("Could not load locations from \"%s\".", locationsFile.c_str());
