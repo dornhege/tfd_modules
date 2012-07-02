@@ -66,6 +66,16 @@ void navstack_init(int argc, char** argv)
                 base_local_planner_ns = local_planner;
             else
                 base_local_planner_ns = local_planner.substr(x + 1);
+            // add move_base(_node) prefix
+            string dummy;
+            if(nh.getParam("move_base_node/base_local_planner", dummy)) {
+                base_local_planner_ns = "move_base_node/" + base_local_planner_ns;
+            } else if(nh.getParam("move_base/base_local_planner", dummy)) {
+                base_local_planner_ns = "move_base/" + base_local_planner_ns;
+            } else {
+                ROS_ASSERT(false);
+            }
+
             ROS_INFO("Estimated base_local_planner_ns to %s.", base_local_planner_ns.c_str());
         }
     } else {

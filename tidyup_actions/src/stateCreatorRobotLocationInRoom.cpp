@@ -82,7 +82,9 @@ namespace tidyup_actions
             // search done, now enter robotRoom if found
             if(robotRoom.empty()) {
                 ROS_WARN("Could not infer location-in-room for robot_location as no nearest location with location-in-room set was found.");
+                return false;
             } else {
+                ROS_INFO("Determined (location-in-room %s) = %s", _robotPoseObject.c_str(), robotRoom.c_str());
                 state.setObjectFluent("location-in-room", _robotPoseObject, robotRoom);
             }
         }
