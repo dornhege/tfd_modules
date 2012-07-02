@@ -41,7 +41,7 @@ void putdown_init(int argc, char** argv)
     ROS_INFO("World frame is: %s", g_WorldFrame.c_str());
 
     g_NodeHandle = new ros::NodeHandle();
-    string service_name = "get_putdown_pose";
+    string service_name = "/tidyup/request_putdown_pose";
 
     while(!ros::service::waitForService(service_name, ros::Duration(3.0))) {
         ROS_ERROR("Service %s not available - waiting.", service_name.c_str());
