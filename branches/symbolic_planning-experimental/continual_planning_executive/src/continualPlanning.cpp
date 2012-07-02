@@ -67,7 +67,7 @@ bool ContinualPlanning::estimateCurrentState()
             it != _stateCreators.end(); it++) {
         ret &= (*it)->fillState(_currentState);
     }
-    ROS_INFO_STREAM("Current state is: " << _currentState);
+    ROS_INFO_STREAM("Current state is: " << _currentState << std::endl);
     return ret;
 }
 
