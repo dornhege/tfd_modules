@@ -321,6 +321,7 @@ namespace tidyup_actions
 
             Predicate p;
             vector<string> paramList;
+            paramList.push_back("dummy");
             paramList[0] = _robotPoseObject;
             p.parameters = paramList;
 

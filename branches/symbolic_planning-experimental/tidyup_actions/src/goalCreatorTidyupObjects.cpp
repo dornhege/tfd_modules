@@ -23,6 +23,32 @@ namespace tidyup_actions
     {
         ros::NodeHandle nhPriv("~");
 
+        // first add the type hierarchy
+        currentState.addSuperType("pose", "pose");
+        currentState.addSuperType("frameid", "frameid");
+        currentState.addSuperType("location", "pose");
+        currentState.addSuperType("manipulation_location", "location");
+        currentState.addSuperType("door_location", "location");
+        currentState.addSuperType("room", "room");
+        currentState.addSuperType("static_object", "static_object");
+        currentState.addSuperType("door", "door");
+        currentState.addSuperType("movable_object", "pose");
+        currentState.addSuperType("arm", "arm");
+        currentState.addSuperType("arm_state", "arm_state");
+        goal.addSuperType("pose", "pose");
+        goal.addSuperType("frameid", "frameid");
+        goal.addSuperType("location", "pose");
+        goal.addSuperType("manipulation_location", "location");
+        goal.addSuperType("door_location", "location");
+        goal.addSuperType("room", "room");
+        goal.addSuperType("static_object", "static_object");
+        goal.addSuperType("door", "door");
+        goal.addSuperType("movable_object", "pose");
+        goal.addSuperType("arm", "arm");
+        goal.addSuperType("arm_state", "arm_state");
+
+        currentState.printSuperTypes();
+
         // load object_locations
         std::string locationsFile;
         // load grasp_locations
@@ -80,7 +106,7 @@ namespace tidyup_actions
             }
         }
 
-        goal.setForEachGoalStatement("grasp_location", "searched", true);
+        goal.setForEachGoalStatement("manipulation_location", "searched", true);
         goal.setForEachGoalStatement("movable_object", "tidy", true);
         goal.setForEachGoalStatement("arm", "hand-free", true);
 

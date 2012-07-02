@@ -39,4 +39,7 @@
     <class name="tidyup_actions/state_creator_robot_pose" type="tidyup_actions::StateCreatorRobotPose" base_class_type="continual_planning_executive::StateCreator">
         <description>Sets the current robot pose in the state and possible at-style predicates.</description>
     </class>
+    <class name="tidyup_actions/state_creator_robot_location_in_room" type="tidyup_actions::StateCreatorRobotLocationInRoom" base_class_type="continual_planning_executive::StateCreator">
+        <description>Sets location-in-room for the robot pose if it is not set.</description>
+    </class>
 </library>
