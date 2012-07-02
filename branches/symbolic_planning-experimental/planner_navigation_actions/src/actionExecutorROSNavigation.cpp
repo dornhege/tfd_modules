@@ -30,7 +30,7 @@ namespace planner_navigation_actions
                 curArg++;
                 continue;
             }
-            ROS_ASSERT(arguments.size() > curArg + 2);  // need to access curArg, curArg+1
+            ROS_ASSERT(arguments.size() >= curArg + 2);  // need to access curArg, curArg+1
             string pred = arguments[curArg];
             string setS = arguments[curArg + 1];
             bool set = false;
