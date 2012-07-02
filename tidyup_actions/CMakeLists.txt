@@ -18,6 +18,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(tidyup_actions
     src/stateCreatorRobotPose.cpp
+    src/stateCreatorRobotLocationInRoom.cpp
     src/actionExecutorArmToSide.cpp
     src/actionExecutorArmToCarry.cpp
     src/actionExecutorDriveThroughDoor.cpp
