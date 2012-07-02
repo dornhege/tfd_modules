@@ -89,28 +89,145 @@ SymbolicState::~SymbolicState()
 
 void SymbolicState::addObject(string obj, string type)
 {
-    pair< multimap<string,string>::iterator, multimap<string,string>::iterator > ret;
+    typedef pair< multimap<string,string>::iterator, multimap<string,string>::iterator > StringMapRange;
+    multimap<string,string>::iterator mapIt;
+   
+    // insert obj for its type and all its supertypes
+    StringMapRange ret = _superTypes.equal_range(type);
+    for(mapIt = ret.first; mapIt != ret.second; mapIt++) {
+        string st = mapIt->second;
+        // should now insert (st, obj) into _typedObjects
+
+        StringMapRange objRange = _typedObjects.equal_range(st);
+        bool alreadyIn = false;
+        for(multimap<string,string>::iterator it = objRange.first; it != objRange.second; it++) {
+            if(it->second == obj) {
+                alreadyIn = true;
+                break;
+            }
+        }
+        if(!alreadyIn) {
+            _typedObjects.insert(make_pair(st, obj));
+        }
+    }
+
+    // This code is only for backwards compatibility
+    // If no types have been inserted into _superTypes, we
+    // still add the pair (type, obj) into _typedObjects
+
     ret = _typedObjects.equal_range(type);
     // check if map contains typed obj of same name
     for(multimap<string,string>::iterator it = ret.first; it != ret.second; it++) {
         if(it->second == obj)
             return;
     }
-    // inserting the same obj for different types shouldnt happen.
-    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); it++) {
-        ROS_ASSERT(it->second != obj);   // if its the same type, the previous loop should have gone out, otherwise error
-    }
 
     // insert it
     _typedObjects.insert(std::make_pair(type, obj));
 }
 
+void SymbolicState::addSuperType(string type, string supertype)
+{
+    // door_location - location
+    multimap<string,string>::iterator mapIt;
+    pair< multimap<string,string>::iterator, multimap<string,string>::iterator > ret;
+
+    deque<pair<string, string> > queue; // all new connections
+    queue.push_back(make_pair(type, supertype));
+    queue.push_back(make_pair(type, type));
+    queue.push_back(make_pair(supertype, supertype));
+
+    // add supertype pairs in graph and readd their
+    // dependencies to the queue to compute the transitive closure
+    // as a fixed point computation (no more new pairs)
+    while(!queue.empty()) {
+        pair<string, string> stp = queue.front();
+        queue.pop_front();
+
+        // check if stp is already in
+        ret = _superTypes.equal_range(stp.first);
+        bool alreadyIn = false;
+        for(mapIt = ret.first; mapIt != ret.second; mapIt++) {
+            string st = mapIt->second;
+            if(stp.second == st) {
+                alreadyIn = true;
+                break;
+            }
+        }
+        if(alreadyIn)
+            continue;
+
+        // this is a new pair, insert it
+        _superTypes.insert(stp);
+
+        // now for all pairs (t, st) in the map
+        // 1. if stp.second == t, make sure the pair (stp.first, st) is in
+        // 2. if stp.first == st, make sure the pair (t, stp.second) is in
+        for(mapIt = _superTypes.begin(); mapIt != _superTypes.end(); mapIt++) {
+            // mapIt = (t, st)
+            if(stp.second == mapIt->first)      // 1.
+                queue.push_back(make_pair(stp.first, mapIt->second));
+            if(stp.first == mapIt->second)      // 2.
+                queue.push_back(make_pair(mapIt->first, stp.second));
+        }
+    }
+}
+
+bool SymbolicState::isMostSpecificType(string obj, string type) const
+{
+    // check if there is a pair (t, st) where type == st (!= t), then t is more specific
+    // (given that (t, obj) is in _typedObjects)
+    multimap<string,string>::const_iterator mapIt;
+    for(mapIt = _superTypes.begin(); mapIt != _superTypes.end(); mapIt++) {
+        // mapIt = (t, st)
+        if(type == mapIt->second && mapIt->first != mapIt->first) { // t is a true subtype of type
+            string t = mapIt->first;    // check if there is an entry (t, obj) in _typedObjects
+
+            pair< multimap<string,string>::const_iterator, multimap<string,string>::const_iterator > ret;
+            ret = _typedObjects.equal_range(t);
+
+            multimap<string,string>::const_iterator objectIt;
+            for(objectIt = ret.first; objectIt != ret.second; objectIt++) {
+                if(objectIt->second == obj) {   // (t, obj) is a valid pair, this type is not most specific
+                    return false;
+                }
+            }
+        }
+    }
+
+    // if we found no more specific one or 
+    // if there is no _superTypes entry, return true
+    return true;
+}
+
+void SymbolicState::printSuperTypes()
+{
+    // desired output:
+    // door_location is a (object, door_location, location)
+    // manipulation_location is a (object, manipulation_location, location)
+    // location is a (object, location)
+    string currentType;
+    multimap<string,string>::iterator mapIt;
+    for(mapIt = _superTypes.begin(); mapIt != _superTypes.end(); mapIt++) {
+        // mapIt = (t, st)
+        if(mapIt->first != currentType) {   // different type
+            if(!currentType.empty()) {  // this is not the first, close the last one
+                printf(")\n");
+            }
+            currentType = mapIt->first;
+            printf("%s is a (object", currentType.c_str());
+        }
+        printf(", %s", mapIt->second.c_str());
+    }
+}
+
 void SymbolicState::removeObject(string obj, bool removePredicates)
 {
-    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); it++) {
-        if(it->second == obj) {
-            _typedObjects.erase(it);    // it invalid now
-            break;  // once should be OK, only 1 object per name
+    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); ) {
+        multimap<string, string>::iterator current = it;    // remember current for deletion
+        it++;       // but forward it now, before deleting that
+        if(current->second == obj) {
+            _typedObjects.erase(current);    // it invalid now
         }
     }
 
@@ -406,6 +523,9 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
     os << "  (:objects ";
     string lastType = "";
     for(multimap<string,string>::const_iterator it = _typedObjects.begin(); it != _typedObjects.end(); it++) {
+        if(!isMostSpecificType(it->second, it->first))  // only insert obj entries for its most specific type
+            continue;
+
         if(lastType != "" && it->first != lastType) {  // type changed
             os << "- " << lastType << " ";
         }
@@ -494,6 +614,9 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << "Objects:" << std::endl;
     string lastType = "";
     for(multimap<string,string>::const_iterator it = ss._typedObjects.begin(); it != ss._typedObjects.end(); it++) {
+        if(!ss.isMostSpecificType(it->second, it->first))  // only insert obj entries for its most specific type
+            continue;
+
         if(lastType != "" && it->first != lastType) {  // type changed
             os << "- " << lastType << "   ";
         }
