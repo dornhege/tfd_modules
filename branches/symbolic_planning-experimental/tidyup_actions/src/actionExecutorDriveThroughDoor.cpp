@@ -62,8 +62,8 @@ namespace tidyup_actions
             string door = a.parameters[0];
             string start_location = a.parameters[1];
             string goal_location = a.parameters[2];
-            current.setBooleanPredicate("base-at", start_location, false);
-            current.setBooleanPredicate("base-at", goal_location, true);
+            current.setBooleanPredicate("at-base", start_location, false);
+            current.setBooleanPredicate("at-base", goal_location, true);
             current.setBooleanPredicate("door-state-known", door, false);
             string goal_room = "unknown_room";
             Predicate p;
