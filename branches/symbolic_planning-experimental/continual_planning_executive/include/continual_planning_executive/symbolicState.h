@@ -78,7 +78,7 @@ class SymbolicState
         void addSuperType(string type, string supertype);
 
         /// Output the super types map.
-        void printSuperTypes();
+        void printSuperTypes() const;
 
         /// Remove an object from the state.
         /**
