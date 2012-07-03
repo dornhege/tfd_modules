@@ -5,6 +5,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <ros/ros.h>
+#include "tidyup_actions/robotPoseVisualization.h"
 
 namespace tidyup_actions 
 {
@@ -42,7 +43,27 @@ namespace tidyup_actions
             virtual bool fillState(SymbolicState & state);
 
         protected:
+            /// Extract a PoseStamped for object from state.
+            /**
+             * The fluents that are queried are: x,y,z, qx,qy,qz,qw, frame-id, timestamp
+             *
+             * \returns true if all fluents were available
+             */
+            bool extractPoseStamped(const SymbolicState & state, const string & object,
+                    geometry_msgs::PoseStamped & pose) const;
+
+            /// Get the color that location should have based on the fact that
+            /// it is the robot location or another and if the robot is actually at that location.
+            std_msgs::ColorRGBA getLocationColor(const SymbolicState & state, const string & location) const;
+
+            /// Create a marker for location.
+            visualization_msgs::MarkerArray getLocationMarkers(const SymbolicState & state, const string & location,
+                    const string & ns, int id, bool useMeshes) const;
+
             void publishLocationsAsMarkers(const SymbolicState & state);
+
+            /// Produces arm state for arms at side
+            sensor_msgs::JointState getArmSideJointState() const;
 
         protected:
             tf::TransformListener _tf;
@@ -51,12 +72,16 @@ namespace tidyup_actions
             double _goalToleranceYaw;
 
             static const bool s_PublishLocationsAsMarkers = true;
+            static const bool s_PublishMeshMarkers = true;
+
             ros::Publisher _markerPub;
 
             std::string _robotPoseObject;   ///< the name of the robot pose's object (e.g. robot_pose, or l0)
             std::string _robotPoseType;     ///< the type of the _robotPoseObject - required if _robotPoseObject.
             std::string _atPredicate;       ///< the name of the "at" predicate (e.g. at-base)
             std::string _locationType;      ///< the type of location objects that a robot might be "at"
+
+            mutable RobotPoseVisualization _robotPoseVis;
     };
 
 };
