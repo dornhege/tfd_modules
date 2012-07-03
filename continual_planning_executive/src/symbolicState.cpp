@@ -547,6 +547,9 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
         os << "    (= " << nf.first << " " << nf.second << ")" << std::endl;
     }
     forEach(const ObjectFluentEntry & of, _objectFluents) {
+        if(of.second.empty()) {
+            ROS_ERROR_STREAM(__func__ << ": ObjectFluentEntry for " << of.first << " is empty.");
+        }
         os << "    (= " << of.first << " " << of.second << ")" << std::endl;
     }
     os << "  )" << std::endl;
@@ -572,6 +575,9 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
         os << "    (= " << nf.first << " " << nf.second << ")" << std::endl;
     }
     forEach(const ObjectFluentEntry & of, _objectFluents) {
+        if(of.second.empty()) {
+            ROS_ERROR_STREAM(__func__ << ": ObjectFluentEntry for " << of.first << " is empty.");
+        }
         os << "    (= " << of.first << " " << of.second << ")" << std::endl;
     }
 
