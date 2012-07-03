@@ -175,13 +175,12 @@ void SymbolicState::addSuperType(string type, string supertype)
 
 bool SymbolicState::isMostSpecificType(string obj, string type) const
 {
-    // TODO debug
     // check if there is a pair (t, st) where type == st (!= t), then t is more specific
     // (given that (t, obj) is in _typedObjects)
     multimap<string,string>::const_iterator mapIt;
     for(mapIt = _superTypes.begin(); mapIt != _superTypes.end(); mapIt++) {
         // mapIt = (t, st)
-        if(type == mapIt->second && mapIt->first != mapIt->first) { // t is a true subtype of type
+        if(type == mapIt->second && mapIt->first != mapIt->second) { // t is a true subtype of type
             string t = mapIt->first;    // check if there is an entry (t, obj) in _typedObjects
 
             pair< multimap<string,string>::const_iterator, multimap<string,string>::const_iterator > ret;
@@ -201,7 +200,7 @@ bool SymbolicState::isMostSpecificType(string obj, string type) const
     return true;
 }
 
-void SymbolicState::printSuperTypes()
+void SymbolicState::printSuperTypes() const
 {
     printf("Type Hierarchy:\n");
     // desired output:
@@ -209,7 +208,7 @@ void SymbolicState::printSuperTypes()
     // manipulation_location is a (object, manipulation_location, location)
     // location is a (object, location)
     string currentType;
-    multimap<string,string>::iterator mapIt;
+    multimap<string,string>::const_iterator mapIt;
     for(mapIt = _superTypes.begin(); mapIt != _superTypes.end(); mapIt++) {
         // mapIt = (t, st)
         if(mapIt->first != currentType) {   // different type
