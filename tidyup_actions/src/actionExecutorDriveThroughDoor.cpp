@@ -1,7 +1,7 @@
 #include "tidyup_actions/actionExecutorDriveThroughDoor.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_move_base,
+PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_drive_through_door,
         tidyup_actions::ActionExecutorDriveThroughDoor,
         continual_planning_executive::ActionExecutorInterface)
 

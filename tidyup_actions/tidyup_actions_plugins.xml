@@ -1,9 +1,9 @@
 <library path="lib/libtidyup_actions">
-    <class name="tidyup_actions/action_executor_pickup" type="tidyup_actions::ActionExecutorPickup"
+    <class name="tidyup_actions/action_executor_pickup_object" type="tidyup_actions::ActionExecutorPickupObject"
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for picking up objects</description>
     </class>
-    <class name="tidyup_actions/action_executor_putdown" type="tidyup_actions::ActionExecutorPutdown"
+    <class name="tidyup_actions/action_executor_putdown_object" type="tidyup_actions::ActionExecutorPutdownObject"
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for putting down objects</description>
     </class>
