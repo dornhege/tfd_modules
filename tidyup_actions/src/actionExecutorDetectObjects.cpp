@@ -20,6 +20,7 @@ namespace tidyup_actions
             if (arguments[2] == "NULL")
             {
                 requestGraspability = false;
+            } else {
                 graspabilityServiceName = arguments[2];
             }
         }
