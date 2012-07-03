@@ -175,6 +175,7 @@ void SymbolicState::addSuperType(string type, string supertype)
 
 bool SymbolicState::isMostSpecificType(string obj, string type) const
 {
+    // TODO debug
     // check if there is a pair (t, st) where type == st (!= t), then t is more specific
     // (given that (t, obj) is in _typedObjects)
     multimap<string,string>::const_iterator mapIt;
@@ -202,6 +203,7 @@ bool SymbolicState::isMostSpecificType(string obj, string type) const
 
 void SymbolicState::printSuperTypes()
 {
+    printf("Type Hierarchy:\n");
     // desired output:
     // door_location is a (object, door_location, location)
     // manipulation_location is a (object, manipulation_location, location)
@@ -219,6 +221,8 @@ void SymbolicState::printSuperTypes()
         }
         printf(", %s", mapIt->second.c_str());
     }
+    if(!_superTypes.empty())        // close the last one
+        printf(")\n");
 }
 
 void SymbolicState::removeObject(string obj, bool removePredicates)
@@ -610,6 +614,30 @@ vector<string> SymbolicState::buildParameterList(string params) const
     return ret;
 }
 
+unsigned int getShellWidth()
+{
+    string cmd = "stty size";               // should output "height width"
+    // read output from pipe into buf
+    FILE* p = popen(cmd.c_str(), "r");
+    if(p == NULL)
+        return 80;
+    char buf[1024];
+    if(fgets(buf, 1024, p) == NULL)
+        return 80;
+    pclose(p);
+
+    // parse second part of buf (width) into w
+    string s(buf);
+    size_t pos = s.find_first_of(" ");
+    if(pos == string::npos)
+        return 80;
+    s = s.substr(pos + 1);
+    long w = strtol(s.c_str(), NULL, 10);
+    if(w <= 0)
+        return 80;
+    return w;
+}
+
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << "Objects:" << std::endl;
     string lastType = "";
@@ -639,30 +667,67 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
             os << bp.first << " ";
     }
     os << std::endl;
+
+    unsigned int sw = getShellWidth();
+    int maxEntriesPerLine = 100;
     os << "Numerical Fluents:" << std::endl;
     int count = 0;
+    std::stringstream ssLine;
     forEach(const SymbolicState::NumericalFluentEntry & nf, ss._numericalFluents) {
-        os << nf.first << " = " << nf.second << " ";
-        // print newline every 5 outputs
+        std::stringstream ssBuf;
+        ssBuf << nf.first << " = " << nf.second << " "; // this is what we want to add to the output line
+
+        if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+            os << ssLine.str() << std::endl;
+            ssLine.str("");         // next line starts empty
+        }
+        ssLine << ssBuf.str();
+
+        // print newline every maxEntriesPerLine outputs
         count++;
-        if(count >= 5) {
+        if(count >= maxEntriesPerLine) {
             count = 0;
             os << std::endl;
         }
     }
+    os << ssLine.str() << std::endl; // output last line
     os << std::endl;
     os << "Object Fluents:" << std::endl;
     count = 0;
+    ssLine.str("");
     forEach(const SymbolicState::ObjectFluentEntry & nf, ss._objectFluents) {
-        os << nf.first << " = " << nf.second << " ";
-        // print newline every 5 outputs
+        std::stringstream ssBuf;
+        ssBuf << nf.first << " = " << nf.second << " ";
+
+        if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+            os << ssLine.str() << std::endl;
+            ssLine.str("");         // next line starts empty
+        }
+        ssLine << ssBuf.str();
+
+        // print newline every maxEntriesPerLine outputs
         count++;
-        if(count >= 5) {
+        if(count >= maxEntriesPerLine) {
             count = 0;
             os << std::endl;
         }
     }
+    os << ssLine.str() << std::endl; // output last line
     os << std::endl;
+
+    if(!ss._forEachGoalStatements.empty()) {
+        os << "ForEachGoalStatements:" << std::endl;
+        // from: multimap<objectType, pair<predicateName, value> >
+        // produce: (forall (?o - objectType) (predicateName ?o))
+        // or:      (forall (?o - objectType) (not (predicateName ?o)))
+        forEach(const SymbolicState::ForEachGoalStatements::value_type & p, ss._forEachGoalStatements) {
+            os << "    (forall (?o - " << p.first << ") (";
+            if(p.second.second)
+                os << p.second.first << " ?o))" << std::endl;
+            else
+                os << "not (" << p.second.first << " ?o)))" << std::endl;
+        }
+    }
 
     return os;
 }
