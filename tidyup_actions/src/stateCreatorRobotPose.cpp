@@ -89,6 +89,10 @@ namespace tidyup_actions
             _atPredicate = "";
         if(_locationType == "-")
             _locationType = "";
+
+        if(!_robotPoseVis.initialize()) {
+            ROS_ERROR("Failed to initialized RobotPoseVisualization.");
+        }
     }
 
     bool StateCreatorRobotPose::fillState(SymbolicState & state)
@@ -118,13 +122,9 @@ namespace tidyup_actions
             state.setObjectFluent("frame-id", _robotPoseObject, "/map");
         }
 
-
         // 2.b check if we are at any _locations
         pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets =
             state.getTypedObjects().equal_range(_locationType);
-
-        vector<string> paramList;
-        paramList.push_back("dummy");
 
         double minDist = HUGE_VAL;
         string nearestTarget = "";
@@ -135,51 +135,20 @@ namespace tidyup_actions
             if(target == _robotPoseObject)  // skip current robot location
                 continue;
 
-            // first get xyz, qxyzw from state
-            Predicate p;
-            paramList[0] = target;
-            p.parameters = paramList;
-
-            p.name = "x";
-            double posX;
-            if(!state.hasNumericalFluent(p, &posX)) {
-                ROS_ERROR("%s: target object: %s - no x-location in state.", __func__, target.c_str());
-                continue;
+            geometry_msgs::PoseStamped targetPose;
+            if(!extractPoseStamped(state, target, targetPose)) {
+                ROS_ERROR("%s: could not extract pose for target object: %s.", __func__, target.c_str());
+                continue; 
             }
-            double posY;
-            p.name = "y";
-            if(!state.hasNumericalFluent(p, &posY)) {
-                ROS_ERROR("%s: target object: %s - no y-location in state.", __func__, target.c_str());
-                continue;
-            }
-
-            double qx;
-            p.name = "qx";
-            if(!state.hasNumericalFluent(p, &qx)) {
-                ROS_ERROR("%s: target object: %s - no qx in state.", __func__, target.c_str());
-                continue;
-            }
-            double qy;
-            p.name = "qy";
-            if(!state.hasNumericalFluent(p, &qy)) {
-                ROS_ERROR("%s: target object: %s - no qy in state.", __func__, target.c_str());
-                continue;
-            }
-            double qz;
-            p.name = "qz";
-            if(!state.hasNumericalFluent(p, &qz)) {
-                ROS_ERROR("%s: target object: %s - no qz in state.", __func__, target.c_str());
-                continue;
-            }
-            double qw;
-            p.name = "qw";
-            if(!state.hasNumericalFluent(p, &qw)) {
-                ROS_ERROR("%s: target object: %s - no qw in state.", __func__, target.c_str());
+            if(targetPose.header.frame_id != "/map") {
+                ROS_ERROR("Target pose %s had frame-id: %s - should be /map.",
+                        target.c_str(), targetPose.header.frame_id.c_str());
                 continue;
             }
 
             // compute dXY, dYaw between current pose and target
-            tf::Transform targetTransform(btQuaternion(qx, qy, qz, qw), btVector3(posX, posY, 0.0));
+            tf::Transform targetTransform;//(btQuaternion(qx, qy, qz, qw), btVector3(posX, posY, 0.0));
+            tf::poseMsgToTF(targetPose.pose, targetTransform);
             tf::Transform deltaTransform = targetTransform.inverseTimes(transform);
 
             double dDist = hypot(deltaTransform.getOrigin().x(), deltaTransform.getOrigin().y());
@@ -222,6 +191,220 @@ namespace tidyup_actions
         return true;
     }
 
+    bool StateCreatorRobotPose::extractPoseStamped(const SymbolicState & state, const string & object,
+            geometry_msgs::PoseStamped & pose) const
+    {
+        bool ret = true;
+
+        // first get xyz, qxyzw from state
+        Predicate p;
+        p.parameters.push_back(object);
+
+        double posX = 0;
+        p.name = "x";
+        if(!state.hasNumericalFluent(p, &posX)) {
+            ROS_ERROR("%s: object: %s - no x-location in state.", __func__, object.c_str());
+            ret = false;;
+        }
+        double posY = 0;
+        p.name = "y";
+        if(!state.hasNumericalFluent(p, &posY)) {
+            ROS_ERROR("%s: object: %s - no y-location in state.", __func__, object.c_str());
+            ret = false;;
+        }
+        double posZ = 0;
+        p.name = "z";
+        if(!state.hasNumericalFluent(p, &posZ)) {
+            ROS_ERROR("%s: object: %s - no z-location in state.", __func__, object.c_str());
+            ret = false;;
+        }
+
+        double qx;
+        p.name = "qx";
+        if(!state.hasNumericalFluent(p, &qx)) {
+            ROS_ERROR("%s: object: %s - no qx in state.", __func__, object.c_str());
+            ret = false;;
+        }
+        double qy;
+        p.name = "qy";
+        if(!state.hasNumericalFluent(p, &qy)) {
+            ROS_ERROR("%s: object: %s - no qy in state.", __func__, object.c_str());
+            ret = false;;
+        }
+        double qz;
+        p.name = "qz";
+        if(!state.hasNumericalFluent(p, &qz)) {
+            ROS_ERROR("%s: object: %s - no qz in state.", __func__, object.c_str());
+            ret = false;;
+        }
+        double qw;
+        p.name = "qw";
+        if(!state.hasNumericalFluent(p, &qw)) {
+            ROS_ERROR("%s: object: %s - no qw in state.", __func__, object.c_str());
+            ret = false;;
+        }
+
+        double timestamp;
+        p.name = "timestamp";
+        if(!state.hasNumericalFluent(p, &timestamp)) {
+            ROS_ERROR("%s: object: %s - no timestamp in state.", __func__, object.c_str());
+            ret = false;;
+        }
+
+        string frameid;
+        p.name = "frame-id";
+        if(!state.hasObjectFluent(p, &frameid)) {
+            ROS_ERROR("%s: object: %s - no frameid in state.", __func__, object.c_str());
+            ret = false;;
+        }
+
+        pose.header.frame_id = frameid;
+        pose.header.stamp = ros::Time(timestamp);
+        pose.pose.position.x = posX;
+        pose.pose.position.y = posY;
+        pose.pose.position.z = posZ;
+        pose.pose.orientation.x = qx;
+        pose.pose.orientation.y = qy;
+        pose.pose.orientation.z = qz;
+        pose.pose.orientation.w = qw;
+
+        return ret;
+    }
+
+    std_msgs::ColorRGBA StateCreatorRobotPose::getLocationColor(
+            const SymbolicState & state, const string & location) const
+    {
+        std_msgs::ColorRGBA color;
+
+        Predicate p;
+        p.name = _atPredicate;
+        p.parameters.push_back(location);
+        bool at = false;
+        if(!state.hasBooleanPredicate(p, &at)) {
+            ROS_ERROR("%s: state has at-base not set for %s.", __func__, location.c_str());
+            return color;
+        }
+
+        if(location == _robotPoseObject) {      //robot
+            color.a = 0.8;
+            if(at) {
+                color.b = 1.0;
+            } else {
+                color.r = 1.0;
+                color.g = 1.0;
+                color.b = 1.0;
+            }
+        } else {            // targets
+            color.a = 0.8;
+            if(at) {
+                color.g = 1.0;
+            } else {
+                color.r = 1.0;
+                color.g = 1.0;
+            }
+        }
+
+        return color;
+    }
+
+    // from pr2_tasks/arm_tasks.py DEFAULT_SIDE_JOINT_TRAJECTORY
+    sensor_msgs::JointState StateCreatorRobotPose::getArmSideJointState() const
+    {
+        sensor_msgs::JointState ret;
+        ret.name.resize(14);
+        ret.name[0] = "l_shoulder_pan_joint";
+        ret.name[1] = "l_shoulder_lift_joint";
+        ret.name[2] = "l_upper_arm_roll_joint";
+        ret.name[3] = "l_elbow_flex_joint";
+        ret.name[4] = "l_forearm_roll_joint";
+        ret.name[5] = "l_wrist_flex_joint";
+        ret.name[6] = "l_wrist_roll_joint";
+
+        ret.name[7] = "r_shoulder_pan_joint";
+        ret.name[8] = "r_shoulder_lift_joint";
+        ret.name[9] = "r_upper_arm_roll_joint";
+        ret.name[10] = "r_elbow_flex_joint";
+        ret.name[11] = "r_forearm_roll_joint";
+        ret.name[12] = "r_wrist_flex_joint";
+        ret.name[13] = "r_wrist_roll_joint";
+
+        ret.position.resize(14);
+        ret.position[0] = 2.1;
+        ret.position[1] = 1.26;
+        ret.position[2] = 1.8;
+        ret.position[3] = -1.9;
+        ret.position[4] = -3.5;
+        ret.position[5] = -1.8;
+        ret.position[6] = M_PI_2;
+
+        ret.position[7] = -2.1;
+        ret.position[8] = 1.26;
+        ret.position[9] = -1.8;
+        ret.position[10] = -1.9;
+        ret.position[11] = 3.5;
+        ret.position[12] = -1.8;
+        ret.position[13] = M_PI_2;
+
+        return ret;
+    }
+
+    visualization_msgs::MarkerArray StateCreatorRobotPose::getLocationMarkers(const SymbolicState & state,
+            const string & location, const string & ns, int id, bool useMeshes) const
+    {
+        visualization_msgs::MarkerArray ma;
+
+        geometry_msgs::PoseStamped locationPose;
+        if(!extractPoseStamped(state, location, locationPose)) {
+            ROS_ERROR("%s: could not extract pose for location object: %s.", __func__, location.c_str());
+            return ma; 
+        }
+        if(locationPose.header.frame_id != "/map") {
+            ROS_ERROR("Location pose %s had frame-id: %s - should be /map.",
+                    location.c_str(), locationPose.header.frame_id.c_str());
+            return ma;
+        }
+
+        if(useMeshes) {
+            _robotPoseVis.updateRobotStateJoints(getArmSideJointState());
+            locationPose.pose.position.z = 0;
+            // zero out z to account for different frame (/base_link vs. /base_footprint)
+            _robotPoseVis.updateRobotStatePose(locationPose);
+
+            std_msgs::ColorRGBA color = getLocationColor(state, location);
+            std::stringstream ss;
+            ss << "mesh_" << ns << "_" << location;
+            ma = _robotPoseVis.getMarkers(color, ss.str());
+
+            return ma;
+        }
+
+        visualization_msgs::Marker mark;
+        mark.header.frame_id = "/map";
+        mark.ns = ns; 
+        mark.id = id;
+        mark.type = visualization_msgs::Marker::ARROW;
+        mark.action = visualization_msgs::Marker::ADD;
+        mark.pose = locationPose.pose;
+        mark.pose.position.z += 0.15;
+        mark.scale.x = 1.0;     // radius / 10?
+        mark.scale.y = 1.0;
+        mark.scale.z = 0.12;     // arrow length
+        mark.color = getLocationColor(state, location);
+        mark.text = location;
+
+        ma.markers.push_back(mark);
+
+        mark.type = visualization_msgs::Marker::SPHERE;
+        mark.scale.x = 0.2;
+        mark.scale.y = 0.2;
+        mark.scale.z = 0.2;
+        mark.id++;
+
+        ma.markers.push_back(mark);
+        
+        return ma;
+    }
+
     /**
      * Publish markers for locations:
      * target locations are yellow or green if the robot is at the location
@@ -241,60 +424,30 @@ namespace tidyup_actions
             pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> targets =
                 state.getTypedObjects().equal_range(_locationType);
 
-            vector<string> paramList;
-            paramList.push_back("dummy");
-
             unsigned int count = 0;
             for(SymbolicState::TypedObjectConstIterator it = targets.first; it != targets.second; it++) {
                 string target = it->second;
-                Predicate p;
-                paramList[0] = target;
-                p.parameters = paramList;
-
-                p.name = "x";
-                double valueX;
-                if(!state.hasNumericalFluent(p, &valueX)) {
-                    ROS_ERROR("%s: target object: %s - no x-location.", __func__, target.c_str());
+                if(target == _robotPoseObject)  // skip current robot location
                     continue;
-                }
-                double valueY;
-                p.name = "y";
-                if(!state.hasNumericalFluent(p, &valueY)) {
-                    ROS_ERROR("%s: target object: %s - no y-location.", __func__, target.c_str());
-                    continue;
-                }
 
-                p.name = _atPredicate;
-                bool at = false;
-                if(!state.hasBooleanPredicate(p, &at)) {
-                    ROS_ERROR("%s: state has at-base not set for %s.", __func__, target.c_str());
-                    continue;
+                visualization_msgs::MarkerArray marks = getLocationMarkers(state, target,
+                        "target_locations", count, false);
+                forEach(visualization_msgs::Marker & mark, marks.markers) {
+                    if(mark.header.frame_id.empty())    // invalid mark
+                        continue;
+                    ma.markers.push_back(mark);
                 }
-
-                // we now know for this target it's x/y coords and if the robot is at this target
-                visualization_msgs::Marker mark;
-                mark.header.frame_id = "/map";
-                mark.ns = "target_locations";
-                mark.id = count;
-                count++;
-                mark.type = visualization_msgs::Marker::SPHERE;
-                mark.action = visualization_msgs::Marker::ADD;
-                mark.pose.position.x = valueX;
-                mark.pose.position.y = valueY;
-                mark.pose.position.z = 0.15;
-                mark.pose.orientation.w = 1.0;
-                mark.scale.x = 0.3;
-                mark.scale.y = 0.3;
-                mark.scale.z = 0.3;
-                mark.color.a = 1.0;
-                if(at) {
-                    mark.color.g = 1.0;
-                } else {
-                    mark.color.r = 1.0;
-                    mark.color.g = 1.0;
+                count += 2;
+                
+                if(s_PublishMeshMarkers) {
+                    visualization_msgs::MarkerArray marks = getLocationMarkers(state, target,
+                            "target_locations", count, true);
+                    forEach(visualization_msgs::Marker & mark, marks.markers) {
+                        if(mark.header.frame_id.empty())    // invalid mark
+                            continue;
+                        ma.markers.push_back(mark);
+                    }
                 }
-                mark.text = target;
-                ma.markers.push_back(mark);
             }
 
             // all should be overwritten as #targets is const, but to be safe
@@ -303,7 +456,6 @@ namespace tidyup_actions
                 mark.header.frame_id = "/map";
                 mark.ns = "target_locations";
                 mark.id = i;
-                mark.type = visualization_msgs::Marker::SPHERE;
                 mark.action = visualization_msgs::Marker::DELETE;
                 ma.markers.push_back(mark);
             }
@@ -311,62 +463,23 @@ namespace tidyup_actions
 
         // finally robot location marker
         if(!_robotPoseObject.empty()) {
-            bool l0ok = true;
-            visualization_msgs::Marker mark;
-            mark.header.frame_id = "/map";
-            mark.ns = "robot_location";
-            mark.id = 0;
-            mark.type = visualization_msgs::Marker::SPHERE;
-            mark.action = visualization_msgs::Marker::ADD;
-
-            Predicate p;
-            vector<string> paramList;
-            paramList.push_back("dummy");
-            paramList[0] = _robotPoseObject;
-            p.parameters = paramList;
-
-            p.name = "x";
-            double valueX;
-            if(!state.hasNumericalFluent(p, &valueX)) {
-                ROS_ERROR("%s: %s - no x-location.", __func__, _robotPoseObject.c_str());
-                l0ok = false;
-            }
-            double valueY;
-            p.name = "y";
-            if(!state.hasNumericalFluent(p, &valueY)) {
-                ROS_ERROR("%s: %s - no y-location.", __func__, _robotPoseObject.c_str());
-                l0ok = false;
+            visualization_msgs::MarkerArray marks = getLocationMarkers(state, _robotPoseObject,
+                    "robot_location", 0, false);
+            forEach(visualization_msgs::Marker & mark, marks.markers) {
+                if(mark.header.frame_id.empty())    // invalid mark
+                    mark.action = visualization_msgs::Marker::DELETE;
+                ma.markers.push_back(mark);
             }
 
-            p.name = _atPredicate;
-            bool at = false;
-            if(!state.hasBooleanPredicate(p, &at)) {
-                ROS_ERROR("%s: state has %s not set for %s.", __func__,
-                        _atPredicate.c_str(), _robotPoseObject.c_str());
-                l0ok = false;
-            }
-
-            if(l0ok) {
-                mark.pose.position.x = valueX;
-                mark.pose.position.y = valueY;
-                mark.pose.position.z = 0.15;
-                mark.pose.orientation.w = 1.0;
-                mark.scale.x = 0.3;
-                mark.scale.y = 0.3;
-                mark.scale.z = 0.3;
-                mark.color.a = 1.0;
-                if(at) {
-                    mark.color.b = 1.0;
-                } else {
-                    mark.color.r = 1.0;
-                    mark.color.g = 1.0;
-                    mark.color.b = 1.0;
+            if(s_PublishMeshMarkers) {
+                visualization_msgs::MarkerArray marks = getLocationMarkers(state, _robotPoseObject,
+                        "robot_location", 0, true);
+                forEach(visualization_msgs::Marker & mark, marks.markers) {
+                    if(mark.header.frame_id.empty())    // invalid mark
+                        continue;
+                    ma.markers.push_back(mark);
                 }
-                mark.text = _robotPoseObject;
-            } else {
-                mark.action = visualization_msgs::Marker::DELETE;
             }
-            ma.markers.push_back(mark);
         }
 
         _markerPub.publish(ma);
