@@ -329,21 +329,68 @@ namespace tidyup_actions
         ret.name[13] = "r_wrist_roll_joint";
 
         ret.position.resize(14);
-        ret.position[0] = 2.1;
-        ret.position[1] = 1.26;
-        ret.position[2] = 1.8;
-        ret.position[3] = -1.9;
-        ret.position[4] = -3.5;
-        ret.position[5] = -1.8;
-        ret.position[6] = M_PI_2;
 
-        ret.position[7] = -2.1;
-        ret.position[8] = 1.26;
-        ret.position[9] = -1.8;
-        ret.position[10] = -1.9;
-        ret.position[11] = 3.5;
-        ret.position[12] = -1.8;
-        ret.position[13] = M_PI_2;
+
+        bool arm_param_ok = true;
+        ros::NodeHandle nh;
+        XmlRpc::XmlRpcValue xmlRpcRight;
+        if(!nh.getParam("/arm_configurations/side_tuck/position/right_arm", xmlRpcRight)) {
+            ROS_WARN("Could not load /arm_configurations/side_tuck/position/right_arm.");
+            arm_param_ok = false;
+        } else {
+            if(xmlRpcRight.getType() != XmlRpc::XmlRpcValue::TypeArray)
+                arm_param_ok = false;
+            else if(xmlRpcRight.size() != 7)
+                arm_param_ok = false;
+        }
+        XmlRpc::XmlRpcValue xmlRpcLeft;
+        if(!nh.getParam("/arm_configurations/side_tuck/position/left_arm", xmlRpcLeft)) {
+            ROS_WARN("Could not load /arm_configurations/side_tuck/position/left_arm.");
+            arm_param_ok = false;
+        } else {
+            if(xmlRpcLeft.getType() != XmlRpc::XmlRpcValue::TypeArray)
+                arm_param_ok = false;
+            else if(xmlRpcLeft.size() != 7)
+                arm_param_ok = false;
+        }
+
+        if(arm_param_ok) {
+            // left
+            ret.position[0] = xmlRpcLeft[0];
+            ret.position[1] = xmlRpcLeft[1];
+            ret.position[2] = xmlRpcLeft[2];
+            ret.position[3] = xmlRpcLeft[3];
+            ret.position[4] = xmlRpcLeft[4];
+            ret.position[5] = xmlRpcLeft[5];
+            ret.position[6] = xmlRpcLeft[6];
+
+            // right
+            ret.position[7] = xmlRpcRight[0];
+            ret.position[8] = xmlRpcRight[1];
+            ret.position[9] = xmlRpcRight[2];
+            ret.position[10] = xmlRpcRight[3];
+            ret.position[11] = xmlRpcRight[4];
+            ret.position[12] = xmlRpcRight[5];
+            ret.position[13] = xmlRpcRight[6];
+        } else {
+            ROS_WARN("Using hardcoded arm configs");
+
+            ret.position[0] = 2.1;
+            ret.position[1] = 1.26;
+            ret.position[2] = 1.8;
+            ret.position[3] = -1.9;
+            ret.position[4] = -3.5;
+            ret.position[5] = -1.8;
+            ret.position[6] = M_PI_2;
+
+            ret.position[7] = -2.1;
+            ret.position[8] = 1.26;
+            ret.position[9] = -1.8;
+            ret.position[10] = -1.9;
+            ret.position[11] = 3.5;
+            ret.position[12] = -1.8;
+            ret.position[13] = M_PI_2;
+        }
 
         return ret;
     }
