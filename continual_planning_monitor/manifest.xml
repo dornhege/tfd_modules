@@ -1,0 +1,15 @@
+<package>
+  <description brief="continual_planning_monitor">
+
+     continual_planning_monitor
+
+  </description>
+  <author>dornhege</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/continual_planning_monitor</url>
+  <depend package="roscpp"/>
+
+</package>
+
+
