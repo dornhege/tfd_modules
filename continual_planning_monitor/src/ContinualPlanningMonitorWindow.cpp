@@ -11,6 +11,7 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
     planningGrp->setProperty("status", "inactive");
     executionGrp->setProperty("status", "inactive");
     resultGrp->setProperty("status", "inactive");
+    restyle();
 
     ros::NodeHandle nh;
     _subStatus = nh.subscribe("continual_planning_status", 10,
