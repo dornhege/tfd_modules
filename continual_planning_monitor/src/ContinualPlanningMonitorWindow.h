@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include "ui_ContinualPlanningMonitorWindow.h"
+#include "continual_planning_executive/ContinualPlanningStatus.h"
+#include <ros/ros.h>
 
 class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::ContinualPlanningMonitorWindow
 {
@@ -15,7 +17,15 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
     private Q_SLOTS:
         void on_actionExit_activated();
 
-        void on_pushButton_clicked();
+    protected:
+        /// restyle the dynamically styled widgets
+        void restyle();
+
+        void statusCallback(const continual_planning_executive::ContinualPlanningStatus & status);
+
+    private:
+        continual_planning_executive::ContinualPlanningStatus st;
+        ros::Subscriber _subStatus;
 };
 
 #endif

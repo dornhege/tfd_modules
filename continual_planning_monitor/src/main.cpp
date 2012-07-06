@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 
     ros::Rate loopRate(100.0);
     while(!g_Quit && ros::ok() && mw.isVisible()) {
+        ros::spinOnce();
         app.processEvents();
 
         loopRate.sleep();

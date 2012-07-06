@@ -51,6 +51,10 @@ class SymbolicState
 {
     public:
         friend std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);
+        class OStreamMode {
+            public:
+                static bool forceNewlines;
+        };
 
         SymbolicState();
         virtual ~SymbolicState();

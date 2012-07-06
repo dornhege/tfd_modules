@@ -643,6 +643,8 @@ unsigned int getShellWidth()
     return w;
 }
 
+bool SymbolicState::OStreamMode::forceNewlines = false;
+
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << "Objects:" << std::endl;
     string lastType = "";
@@ -652,6 +654,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
 
         if(lastType != "" && it->first != lastType) {  // type changed
             os << "- " << lastType << "   ";
+            if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
         }
         lastType = it->first;
         os << it->second << " ";
@@ -660,21 +663,28 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
         os << "- " << lastType;
 
     os << std::endl;
+    if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
     os << "True Predicates:" << std::endl;
     forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
-        if(bp.second)
+        if(bp.second) {
             os << bp.first << " ";
+            if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
+        }
     }
     os << std::endl;
     os << "False Predicates:" << std::endl;
     forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
-        if(!bp.second)
+        if(!bp.second) {
             os << bp.first << " ";
+            if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
+        }
     }
     os << std::endl;
 
     unsigned int sw = getShellWidth();
-    int maxEntriesPerLine = 100;
+    int maxEntriesPerLine = 0;
+    if(SymbolicState::OStreamMode::forceNewlines)
+        maxEntriesPerLine = 1;
     os << "Numerical Fluents:" << std::endl;
     int count = 0;
     std::stringstream ssLine;
@@ -682,11 +692,15 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
         std::stringstream ssBuf;
         ssBuf << nf.first << " = " << nf.second << " "; // this is what we want to add to the output line
 
-        if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
-            os << ssLine.str() << std::endl;
-            ssLine.str("");         // next line starts empty
+        if(maxEntriesPerLine > 0) {
+            os << ssBuf.str();
+        } else {    // maxEntriesPerLine == 0, use shell width
+            if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+                os << ssLine.str() << std::endl;
+                ssLine.str("");         // next line starts empty
+            }
+            ssLine << ssBuf.str();
         }
-        ssLine << ssBuf.str();
 
         // print newline every maxEntriesPerLine outputs
         count++;
@@ -695,7 +709,8 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
             os << std::endl;
         }
     }
-    os << ssLine.str() << std::endl; // output last line
+    if(!ssLine.str().empty())
+        os << ssLine.str() << std::endl; // output last line
     os << std::endl;
     os << "Object Fluents:" << std::endl;
     count = 0;
@@ -704,11 +719,15 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
         std::stringstream ssBuf;
         ssBuf << nf.first << " = " << nf.second << " ";
 
-        if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
-            os << ssLine.str() << std::endl;
-            ssLine.str("");         // next line starts empty
+        if(maxEntriesPerLine > 0) {
+            os << ssBuf.str();
+        } else {
+            if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+                os << ssLine.str() << std::endl;
+                ssLine.str("");         // next line starts empty
+            }
+            ssLine << ssBuf.str();
         }
-        ssLine << ssBuf.str();
 
         // print newline every maxEntriesPerLine outputs
         count++;
@@ -717,7 +736,8 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
             os << std::endl;
         }
     }
-    os << ssLine.str() << std::endl; // output last line
+    if(!ssLine.str().empty())
+        os << ssLine.str() << std::endl; // output last line
     os << std::endl;
 
     if(!ss._forEachGoalStatements.empty()) {
