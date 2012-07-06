@@ -59,6 +59,7 @@ void StatusPublisher::finishedPlanning(bool success, const Plan & plan)
 void StatusPublisher::startedExecution(const DurativeAction & a)
 {
     stringstream ss;
+    ss << std::fixed << std::setprecision(2);
     ss << a;
     publishStatus(ContinualPlanningStatus::EXECUTION, ContinualPlanningStatus::ACTIVE, ss.str());
 }
@@ -66,6 +67,7 @@ void StatusPublisher::startedExecution(const DurativeAction & a)
 void StatusPublisher::finishedExecution(bool success, const DurativeAction & a)
 {
     stringstream ss;
+    ss << std::fixed << std::setprecision(2);
     ss << a;
     publishStatus(ContinualPlanningStatus::EXECUTION,
             success ? int(ContinualPlanningStatus::SUCCESS) : int(ContinualPlanningStatus::FAILURE), ss.str());
