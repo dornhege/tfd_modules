@@ -7,6 +7,7 @@
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
+#include "continual_planning_executive/statusPublisher.h"
 #include "planExecutor.h"
 
 // constantly do the following:
@@ -92,6 +93,8 @@ class ContinualPlanning
 
         bool _forceReplan;      ///< If true, someone want to hard trigger replanning in the next step
         ReplanningTriggerMethod _replanningTrigger;
+
+        StatusPublisher _status;
 };
 
 #endif

@@ -1,0 +1,17 @@
+# 0/uninitialized is invalid
+int32 INACTIVE=1
+int32 ACTIVE=2
+int32 SUCCESS=3
+int32 FAILURE=4
+
+int32 STATE_ESTIMATION=1
+int32 MONITORING=2
+int32 PLANNING=3
+int32 EXECUTION=4
+int32 CURRENT_PLAN=5
+int32 CONTINUAL_PLANNING_FINISHED=6
+
+int32 component
+int32 status
+string description
+

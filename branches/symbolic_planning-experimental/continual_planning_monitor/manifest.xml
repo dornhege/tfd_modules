@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/continual_planning_monitor</url>
   <depend package="roscpp"/>
+  <depend package="continual_planning_executive"/>
 
 </package>
 

@@ -13,7 +13,7 @@
 #include "continualPlanning.h"
 #include <pluginlib/class_loader.h>
 
-static ContinualPlanning s_ContinualPlanning;
+static ContinualPlanning* s_ContinualPlanning = NULL;
 
 static pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>* s_PlannerLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
@@ -77,14 +77,14 @@ bool loadStateCreators(ros::NodeHandle & nh)
         try {
             continual_planning_executive::StateCreator* sc = s_StateCreatorLoader->createClassInstance(state_creator_name);
             sc->initialize(state_creator_entry);
-            s_ContinualPlanning._stateCreators.push_back(sc);
+            s_ContinualPlanning->_stateCreators.push_back(sc);
         } catch(pluginlib::PluginlibException & ex) {
             ROS_ERROR("Failed to load StateCreator instance for: %s. Error: %s.",
                     state_creator_name.c_str(), ex.what());
             return false;
         }
     }
-    return !s_ContinualPlanning._stateCreators.empty();
+    return !s_ContinualPlanning->_stateCreators.empty();
 }
 
 bool loadGoalCreators(ros::NodeHandle & nh)
@@ -129,7 +129,7 @@ bool loadGoalCreators(ros::NodeHandle & nh)
         try {
             continual_planning_executive::GoalCreator* gc = s_GoalCreatorLoader->createClassInstance(goal_creator_name);
             gc->initialize(goal_creator_entry);
-            if(!gc->fillStateAndGoal(s_ContinualPlanning._currentState, s_ContinualPlanning._goal)) {
+            if(!gc->fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal)) {
                 ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
                 return false;
             }
@@ -140,7 +140,7 @@ bool loadGoalCreators(ros::NodeHandle & nh)
         }
     }
 
-    ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning._goal);
+    ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning->_goal);
     return true;
 }
 
@@ -187,7 +187,7 @@ bool loadActionExecutors(ros::NodeHandle & nh)
             continual_planning_executive::ActionExecutorInterface* ae
                 = s_ActionExecutorLoader->createClassInstance(action_executor_name);
             ae->initialize(action_executor_entry);
-            s_ContinualPlanning._planExecutor.addActionExecutor(ae);
+            s_ContinualPlanning->_planExecutor.addActionExecutor(ae);
         } catch(pluginlib::PluginlibException & ex) {
             ROS_ERROR("Failed to load ActionExecutor instance for: %s. Error: %s.",
                     action_executor_name.c_str(), ex.what());
@@ -218,7 +218,7 @@ bool loadPlanner(ros::NodeHandle & nh)
     }
     ROS_INFO("Loading planner %s", planner_name.c_str());
     try {
-        s_ContinualPlanning._planner = s_PlannerLoader->createClassInstance(planner_name);
+        s_ContinualPlanning->_planner = s_PlannerLoader->createClassInstance(planner_name);
     } catch(pluginlib::PluginlibException & ex) {
         ROS_ERROR("Failed to load Planner instance for: %s. Error: %s.",
                 planner_name.c_str(), ex.what());
@@ -253,9 +253,9 @@ bool loadPlanner(ros::NodeHandle & nh)
     }
 
     // init planner
-    s_ContinualPlanning._planner->initialize(domainFile, plannerOptions);
+    s_ContinualPlanning->_planner->initialize(domainFile, plannerOptions);
 
-    return s_ContinualPlanning._planner != NULL;
+    return s_ContinualPlanning->_planner != NULL;
 }
 
 bool init()
@@ -293,7 +293,7 @@ void signal_handler(int signal)
     }
 
     ROS_INFO("SIGINT received - canceling all running actions.");
-    s_ContinualPlanning._planExecutor.cancelAllActions();
+    s_ContinualPlanning->_planExecutor.cancelAllActions();
 
     ROS_INFO("shutting down...");
     ros::shutdown();
@@ -307,6 +307,7 @@ int main(int argc, char** argv)
     signal(SIGINT, signal_handler);
 
     ros::NodeHandle nh;
+    s_ContinualPlanning = new ContinualPlanning();
 
     if(!init()) {
         ROS_FATAL("Init failed.");
@@ -318,7 +319,7 @@ int main(int argc, char** argv)
     while(ros::ok()) {
         ros::spinOnce();
 
-        cpState = s_ContinualPlanning.loop();
+        cpState = s_ContinualPlanning->loop();
         if(cpState != ContinualPlanning::Running) {
             break;
         }
@@ -326,7 +327,7 @@ int main(int argc, char** argv)
         loopSleep.sleep();
     }
 
-    if(s_ContinualPlanning.isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal) {
+    if(s_ContinualPlanning->isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal) {
         if(ros::ok())
             ROS_INFO("\n\nContinual planning ended.\nGOAL REACHED by agent!\n\n");
         else

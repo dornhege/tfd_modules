@@ -31,14 +31,14 @@ set(planner_executive_SRCS
     src/planExecutor.cpp)
 
 #uncomment if you have defined messages
-#rosbuild_genmsg()
+rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
 rosbuild_add_boost_directories()
 
 #common commands for building c++ executables and libraries
-rosbuild_add_executable(${PROJECT_NAME} ${planner_executive_SRCS} src/main.cpp)
+rosbuild_add_executable(${PROJECT_NAME} ${planner_executive_SRCS} src/main.cpp src/statusPublisher.cpp)
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
