@@ -32,7 +32,8 @@ extern double g_GoalTolerance;
 extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
-        nav_msgs::GetPlan::Request & request);
+        nav_msgs::GetPlan::Request& request);
+double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName);
 
 #ifdef __cplusplus
 extern "C" {

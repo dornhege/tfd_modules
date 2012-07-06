@@ -12,7 +12,9 @@
   <depend package="tf"/>
   <depend package="planner_benchmarks"/>
   <depend package="tidyup_msgs"/>
-
+  <export>
+    <cpp cflags="-I${prefix}/src" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lplanner_modules_pr2"/>
+  </export>
 </package>
 
 
