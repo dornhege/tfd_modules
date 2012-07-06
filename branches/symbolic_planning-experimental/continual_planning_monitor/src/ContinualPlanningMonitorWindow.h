@@ -16,6 +16,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
 
     private Q_SLOTS:
         void on_actionExit_activated();
+        void on_actionReset_activated();
 
     protected:
         /// restyle the dynamically styled widgets
