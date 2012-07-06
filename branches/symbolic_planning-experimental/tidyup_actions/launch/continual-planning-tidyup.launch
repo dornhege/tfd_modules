@@ -1,4 +1,7 @@
 <launch>
+
+    <arg name="gui" default="0" />
+
     <rosparam command="load" ns="tfd_modules" file="$(find tfd_modules)/config/tfd_modules_params_timeout_5min_nontemporal.yaml" />
 
     <!-- start executive -->
@@ -28,6 +31,8 @@
         </rosparam>
         <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
     </node>
+
+    <node if="$(arg gui)" pkg="continual_planning_monitor" type="continual_planning_monitor" name="continual_planning_monitor" />
 
 </launch>
 
