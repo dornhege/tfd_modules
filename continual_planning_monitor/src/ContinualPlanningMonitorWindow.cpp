@@ -27,6 +27,22 @@ void ContinualPlanningMonitorWindow::on_actionExit_activated()
     g_Quit = true;
 }
 
+void ContinualPlanningMonitorWindow::on_actionReset_activated()
+{
+    stateEstimationGrp->setProperty("status", "inactive");
+    monitoringGrp->setProperty("status", "inactive");
+    planningGrp->setProperty("status", "inactive");
+    executionGrp->setProperty("status", "inactive");
+    resultGrp->setProperty("status", "inactive");
+    restyle();
+
+    stateTxt->document()->setPlainText("");
+    lastPlanTxt->document()->setPlainText("");
+    currentPlanTxt->document()->setPlainText("");
+    currentActionTxt->setText("");
+    goalReachedTxt->setText("");
+}
+
 void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_executive::ContinualPlanningStatus & status)
 {
     QGroupBox* grp = NULL;

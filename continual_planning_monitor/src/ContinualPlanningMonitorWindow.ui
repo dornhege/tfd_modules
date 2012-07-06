@@ -239,6 +239,8 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionReset"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -250,6 +252,11 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>Q</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>
