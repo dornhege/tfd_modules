@@ -167,32 +167,11 @@ bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbac
     return true;
 }
 
-double pathCost(const ParameterList & parameterList,
-        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
+double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName)
 {
-    if(g_Debug) {        // prevent spamming ROS_DEBUG calls unless we really want debug
-        // debugging raw planner calls
-        static unsigned int calls = 0;
-        calls++;
-        if(calls % 10000 == 0) {
-            ROS_DEBUG("Got %d module calls.\n", calls);
-        }
-    }
-
-    // first lookup in the cache if we answered the query already
-    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
-    if(it != g_PathCostCache.end()) {
-        return it->second;
-    }
-
-    nav_msgs::GetPlan srv;
-    if(!fillPathRequest(parameterList, numericalFluentCallback, srv.request)) {
-        return INFINITE_COST;
-    }
-
     double cost = INFINITE_COST;
-
-    if(!g_GetPlan) {
+    if (!g_GetPlan)
+    {
         ROS_ERROR("Persistent service connection to %s failed.", g_GetPlan.getService().c_str());
         // FIXME reconnect - this shouldn't happen.
         return INFINITE_COST;
@@ -206,52 +185,86 @@ double pathCost(const ParameterList & parameterList,
     ros::Time callStartTime = ros::Time::now();
     // This construct is here, because when the robot is moving move_base will not produce other paths
     // we retry for a certain amount of time to not fail directly.
-    // FIXME: Cleanup the goto code
-retryGetPlan:
     static unsigned int failCounter = 0;
+    ros::Rate retryRate = 1;
+    do
+    {
+        // perform the actual path planner call
+        if (g_GetPlan.call(srv))
+        {
+            failCounter = 0;
 
-    // perform the actual path planner call
-    if(g_GetPlan.call(srv)) {
-        failCounter = 0;
-
-        if(g_Debug) {
-            ros::Time callEndTime = ros::Time::now();
-            ros::Duration dt = callEndTime - callStartTime;
-            totalCallsTime += dt;
-            ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).", dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
-        }
-
-        if(!srv.response.plan.poses.empty()) {
-            // get plan cost
-            double pathLength = 0;
-            geometry_msgs::PoseStamped lastPose = srv.response.plan.poses[0];
-            forEach(const geometry_msgs::PoseStamped & p, srv.response.plan.poses) {
-                double d = hypot(lastPose.pose.position.x - p.pose.position.x,
-                        lastPose.pose.position.y - p.pose.position.y);
-                pathLength += d;
-                lastPose = p;
+            if (g_Debug)
+            {
+                ros::Time callEndTime = ros::Time::now();
+                ros::Duration dt = callEndTime - callStartTime;
+                totalCallsTime += dt;
+                ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).", dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
             }
-            cost = pathLength;
-        } else {
-            ROS_WARN("Got empty plan: %s -> %s", parameterList[0].value.c_str(), parameterList[1].value.c_str());
+            if (!srv.response.plan.poses.empty())
+            {
+                // get plan cost
+                double pathLength = 0;
+                geometry_msgs::PoseStamped lastPose = srv.response.plan.poses[0];
+                forEach(const geometry_msgs::PoseStamped & p, srv.response.plan.poses)
+                {
+                    double d = hypot(lastPose.pose.position.x - p.pose.position.x,
+                        lastPose.pose.position.y - p.pose.position.y);
+                    pathLength += d;
+                    lastPose = p;
+                }
+                cost = pathLength;
+            }
+            else
+            {
+                ROS_WARN("Got empty plan: %s -> %s", startLocationName.c_str(), goalLocationName.c_str());
+            }
+            //ROS_INFO("Got plan: %s -> %s cost: %f.", parameterList[0].value.c_str(), parameterList[1].value.c_str(), cost);
+            // also empty plan = OK or fail or none?
         }
+        else
+        {
+            ROS_ERROR("Failed to call service %s - is the robot moving?", g_GetPlan.getService().c_str());
+            failCounter++;
+            retryRate.sleep();
+        }
+    } while (failCounter < 300 && failCounter > 0);
 
-        //ROS_INFO("Got plan: %s -> %s cost: %f.", parameterList[0].value.c_str(), parameterList[1].value.c_str(), cost);
-        // also empty plan = OK or fail or none?
-    } else {
-        ROS_ERROR("Failed to call service %s - is the robot moving?", g_GetPlan.getService().c_str());
-        failCounter++;
-        if(failCounter < 300) {
-            usleep(1000 * 1000);
-            goto retryGetPlan;
+    return cost;
+}
+
+double pathCost(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
+{
+    if (g_Debug)
+    { // prevent spamming ROS_DEBUG calls unless we really want debug
+        // debugging raw planner calls
+        static unsigned int calls = 0;
+        calls++;
+        if (calls % 10000 == 0)
+        {
+            ROS_DEBUG("Got %d module calls.\n", calls);
         }
-        // FIXME: what if target is unreachable, do we get false or an empty plan? i.e. is this an error
-        return INFINITE_COST;
     }
 
-    // return pathcost and cache
-    g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
+    // first lookup in the cache if we answered the query already
+    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
+    if (it != g_PathCostCache.end())
+    {
+        return it->second;
+    }
 
+    nav_msgs::GetPlan srv;
+    if (!fillPathRequest(parameterList, numericalFluentCallback, srv.request))
+    {
+        return INFINITE_COST;
+    }
+    double cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value);
+    if (cost < INFINITE_COST)
+    {
+        // return pathcost and cache
+        g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
+    }
     return cost;
 }
 
