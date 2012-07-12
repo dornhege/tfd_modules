@@ -3,6 +3,7 @@
 #include "gki_utils/stringutil.h"
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <set>
 
 PLUGINLIB_DECLARE_CLASS(tidyup_actions, goal_creator_tidyup_objects,
@@ -29,6 +30,8 @@ namespace tidyup_actions
         currentState.addSuperType("location", "pose");
         currentState.addSuperType("manipulation_location", "location");
         currentState.addSuperType("door_location", "location");
+        currentState.addSuperType("door_in_location", "door_location");
+        currentState.addSuperType("door_out_location", "door_location");
         currentState.addSuperType("room", "room");
         currentState.addSuperType("static_object", "static_object");
         currentState.addSuperType("door", "door");
@@ -40,6 +43,8 @@ namespace tidyup_actions
         goal.addSuperType("location", "pose");
         goal.addSuperType("manipulation_location", "location");
         goal.addSuperType("door_location", "location");
+        goal.addSuperType("door_in_location", "door_location");
+        goal.addSuperType("door_out_location", "door_location");
         goal.addSuperType("room", "room");
         goal.addSuperType("static_object", "static_object");
         goal.addSuperType("door", "door");
@@ -92,9 +97,34 @@ namespace tidyup_actions
             {
                 doors.insert(type);
                 currentState.addObject(type, "door");
+
+                // door_in_location
                 currentState.setObjectFluent("belongs-to-door", location, type);
-                currentState.addObject(location, "door_location");
-                goal.addObject(location, "door_location");
+                currentState.addObject(location, "door_in_location");
+                goal.addObject(location, "door_in_location");
+
+                // also create the matching door_out_location as rotZ by 180 deg
+                geometry_msgs::PoseStamped outPose = np.second; // copy everything, only switch orientation
+                tf::Quaternion rot180 = tf::createQuaternionFromYaw(M_PI);
+                tf::Quaternion locRot;
+                tf::quaternionMsgToTF(outPose.pose.orientation, locRot);
+                tf::quaternionTFToMsg(locRot * rot180, outPose.pose.orientation);
+
+                string outLocation = location + "_out";
+                currentState.setObjectFluent("belongs-to-door", outLocation, type);
+                currentState.addObject(outLocation, "door_out_location");
+                goal.addObject(outLocation, "door_out_location");
+
+                currentState.setNumericalFluent("timestamp", outLocation, outPose.header.stamp.toSec());
+                currentState.setObjectFluent("frame-id", outLocation, outPose.header.frame_id);
+                currentState.setNumericalFluent("x", outLocation, outPose.pose.position.x);
+                currentState.setNumericalFluent("y", outLocation, outPose.pose.position.y);
+                currentState.setNumericalFluent("z", outLocation, outPose.pose.position.z);
+                currentState.setNumericalFluent("qx", outLocation, outPose.pose.orientation.x);
+                currentState.setNumericalFluent("qy", outLocation, outPose.pose.orientation.y);
+                currentState.setNumericalFluent("qz", outLocation, outPose.pose.orientation.z);
+                currentState.setNumericalFluent("qw", outLocation, outPose.pose.orientation.w);
+                currentState.setObjectFluent("location-in-room", outLocation, room);
             }
             else
             {
