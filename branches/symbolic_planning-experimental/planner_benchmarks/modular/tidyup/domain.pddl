@@ -9,6 +9,7 @@
         manipulation_location - location       ; a location that grasp actions can be applied from
                                         ; (e.g. a location at a table)
         door_location - location        ; a location to open or close a door
+        door_in_location door_out_location - door_location      ; locations directed into the door or outwards
         room                            ; a room, see constants
 
         static_object                   ; something static like a table
@@ -138,7 +139,7 @@
     )
 
     (:durative-action detect-door-state
-        :parameters (?l - door_location ?d - door)
+        :parameters (?l - door_in_location ?d - door)
         :duration (= ?duration 1.0)
         :condition 
         (and
@@ -154,7 +155,7 @@
     )
 
     (:durative-action open-door
-        :parameters (?l - door_location ?d - door ?a - arm)
+        :parameters (?l - door_in_location ?d - door ?a - arm)
         :duration (= ?duration 1.0)
         :condition 
         (and
@@ -169,6 +170,7 @@
         (and
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (door-open ?d))
+            (at start (not (door-state-known ?d)))
         )
     )
 
@@ -179,7 +181,7 @@
         (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
-            (at start (or (can-navigate ?s ?g) (can-navigate ?g ?s)))
+            (at start (can-navigate ?s ?g))
             (at start (arms-drive-pose))
         )
         :effect
@@ -191,12 +193,14 @@
     )
 
     (:durative-action drive-through-door
-        :parameters (?d - door ?s - door_location ?g - door_location)
+        :parameters (?d - door ?s - door_in_location ?g - door_out_location)
         :duration (= ?duration 1.0)
         :condition 
         (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
+            ; dont drive from in to out loc in the same room
+            (at start (not (= (location-in-room ?s) (location-in-room ?g))))
             (at start (= (belongs-to-door ?s) ?d))
             (at start (= (belongs-to-door ?g) ?d))
             (at start (door-state-known ?d))
@@ -265,9 +269,25 @@
         )
     )
 
+    ; Can we navigation from one to another location?
+    ; Locations need to be in the same room, and navigation usually works in both directions.
+    ; For door locations this is different: There should not be any need to get to a door_out_location.
+    ;
+    ; It should always be possible to get from a door_location to any other (non-door) location either as it
+    ; is a door_out_location or because one might be at a door_in_location and must put objects down.
+    ;
+    ; (drive-through-door is handled explicitly and doesn't require can-navigate)
     (:derived
-        (can-navigate ?l1 ?l2 - location)
-        (= (location-in-room ?l1) (location-in-room ?l2))
+        (can-navigate ?s ?g - location)
+        (and
+            (= (location-in-room ?s) (location-in-room ?g))
+            (not (is-door-out-location ?g))
+        )
+    )
+
+    (:derived
+        (is-door-out-location ?l - door_location)
+        (exists (?l2 - door_out_location) (= ?l ?l2))
     )
 
     ;;; The following derived predicates define when an object is considered tidy, i.e.
