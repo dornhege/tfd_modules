@@ -704,7 +704,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
 
         // print newline every maxEntriesPerLine outputs
         count++;
-        if(count >= maxEntriesPerLine) {
+        if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
             count = 0;
             os << std::endl;
         }
@@ -731,7 +731,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
 
         // print newline every maxEntriesPerLine outputs
         count++;
-        if(count >= maxEntriesPerLine) {
+        if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
             count = 0;
             os << std::endl;
         }
