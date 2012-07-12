@@ -1,4 +1,4 @@
-#include "navstack_module.h"
+#include "planner_modules_pr2/navstack_module.h"
 #include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/PoseStamped.h>
