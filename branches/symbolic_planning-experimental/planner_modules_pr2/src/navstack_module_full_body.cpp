@@ -1,5 +1,5 @@
-#include "navstack_module_full_body.h"
-#include "navstack_module.h"
+#include "planner_modules_pr2/navstack_module_full_body.h"
+#include "planner_modules_pr2/navstack_module.h"
 #include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -70,8 +70,8 @@ void publishPlanningArmState()
         replaceJointPosition(s_CurrentState, s_LeftArmAtSide);
         s_PlanningJointStatePublisher.publish(s_CurrentState);
         ROS_INFO("Publishing planning arm states...");
-        ros::Rate wait = 0.5; // FIXME: HACK: make sure sbpl gets the new armstate
-        wait.sleep();
+        ros::Rate rate = 1.0; // FIXME: HACK: make sure sbpl gets the new armstate
+        rate.sleep();
     }
     else
     {
@@ -181,7 +181,7 @@ void fullbody_navstack_init(int argc, char** argv)
         s_LeftArmAtSide.position.push_back(1.57);
     }
 
-    ROS_INFO("Initialized Navstack Module.\n");
+    ROS_INFO("Initialized full body navstack module.\n");
 }
 
 double fullbody_pathCost(const ParameterList & parameterList,

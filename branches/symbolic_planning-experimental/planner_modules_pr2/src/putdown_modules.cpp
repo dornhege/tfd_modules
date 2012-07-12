@@ -1,4 +1,4 @@
-#include "putdown_modules.h"
+#include "planner_modules_pr2/putdown_modules.h"
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <map>
@@ -8,7 +8,11 @@ using std::map;
 #include <utility>
 using std::pair; using std::make_pair;
 #include <boost/foreach.hpp>
+#ifdef __CDT_PARSER__
+#define forEach(a, b) for(a : b)
+#else
 #define forEach BOOST_FOREACH
+#endif
 #include <sys/times.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
@@ -16,6 +20,7 @@ using std::pair; using std::make_pair;
 #include <arm_navigation_msgs/convert_messages.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+#include <tidyup_msgs/GetPutdownPose.h>
 
 VERIFY_CONDITIONCHECKER_DEF(canPutdown);
 VERIFY_APPLYEFFECT_DEF(updatePutdownPose);
