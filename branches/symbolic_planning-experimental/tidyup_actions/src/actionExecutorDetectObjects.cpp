@@ -59,6 +59,7 @@ namespace tidyup_actions
 
             std::vector<tidyup_msgs::GraspableObject>& objects = response.objects;
             if(requestGraspability) {
+                ROS_INFO("Requesting graspability.");
                 tidyup_msgs::RequestObjectsGraspability request;
                 request.request.objects = objects;
                 if(!serviceClientGraspability.call(request)) {
@@ -121,7 +122,7 @@ namespace tidyup_actions
                     object.pose.header.frame_id = "INVALID_FRAME_ID";
                 }
                 current.addObject(object.pose.header.frame_id, "frameid");
-                current.addObject(object.name, "object_pose");
+                current.addObject(object.name, "pose");
                 current.setObjectFluent("frame-id", object.name, object.pose.header.frame_id);
                 current.setNumericalFluent("x", object.name, object.pose.pose.position.x);
                 current.setNumericalFluent("y", object.name, object.pose.pose.position.y);

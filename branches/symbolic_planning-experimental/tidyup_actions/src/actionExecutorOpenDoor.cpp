@@ -33,15 +33,16 @@ namespace tidyup_actions
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("OpenDoor returned result");
+        ROS_ASSERT(a.parameters.size() == 3);
+        string location = a.parameters[0];
+        string door = a.parameters[1];
+        string arm = a.parameters[2];
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("OpenDoor succeeded.");
-            ROS_ASSERT(a.parameters.size() == 3);
-            string location = a.parameters[0];
-            string door = a.parameters[1];
-            string arm = a.parameters[2];
             current.setBooleanPredicate("door-open", door, true);
-            current.setObjectFluent("arm-state", arm, "arm_unknown");
         }
+        current.setObjectFluent("arm-state", arm, "arm_unknown");
+        current.setBooleanPredicate("door-state-known", door, false);
     }
 
 };
