@@ -56,15 +56,14 @@ namespace tidyup_actions
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("MoveBase returned result");
+        ROS_ASSERT(a.parameters.size() == 3);
+        string door = a.parameters[0];
+        string start_location = a.parameters[1];
+        string goal_location = a.parameters[2];
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("MoveBase succeeded.");
-            ROS_ASSERT(a.parameters.size() == 3);
-            string door = a.parameters[0];
-            string start_location = a.parameters[1];
-            string goal_location = a.parameters[2];
             current.setBooleanPredicate("at-base", start_location, false);
             current.setBooleanPredicate("at-base", goal_location, true);
-            current.setBooleanPredicate("door-state-known", door, false);
             string goal_room = "unknown_room";
             Predicate p;
             p.name = "location-in-room";
@@ -72,6 +71,7 @@ namespace tidyup_actions
             if(current.hasObjectFluent(p, &goal_room))
                 current.setObjectFluent("location-in-room", "robot_location", goal_room);
         }
+        current.setBooleanPredicate("door-state-known", door, false);
     }
 
 };

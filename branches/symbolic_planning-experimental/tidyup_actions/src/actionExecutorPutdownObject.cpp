@@ -37,18 +37,16 @@ namespace tidyup_actions
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("PutdownObject returned result");
+        ROS_ASSERT(a.parameters.size() == 4);
+        string location = a.parameters[0];
+        string object = a.parameters[1];
+        string static_object = a.parameters[2];
+        string arm = a.parameters[3];
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("PutdownObject succeeded.");
-            ROS_ASSERT(a.parameters.size() == 4);
-            string location = a.parameters[0];
-            string object = a.parameters[1];
-            string static_object = a.parameters[2];
-            string arm = a.parameters[3];
             current.setBooleanPredicate("grasped", object + " " + arm, false);
             current.setBooleanPredicate("on", object + " " + static_object, true);
-            current.setObjectFluent("arm-position", arm, "arm_unknown");
             current.setBooleanPredicate("graspable-from", object + " " + location + " " + arm, true);
-            current.setBooleanPredicate("recent-detected-objects", location, false);
             current.setBooleanPredicate("searched", location, false);
             current.setNumericalFluent("x", object, result.position.pose.position.x);
             current.setNumericalFluent("y", object, result.position.pose.position.y);
@@ -60,6 +58,8 @@ namespace tidyup_actions
             current.setNumericalFluent("timestamp", object, result.position.header.stamp.sec);
             current.setObjectFluent("frame-id", object, result.position.header.frame_id);
         }
+        current.setObjectFluent("arm-state", arm, "arm_unknown");
+        current.setBooleanPredicate("recent-detected-objects", location, false);
     }
 };
 

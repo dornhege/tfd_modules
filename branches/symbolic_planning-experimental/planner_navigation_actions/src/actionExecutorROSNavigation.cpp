@@ -95,19 +95,21 @@ namespace planner_navigation_actions
             const move_base_msgs::MoveBaseResult & result,
             const DurativeAction & a, SymbolicState & current)
     {
+        ROS_ASSERT(a.parameters.size() == 2);
+        string startName = a.parameters[0];
+        string targetName = a.parameters[1];
+
+        // start predicates are always applied independent of success
+        for(std::vector<std::pair<std::string, bool> >::iterator it = _startPredicates.begin();
+                it != _startPredicates.end(); it++) {
+            current.setBooleanPredicate(it->first, startName, it->second);
+        }
+
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            ROS_ASSERT(a.parameters.size() == 2);
-            string startName = a.parameters[0];
-            string targetName = a.parameters[1];
-            for(std::vector<std::pair<std::string, bool> >::iterator it = _startPredicates.begin();
-                    it != _startPredicates.end(); it++) {
-                current.setBooleanPredicate(it->first, startName, it->second);
-            }
             for(std::vector<std::pair<std::string, bool> >::iterator it = _goalPredicates.begin();
                     it != _goalPredicates.end(); it++) {
                 current.setBooleanPredicate(it->first, targetName, it->second);
             }
-
         }
     }
 

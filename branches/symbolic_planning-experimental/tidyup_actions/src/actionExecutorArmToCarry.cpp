@@ -47,11 +47,13 @@ namespace tidyup_actions
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("PostGraspPosition returned result: %s", result.result.c_str());
+        ROS_ASSERT(a.parameters.size() == 1);
+        string arm = a.parameters[0];
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("Post Grasp Position succeeded.");
-            ROS_ASSERT(a.parameters.size() == 1);
-            string arm = a.parameters[0];
             current.setObjectFluent(_armStatePredicateName, arm, _armAtCarryConstantName);
+        } else {
+            current.setObjectFluent(_armStatePredicateName, arm, "arm_unknown");
         }
     }
 
