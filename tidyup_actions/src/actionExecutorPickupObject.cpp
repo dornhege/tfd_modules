@@ -87,14 +87,13 @@ namespace tidyup_actions
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("PickupObject returned result");
+        ROS_ASSERT(a.parameters.size() == 4);
+        string location = a.parameters[0];
+        string object = a.parameters[1];
+        string static_object = a.parameters[2];
+        string arm = a.parameters[3];
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("PickupObject succeeded.");
-            ROS_ASSERT(a.parameters.size() == 4);
-            string location = a.parameters[0];
-            string object = a.parameters[1];
-            string static_object = a.parameters[2];
-            string arm = a.parameters[3];
-            current.setObjectFluent("arm-state", arm, "arm_unknown");
             current.setBooleanPredicate("searched", location, false);
             current.setBooleanPredicate("grasped", object + " " + arm, true);
             current.setBooleanPredicate("on", object + " " + static_object, false);
@@ -102,6 +101,7 @@ namespace tidyup_actions
             current.setBooleanPredicate("graspable-from", object + " " + location + " right_arm", false);
             // TODO: set false for other locations as well?
         }
+        current.setObjectFluent("arm-state", arm, "arm_unknown");
     }
 
 };
