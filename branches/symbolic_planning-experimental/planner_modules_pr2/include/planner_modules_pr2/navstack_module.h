@@ -33,7 +33,16 @@ extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
         nav_msgs::GetPlan::Request& request);
-double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName);
+
+/// Return the cost of the plan.
+/**
+ * \param [out] callFailure is set to true, if there was some failure during the call, i.e. the 
+ * resulting INFINITE_COST does not represent necessarily the impossibility of a path.
+ */
+double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName,
+        bool & callFailure);
+
+double getPlanCost(const std::vector<geometry_msgs::PoseStamped> & plan);
 
 #ifdef __cplusplus
 extern "C" {

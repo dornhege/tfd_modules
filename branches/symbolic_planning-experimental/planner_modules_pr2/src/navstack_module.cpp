@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <angles/angles.h>
 #include <map>
 using std::map;
 #include <utility>
@@ -110,7 +111,7 @@ void navstack_init(int argc, char** argv)
         ROS_FATAL("Could not initialize get plan service from %s (client name: %s)", service_name.c_str(), g_GetPlan.getService().c_str());
     }
 
-    ROS_INFO("Initialized Navstack Module.\n");
+    ROS_INFO("Initialized Navstack Module.");
 }
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
@@ -167,8 +168,33 @@ bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbac
     return true;
 }
 
-double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName)
+double getPlanCost(const std::vector<geometry_msgs::PoseStamped> & plan)
 {
+    if(plan.empty())
+        return 0;
+
+    double pathLength = 0;
+    double rotLength = 0;
+    geometry_msgs::PoseStamped lastPose = plan[0];
+    forEach(const geometry_msgs::PoseStamped & p, plan) {
+        double d = hypot(lastPose.pose.position.x - p.pose.position.x,
+                lastPose.pose.position.y - p.pose.position.y);
+        pathLength += d;
+
+        double yawCur = tf::getYaw(p.pose.orientation);
+        double yawLast = tf::getYaw(lastPose.pose.orientation);
+        double da = fabs(angles::normalize_angle(yawCur - yawLast));
+        rotLength += da;
+
+        lastPose = p;
+    }
+    return pathLength + rotLength/M_PI_2;   // 1m equiv. 90 deg turn
+}
+
+double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName,
+        bool & callFailure)
+{
+    callFailure = true;
     double cost = INFINITE_COST;
     if (!g_GetPlan)
     {
@@ -190,37 +216,30 @@ double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationNa
     do
     {
         // perform the actual path planner call
-        if (g_GetPlan.call(srv))
+        if(g_GetPlan.call(srv))
         {
-            failCounter = 0;
+            failCounter = 0;    // will also exit loop
+            callFailure = false;
 
-            if (g_Debug)
-            {
-                ros::Time callEndTime = ros::Time::now();
-                ros::Duration dt = callEndTime - callStartTime;
-                totalCallsTime += dt;
-                ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).", dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
-            }
             if (!srv.response.plan.poses.empty())
             {
                 // get plan cost
-                double pathLength = 0;
-                geometry_msgs::PoseStamped lastPose = srv.response.plan.poses[0];
-                forEach(const geometry_msgs::PoseStamped & p, srv.response.plan.poses)
-                {
-                    double d = hypot(lastPose.pose.position.x - p.pose.position.x,
-                        lastPose.pose.position.y - p.pose.position.y);
-                    pathLength += d;
-                    lastPose = p;
-                }
-                cost = pathLength;
+                cost = getPlanCost(srv.response.plan.poses);
             }
-            else
+            else    // no plan found.
             {
                 ROS_WARN("Got empty plan: %s -> %s", startLocationName.c_str(), goalLocationName.c_str());
+                cost = INFINITE_COST;
             }
-            //ROS_INFO("Got plan: %s -> %s cost: %f.", parameterList[0].value.c_str(), parameterList[1].value.c_str(), cost);
-            // also empty plan = OK or fail or none?
+            ROS_DEBUG("Got plan: %s -> %s cost: %f.", startLocationName.c_str(), goalLocationName.c_str(), cost);
+
+            if(g_Debug) {
+                ros::Time callEndTime = ros::Time::now();
+                ros::Duration dt = callEndTime - callStartTime;
+                totalCallsTime += dt;
+                ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).",
+                        dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
+            }
         }
         else
         {
@@ -259,10 +278,9 @@ double pathCost(const ParameterList & parameterList,
     {
         return INFINITE_COST;
     }
-    double cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value);
-    if (cost < INFINITE_COST)
-    {
-        // return pathcost and cache
+    bool callFailure;
+    double cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callFailure);
+    if(!callFailure) {      // only cache real computed paths (including INFINITE_COST)
         g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
     }
     return cost;

@@ -181,7 +181,7 @@ void fullbody_navstack_init(int argc, char** argv)
         s_LeftArmAtSide.position.push_back(1.57);
     }
 
-    ROS_INFO("Initialized full body navstack module.\n");
+    ROS_INFO("Initialized full body navstack module.");
 }
 
 double fullbody_pathCost(const ParameterList & parameterList,
