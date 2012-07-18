@@ -177,7 +177,7 @@ vector<int> g_variable_domain;
 vector<int> g_axiom_layers;
 vector<double> g_default_axiom_values;
 vector<variable_type> g_variable_types;
-ObjectStringList g_objects;
+ObjectTypeMap g_objectTypes;
 TimeStampedState *g_initial_state;
 vector<pair<int, double> > g_goal;
 vector<Operator> g_operators;

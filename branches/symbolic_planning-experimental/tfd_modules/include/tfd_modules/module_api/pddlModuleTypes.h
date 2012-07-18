@@ -13,18 +13,21 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <algorithm>
 #include <utility>
 #include <tr1/unordered_map>
 using std::string;
 using std::vector;
+using std::map;
 
 // callback interface typedefs
 typedef std::pair<int, int> VarVal;
 typedef std::tr1::unordered_map<string, VarVal> PredicateMapping;
 typedef std::tr1::unordered_map<string, int> FunctionMapping;
-typedef std::vector<std::pair<std::string, std::string> > ObjectStringList;
+//typedef std::vector<std::pair<std::string, std::string> > ObjectStringList;
+typedef std::map<std::string, std::string> ObjectTypeMap;
 
 namespace modules
 {

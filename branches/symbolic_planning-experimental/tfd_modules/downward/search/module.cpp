@@ -156,7 +156,7 @@ OplInit::OplInit(istream &in)
     }
 }
 
-opl::interface::OplCallbackInterface* OplInit::execInit(const ObjectStringList& objects,
+opl::interface::OplCallbackInterface* OplInit::execInit(const ObjectTypeMap& objects,
         const PredicateMapping& predicateMapping,
         const FunctionMapping& functionMapping,
         const modules::PredicateList& predicateConstants,
@@ -238,7 +238,7 @@ bool getPreds(PredicateList* & predicateList)
                     pName = token;
                     continue;
                 }
-                params.push_back(Parameter("", "", token));
+                params.push_back(Parameter("", g_objectTypes[token], token));
                 //   std::cout << token << std::endl;
             }
             Predicate p(pName, params);
@@ -327,7 +327,7 @@ bool getFuncs(NumericalFluentList* & fluentList)
                     pName = token;
                     continue;
                 }
-                params.push_back(Parameter("", "", token));
+                params.push_back(Parameter("",  g_objectTypes[token], token));
                 //   std::cout << token << std::endl;
             }
             NumericalFluent f(pName, params);
@@ -579,7 +579,7 @@ void read_objects(istream &in)
         string name;
         in >> type;
         in >> name;
-        g_objects.push_back(make_pair(type, name));
+        g_objectTypes[name] = type;
     }
     check_magic(in, "end_objects");
 }

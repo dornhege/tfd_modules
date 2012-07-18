@@ -16,7 +16,7 @@ namespace interface
 {
 
 opl::interface::AbstractState* AbstractStateFactory::createState(
-        const ObjectStringList& objects,
+        const ObjectTypeMap& objects,
         const PredicateMapping& predicateMapping,
         const FunctionMapping& functionMapping,
         const modules::PredicateList& predicateConstants,

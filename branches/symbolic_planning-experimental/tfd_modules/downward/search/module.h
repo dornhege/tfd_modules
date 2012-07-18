@@ -90,7 +90,7 @@ class OplInit: public Module
 {
 public:
     OplInit(istream &in);
-    opl::interface::OplCallbackInterface* execInit(const ObjectStringList& objects,
+    opl::interface::OplCallbackInterface* execInit(const ObjectTypeMap& objects,
             const PredicateMapping& predicateMapping,
             const FunctionMapping& functionMapping,
             const modules::PredicateList& predicateConstants,
