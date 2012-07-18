@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     // init opl callback interface
     if (g_oplinit != NULL)
     {
-        g_OplModuleCallback = g_oplinit->execInit(g_objects, g_pred_mapping, g_func_mapping, g_pred_constants, g_func_constants);
+        g_OplModuleCallback = g_oplinit->execInit(g_objectTypes, g_pred_mapping, g_func_mapping, g_pred_constants, g_func_constants);
         g_OplModuleCallback->setCurrentState(g_initial_state);
     }
 

@@ -34,7 +34,7 @@ namespace modules
 {
 
 /// Function pointer to call for a opl callback module
-typedef opl::interface::OplCallbackInterface* (*oplCallbackInitType)(const ObjectStringList& objects,
+typedef opl::interface::OplCallbackInterface* (*oplCallbackInitType)(const ObjectTypeMap& objects,
         const PredicateMapping& predicateMapping,
         const FunctionMapping& functionMapping,
         const PredicateList& predicateConstants,
