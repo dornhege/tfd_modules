@@ -16,14 +16,14 @@ string ArmState::armDescriptionArmLinksParameter = "/arm_joints/";
 ArmState::ArmState(const string& armName, const string& armStateParameter)
 : armName(armName)
 {
-    ros::NodeHandle g_NodeHandle = ros::NodeHandle();
+    ros::NodeHandle nodeHandle = ros::NodeHandle();
 
     // load joint names from param server
     string linkNames = ArmState::armDescriptionBaseParameter+armName+ArmState::armDescriptionArmLinksParameter;
-    if (g_NodeHandle.hasParam(linkNames))
+    if (nodeHandle.hasParam(linkNames))
     {
         XmlRpc::XmlRpcValue paramList;
-        g_NodeHandle.getParam(linkNames, paramList);
+        nodeHandle.getParam(linkNames, paramList);
         ROS_ASSERT(paramList.getType() == XmlRpc::XmlRpcValue::TypeArray);
         for (int32_t i = 0; i < paramList.size(); ++i)
         {
@@ -44,9 +44,9 @@ ArmState::ArmState(const string& armName, const string& armStateParameter)
     }
 
     // load joint positions from param server
-    ROS_ASSERT(g_NodeHandle.hasParam(armStateParameter));
+    ROS_ASSERT(nodeHandle.hasParam(armStateParameter));
     XmlRpc::XmlRpcValue paramList;
-    g_NodeHandle.getParam(armStateParameter, paramList);
+    nodeHandle.getParam(armStateParameter, paramList);
     ROS_ASSERT(paramList.getType() == XmlRpc::XmlRpcValue::TypeArray);
     for (int32_t i = 0; i < paramList.size(); ++i)
     {

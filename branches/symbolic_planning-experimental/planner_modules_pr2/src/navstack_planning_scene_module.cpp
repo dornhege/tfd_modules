@@ -95,7 +95,7 @@ void PlanningSceneNavigationModule::fillPoseFromState(geometry_msgs::Pose& pose,
     pose.orientation.w = nfRequest[6].value;
 }
 
-bool PlanningSceneNavigationModule::setPlanningSceneDiff(const ParameterList & parameterList,
+bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const ParameterList & parameterList,
         predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback)
 {
@@ -200,7 +200,7 @@ double planning_scene_pathCost(const ParameterList & parameterList,
         return it->second;
     }
     // set planning scene
-    if (PlanningSceneNavigationModule::instance()->setPlanningSceneDiff(parameterList, predicateCallback, numericalFluentCallback))
+    if (PlanningSceneNavigationModule::instance()->setPlanningSceneDiffFromState(parameterList, predicateCallback, numericalFluentCallback))
     {
         double cost = pathCost(parameterList, predicateCallback, numericalFluentCallback, relaxed);
         return cost;
