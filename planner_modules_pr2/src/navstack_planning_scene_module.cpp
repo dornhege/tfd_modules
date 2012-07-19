@@ -81,7 +81,7 @@ void PlanningSceneNavigationModule::fillPoseFromState(geometry_msgs::Pose& pose,
     NumericalFluentList* nfRequestP = &nfRequest;
     if (!numericalFluentCallback(nfRequestP))
     {
-        ROS_ERROR("numericalFluentCallback failed.");
+        ROS_INFO("fillPoseFromState failed for object: %s", poseName.c_str());
         return;
     }
 
@@ -106,28 +106,31 @@ bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const Paramete
     {
         const string& objectName = objectIterator->id;
         map<string, Door>::const_iterator doorIterator = doors.find(objectName);
+//        ROS_INFO("update object: %s", objectName.c_str());
         if (doorIterator != doors.end())
         {
             // set door pose
             PredicateList predicates;
             ParameterList pl;
-            pl.push_back(Parameter("?d", "door", objectName));
-            predicates.push_back(Predicate("door-open", pl, false));
+            pl.push_back(Parameter("", "", objectName));
+            predicates.push_back(Predicate("door-open", pl));
             PredicateList* predicateRequest = &predicates;
             if ( ! predicateCallback(predicateRequest))
             {
-                ROS_ERROR("predicateCallback failed.");
+                ROS_ERROR("predicateCallback failed for door: %s", objectName.c_str());
                 return false;
             }
             if (predicates[0].value)
             {
                 // door is open
                 objectIterator->poses[0] = doorIterator->second.openPose.pose;
+//                ROS_WARN("door open: %s", objectName.c_str());
             }
             else
             {
                 // door is closed
                 objectIterator->poses[0] = doorIterator->second.closedPose.pose;
+//                ROS_INFO("door closed: %s", objectName.c_str());
             }
         }
         else
@@ -145,8 +148,8 @@ bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const Paramete
 void PlanningSceneNavigationModule::initModule(int argc, char** argv)
 {
     // load door locations
-    ROS_ASSERT(argc >= 5);
-    string doorLocationFileName = argv[4];
+    string doorLocationFileName;
+    g_NodeHandle->getParam("/continual_planning_executive/door_location_file", doorLocationFileName);
     loadDoorPoses(doorLocationFileName);
 
     // init service for planning scene

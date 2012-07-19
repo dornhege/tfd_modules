@@ -89,17 +89,20 @@ namespace tidyup_actions
             const vector<string>& nameParts = StringUtil::split(location, "_");
             const string& room = nameParts[nameParts.size()-1];
             const string& type = nameParts[0];
+            string name = nameParts[0];
+            for(size_t i = 1; i < nameParts.size()-1; i++)
+                name += "_" + nameParts[i];
             rooms.insert(room);
             currentState.addObject(room, "room");
             currentState.setObjectFluent("location-in-room", location, room);
 
             if (StringUtil::startsWith(type, "door"))
             {
-                doors.insert(type);
-                currentState.addObject(type, "door");
+                doors.insert(name);
+                currentState.addObject(name, "door");
 
                 // door_in_location
-                currentState.setObjectFluent("belongs-to-door", location, type);
+                currentState.setObjectFluent("belongs-to-door", location, name);
                 currentState.addObject(location, "door_in_location");
                 goal.addObject(location, "door_in_location");
 
@@ -111,7 +114,7 @@ namespace tidyup_actions
                 tf::quaternionTFToMsg(locRot * rot180, outPose.pose.orientation);
 
                 string outLocation = location + "_out";
-                currentState.setObjectFluent("belongs-to-door", outLocation, type);
+                currentState.setObjectFluent("belongs-to-door", outLocation, name);
                 currentState.addObject(outLocation, "door_out_location");
                 goal.addObject(outLocation, "door_out_location");
 
@@ -128,9 +131,9 @@ namespace tidyup_actions
             }
             else
             {
-                static_objects.insert(type);
-                currentState.addObject(type, "static_object");
-                currentState.setBooleanPredicate("static-object-at-location", type + " " + location, true);
+                static_objects.insert(name);
+                currentState.addObject(name, "static_object");
+                currentState.setBooleanPredicate("static-object-at-location", name + " " + location, true);
                 currentState.addObject(location, "manipulation_location");
                 goal.addObject(location, "manipulation_location");
             }

@@ -19,6 +19,8 @@
         <param name="nav_target_tolerance_relative_to_move_base" value="false" />
         <param name="nav_base_local_planner_ns" value="/move_base/TrajectoryPlannerROS" />
 
+        <param name="door_location_file" value="$(find tidyup_actions)/config/doors.dat" />
+
         <rosparam command="load" file="$(find tidyup_actions)/config/tidyup_actions.yaml" />
         <rosparam command="load" file="$(find tfd_modules)/config/tfdm_interface.yaml" />
         <!-- navstack_init "fixed_frame" "goal_tolerance used in planner requests" 
@@ -26,7 +28,7 @@
              0 for false or the namespace to base_local_planner params" 
              1 means - guess namespace -->
         <rosparam param="planner_options">
-            - (fullbody_navstack_init@libplanner_modules_pr2.so /map 0.05 1)
+            - (planning_scene_navstack_init@libplanner_modules_pr2.so /map 0.05 1)
             - (putdown_init@libputdown_modules.so /map)
         </rosparam>
         <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(optenv LD_LIBRARY_PATH)" />
