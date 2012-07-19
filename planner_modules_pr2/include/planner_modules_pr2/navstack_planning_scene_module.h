@@ -13,12 +13,16 @@ class PlanningSceneNavigationModule
 {
 public:
     static PlanningSceneNavigationModule* instance();
+    static void fillPoseFromState(geometry_msgs::Pose& pose, const string& poseName, numericalFluentCallbackType numericalFluentCallback);
 
-    bool setPlanningSceneDiff(const ParameterList & parameterList,
+    bool setPlanningSceneDiffFromState(const ParameterList & parameterList,
             predicateCallbackType predicateCallback,
             numericalFluentCallbackType numericalFluentCallback);
     void initModule(int argc, char** argv);
-    static void fillPoseFromState(geometry_msgs::Pose& pose, const string& poseName, numericalFluentCallbackType numericalFluentCallback);
+
+    // TEST and DEBUG methods
+    const arm_navigation_msgs::SetPlanningSceneDiff& getPlanningScene() const {return spsdService;}
+    bool setPlanningSceneDiff(arm_navigation_msgs::SetPlanningSceneDiff& service) {return setPlanningSceneService.call(service);}
 
 private:
     static PlanningSceneNavigationModule* singleton_instance;
@@ -39,7 +43,7 @@ private:
         LEFT_ARM_AT_SIDE,
     };
 
-    PlanningSceneNavigationModule();
+    PlanningSceneNavigationModule(){}
     void loadDoorPoses(const string& doorLocationFileName);
 };
 
