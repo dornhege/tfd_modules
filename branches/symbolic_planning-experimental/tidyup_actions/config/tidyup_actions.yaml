@@ -6,7 +6,7 @@ goal_creators:
 action_executors:
     - tidyup_actions/action_executor_pickup_object pickup-object /learned_grasping/learned_grasping_action
     - tidyup_actions/action_executor_putdown_object putdown-object /learned_grasping/learned_placing_action
-    - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects /learned_grasping/request_objects_graspability table2
+    - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects /learned_grasping/request_objects_graspability table2_loc4
     - tidyup_actions/action_executor_detect_door_state detect-door-state detect_door_state
     - tidyup_actions/action_executor_open_door open-door open_door
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base start recent-detected-objects false
