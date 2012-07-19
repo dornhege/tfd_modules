@@ -17,41 +17,21 @@ using std::pair; using std::make_pair;
 #include <sys/times.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include "planner_modules_pr2/arm_state.h"
 
 VERIFY_CONDITIONCHECKER_DEF(fullbody_pathCost);
 
-ros::ServiceClient s_SwitchJointTopicClient;
-ros::Subscriber s_JointStateSubscriber;
-ros::Publisher s_PlanningJointStatePublisher;
-sensor_msgs::JointState s_CurrentState;
-sensor_msgs::JointState s_RightArmAtSide;
-sensor_msgs::JointState s_LeftArmAtSide;
+static ros::ServiceClient s_SwitchJointTopicClient;
+static ros::Subscriber s_JointStateSubscriber;
+static ros::Publisher s_PlanningJointStatePublisher;
+static sensor_msgs::JointState s_CurrentState;
+static vector<ArmState> s_ArmStates;
 bool receivedJointState;
 
 void jointStateCallback(const sensor_msgs::JointState& msg)
 {
     receivedJointState = true;
     s_CurrentState = msg;
-}
-
-void replaceJointPosition(sensor_msgs::JointState& oldState, sensor_msgs::JointState& newJoints)
-{
-    for (unsigned int i = 0; i < newJoints.name.size(); i++)
-    {
-        string name = newJoints.name[i];
-        int index = -1;
-        for (unsigned int j = 0; j < oldState.name.size(); j++)
-        {
-            if (name.compare(oldState.name[j]) == 0)
-            {
-                index = j;
-            }
-        }
-        if (index != -1)
-        {
-            oldState.position[index] = newJoints.position[i];
-        }
-    }
 }
 
 void publishPlanningArmState()
@@ -66,11 +46,11 @@ void publishPlanningArmState()
     if (s_SwitchJointTopicClient.call(switchSrv))
     {
         ROS_INFO("%s: switched to topic \"%s\".", __FUNCTION__, switchSrv.request.topic.c_str());
-        replaceJointPosition(s_CurrentState, s_RightArmAtSide);
-        replaceJointPosition(s_CurrentState, s_LeftArmAtSide);
+        s_ArmStates[0].replaceJointPositions(s_CurrentState);
+        s_ArmStates[1].replaceJointPositions(s_CurrentState);
         s_PlanningJointStatePublisher.publish(s_CurrentState);
         ROS_INFO("Publishing planning arm states...");
-        ros::Rate rate = 1.0; // FIXME: HACK: make sure sbpl gets the new armstate
+        ros::Rate rate = 1.0; // HACK: make sure sbpl gets the new armstate
         rate.sleep();
     }
     else
@@ -119,67 +99,9 @@ void fullbody_navstack_init(int argc, char** argv)
     s_JointStateSubscriber = g_NodeHandle->subscribe("/joint_states_throttle", 3, jointStateCallback);
     s_PlanningJointStatePublisher = g_NodeHandle->advertise<sensor_msgs::JointState>("/joint_states_tfd", 5, false);
 
-    // init joint state messages for possible arm states
-    // right arm at side
-    s_RightArmAtSide.name.push_back("r_shoulder_pan_joint");
-    s_RightArmAtSide.name.push_back("r_shoulder_lift_joint");
-    s_RightArmAtSide.name.push_back("r_upper_arm_roll_joint");
-    s_RightArmAtSide.name.push_back("r_elbow_flex_joint");
-    s_RightArmAtSide.name.push_back("r_forearm_roll_joint");
-    s_RightArmAtSide.name.push_back("r_wrist_flex_joint");
-    s_RightArmAtSide.name.push_back("r_wrist_roll_joint");
-    if (g_NodeHandle->hasParam("/arm_configurations/side_tuck/position/right_arm"))
-    {
-        XmlRpc::XmlRpcValue paramList;
-        g_NodeHandle->getParam("/arm_configurations/side_tuck/position/right_arm", paramList);
-        ROS_ASSERT(paramList.getType() == XmlRpc::XmlRpcValue::TypeArray);
-        for (int32_t i = 0; i < paramList.size(); ++i)
-        {
-          ROS_ASSERT(paramList[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-          s_RightArmAtSide.position.push_back(static_cast<double>(paramList[i]));
-        }
-    }
-    else
-    {
-        // DEFAULT [-2.110, 1.230, -2.06, -1.69, 3.439, -1.52, 1.57]
-        s_RightArmAtSide.position.push_back(-2.110);
-        s_RightArmAtSide.position.push_back(1.230);
-        s_RightArmAtSide.position.push_back(-2.06);
-        s_RightArmAtSide.position.push_back(-1.69);
-        s_RightArmAtSide.position.push_back(3.439);
-        s_RightArmAtSide.position.push_back(-1.52);
-        s_RightArmAtSide.position.push_back(1.57);
-    }
-    // left arm at side
-    s_LeftArmAtSide.name.push_back("l_shoulder_pan_joint");
-    s_LeftArmAtSide.name.push_back("l_shoulder_lift_joint");
-    s_LeftArmAtSide.name.push_back("l_upper_arm_roll_joint");
-    s_LeftArmAtSide.name.push_back("l_elbow_flex_joint");
-    s_LeftArmAtSide.name.push_back("l_forearm_roll_joint");
-    s_LeftArmAtSide.name.push_back("l_wrist_flex_joint");
-    s_LeftArmAtSide.name.push_back("l_wrist_roll_joint");
-    if (g_NodeHandle->hasParam("/arm_configurations/side_tuck/position/left_arm"))
-    {
-        XmlRpc::XmlRpcValue paramList;
-        g_NodeHandle->getParam("/arm_configurations/side_tuck/position/left_arm", paramList);
-        ROS_ASSERT(paramList.getType() == XmlRpc::XmlRpcValue::TypeArray);
-        for (int32_t i = 0; i < paramList.size(); ++i)
-        {
-          ROS_ASSERT(paramList[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-          s_LeftArmAtSide.position.push_back(static_cast<double>(paramList[i]));
-        }
-    }
-    else
-    {
-        // DEFAULT [2.110, 1.230, 2.06, -1.69, -3.439, -1.52, 1.57]
-        s_LeftArmAtSide.position.push_back(2.110);
-        s_LeftArmAtSide.position.push_back(1.230);
-        s_LeftArmAtSide.position.push_back(2.06);
-        s_LeftArmAtSide.position.push_back(-1.69);
-        s_LeftArmAtSide.position.push_back(-3.439);
-        s_LeftArmAtSide.position.push_back(-1.52);
-        s_LeftArmAtSide.position.push_back(1.57);
-    }
+    // init arm joint states
+    s_ArmStates.push_back(ArmState("right_arm", "/arm_configurations/side_tuck/position/right_arm"));
+    s_ArmStates.push_back(ArmState("left_arm", "/arm_configurations/side_tuck/position/left_arm"));
 
     ROS_INFO("Initialized full body navstack module.");
 }

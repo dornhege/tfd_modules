@@ -33,7 +33,7 @@ map< pair<string,string>, double> g_PathCostCache;
 
 void navstack_init(int argc, char** argv)
 {
-    ROS_ASSERT(argc == 4);
+    ROS_ASSERT(argc >= 4);
 
     // get world frame
     ros::NodeHandle nhPriv("~");
