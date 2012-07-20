@@ -29,7 +29,19 @@ double g_GoalTolerance = 0.5;
 
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
-map< pair<string,string>, double> g_PathCostCache;
+//map< pair<string,string>, double> g_PathCostCache;
+ModuleParamCache g_PathCostCache;
+string computePathCacheKey(const string& startLocation, const string& goalLocation)
+{
+    if (startLocation < goalLocation)
+    {
+        return startLocation + "__" + goalLocation;
+    }
+    else
+    {
+        return goalLocation + "__" + startLocation;
+    }
+}
 
 void navstack_init(int argc, char** argv)
 {
@@ -110,6 +122,8 @@ void navstack_init(int argc, char** argv)
     if(!g_GetPlan) {
         ROS_FATAL("Could not initialize get plan service from %s (client name: %s)", service_name.c_str(), g_GetPlan.getService().c_str());
     }
+
+    g_PathCostCache.initialize("move_base", g_NodeHandle);
 
     ROS_INFO("Initialized Navstack Module.");
 }
@@ -192,9 +206,9 @@ double getPlanCost(const std::vector<geometry_msgs::PoseStamped> & plan)
 }
 
 double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName,
-        bool & callFailure)
+        bool & callSuccessful)
 {
-    callFailure = true;
+    callSuccessful = false;
     double cost = INFINITE_COST;
     if (!g_GetPlan)
     {
@@ -219,7 +233,7 @@ double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationNa
         if(g_GetPlan.call(srv))
         {
             failCounter = 0;    // will also exit loop
-            callFailure = false;
+            callSuccessful = true;
 
             if (!srv.response.plan.poses.empty())
             {
@@ -267,21 +281,29 @@ double pathCost(const ParameterList & parameterList,
     }
 
     // first lookup in the cache if we answered the query already
-    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
-    if (it != g_PathCostCache.end())
+    double cost = 0;
+    string cacheKey = computePathCacheKey(parameterList[0].value, parameterList[1].value);
+    if (g_PathCostCache.get(cacheKey, cost))
     {
-        return it->second;
+        return cost;
     }
+
+//    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
+//    if (it != g_PathCostCache.end())
+//    {
+//        return it->second;
+//    }
 
     nav_msgs::GetPlan srv;
     if (!fillPathRequest(parameterList, numericalFluentCallback, srv.request))
     {
         return INFINITE_COST;
     }
-    bool callFailure;
-    double cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callFailure);
-    if(!callFailure) {      // only cache real computed paths (including INFINITE_COST)
-        g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
+    bool callSuccessful;
+    cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callSuccessful);
+    if(callSuccessful) {      // only cache real computed paths (including INFINITE_COST)
+        g_PathCostCache.set(cacheKey, cost);
+//        g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
     }
     return cost;
 }
