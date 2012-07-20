@@ -110,13 +110,13 @@ double fullbody_pathCost(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
     // first lookup in the cache if we answered the query already
-    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
-    if (it != g_PathCostCache.end())
+    double cost = 0;
+    if (g_PathCostCache.get(computePathCacheKey(parameterList[0].value, parameterList[1].value), cost))
     {
-        return it->second;
+        return cost;
     }
     publishPlanningArmState();
-    double cost = pathCost(parameterList, predicateCallback, numericalFluentCallback, relaxed);
+    cost = pathCost(parameterList, predicateCallback, numericalFluentCallback, relaxed);
     switchToExecutionTopic();
     return cost;
 }

@@ -84,6 +84,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
             return false;
         }
     }
+
     return !s_ContinualPlanning->_stateCreators.empty();
 }
 
@@ -307,6 +308,10 @@ int main(int argc, char** argv)
     signal(SIGINT, signal_handler);
 
     ros::NodeHandle nh;
+
+    // clear module param cache
+    nh.deleteParam("tfd_modules/cache");
+
     s_ContinualPlanning = new ContinualPlanning();
 
     if(!init()) {

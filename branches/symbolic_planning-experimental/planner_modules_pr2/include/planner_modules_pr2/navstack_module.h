@@ -2,6 +2,7 @@
 #define NAVSTACK_MODULE_H
 
 #include "tfd_modules/module_api/pddlModuleTypes.h"
+#include "planner_modules_pr2/module_param_cache.h"
 #include <map>
 #include <string>
 #include <utility>
@@ -29,7 +30,9 @@ extern double g_GoalTolerance;
 
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
-extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
+//extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
+extern ModuleParamCache g_PathCostCache;
+string computePathCacheKey(const string& startLocation, const string& goalLocation);
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
         nav_msgs::GetPlan::Request& request);
