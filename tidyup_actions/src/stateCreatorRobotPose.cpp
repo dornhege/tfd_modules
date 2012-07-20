@@ -286,7 +286,7 @@ namespace tidyup_actions
         }
 
         if(location == _robotPoseObject) {      //robot
-            color.a = 0.8;
+            color.a = 0.5;
             if(at) {
                 color.b = 1.0;
             } else {
@@ -295,7 +295,7 @@ namespace tidyup_actions
                 color.b = 1.0;
             }
         } else {            // targets
-            color.a = 0.8;
+            color.a = 0.5;
             if(at) {
                 color.g = 1.0;
             } else {
