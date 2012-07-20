@@ -21,7 +21,7 @@
     )
 
     (:modules
-        (costDrive ?start ?goal - location cost fullbody_pathCost@libplanner_modules_pr2.so)
+        (costDrive ?start ?goal - location cost planning_scene_pathCost@libplanner_modules_pr2.so)
         (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libputdown_modules.so)
         (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location 
             (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o) 
@@ -204,7 +204,7 @@
 
     (:durative-action drive-through-door
         :parameters (?d - door ?s - door_in_location ?g - door_out_location)
-        :duration (= ?duration [costDrive ?s ?g])
+        :duration (= ?duration 2.5)
         :condition 
         (and
             (at start (at-base ?s))
