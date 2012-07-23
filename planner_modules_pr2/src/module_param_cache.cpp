@@ -37,13 +37,13 @@ void ModuleParamCache::clearAll()
 
 void ModuleParamCache::set(const std::string& key, double value)
 {
-    ROS_INFO("[cache]: writing to cache: %s -> %f", key.c_str(), value);
+//    ROS_INFO("[cache]: writing to cache: %s -> %f", key.c_str(), value);
     node->setParam(keyPrefix + key, value);
 }
 
 bool ModuleParamCache::get(const std::string& key, double& value) const
 {
-    ROS_INFO("[cache]: lookup in cache: %s -> %f", key.c_str(), value);
+//    ROS_INFO("[cache]: lookup in cache: %s -> %f", key.c_str(), value);
     return node->getParamCached(keyPrefix + key, value);
 }
 
