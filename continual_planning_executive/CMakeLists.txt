@@ -30,10 +30,8 @@ set(planner_executive_SRCS
     src/plan.cpp
     src/planExecutor.cpp)
 
-#uncomment if you have defined messages
 rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
 
 rosbuild_add_boost_directories()
 

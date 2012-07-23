@@ -1,4 +1,6 @@
+#include <QMessageBox>
 #include "ContinualPlanningMonitorWindow.h"
+#include "continual_planning_executive/SetContinualPlanningMode.h"
 
 extern bool g_Quit;
 
@@ -16,6 +18,8 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
     ros::NodeHandle nh;
     _subStatus = nh.subscribe("continual_planning_status", 10,
             &ContinualPlanningMonitorWindow::statusCallback, this);
+    _serviceContinualPlanningMode =
+        nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
 }
 
 ContinualPlanningMonitorWindow::~ContinualPlanningMonitorWindow()
@@ -41,6 +45,24 @@ void ContinualPlanningMonitorWindow::on_actionReset_activated()
     currentPlanTxt->document()->setPlainText("");
     currentActionTxt->setText("");
     goalReachedTxt->setText("");
+}
+
+void ContinualPlanningMonitorWindow::on_actionRun_activated()
+{
+    continual_planning_executive::SetContinualPlanningMode srv;
+    srv.request.mode = continual_planning_executive::SetContinualPlanningMode::Request::RUN;
+    if(!_serviceContinualPlanningMode.call(srv)) {
+        QMessageBox::critical(this, "SetContinualPlanningMode", "Setting ContinualPlanningMode to run failed.");
+    }
+}
+
+void ContinualPlanningMonitorWindow::on_actionPause_activated()
+{
+    continual_planning_executive::SetContinualPlanningMode srv;
+    srv.request.mode = continual_planning_executive::SetContinualPlanningMode::Request::PAUSE;
+    if(!_serviceContinualPlanningMode.call(srv)) {
+        QMessageBox::critical(this, "SetContinualPlanningMode", "Setting ContinualPlanningMode to pause failed.");
+    }
 }
 
 void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_executive::ContinualPlanningStatus & status)
