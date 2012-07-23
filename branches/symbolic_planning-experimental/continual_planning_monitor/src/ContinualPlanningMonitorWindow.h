@@ -26,6 +26,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
 
         void statusCallback(const continual_planning_executive::ContinualPlanningStatus & status);
 
+        QString getActionDescription(QString action);
     private:
         continual_planning_executive::ContinualPlanningStatus st;
         ros::Subscriber _subStatus;

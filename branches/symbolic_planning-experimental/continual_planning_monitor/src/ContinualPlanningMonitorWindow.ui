@@ -53,6 +53,10 @@ QGroupBox#monitoringGrp {
 QGroupBox[status=&quot;succeeded&quot;] {
     border-width: 5px;
 	border-color: green;
+}
+
+QListWidget::item::selected {
+	background-color: lightblue
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -144,11 +148,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QTextEdit" name="lastPlanTxt">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <widget class="QListWidget" name="lastPlanList"/>
             </item>
            </layout>
           </widget>
@@ -197,11 +197,7 @@ p, li { white-space: pre-wrap; }
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QTextEdit" name="currentPlanTxt">
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
+            <widget class="QListWidget" name="currentPlanList"/>
            </item>
           </layout>
          </widget>
