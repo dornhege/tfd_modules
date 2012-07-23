@@ -41,8 +41,8 @@ void ContinualPlanningMonitorWindow::on_actionReset_activated()
     restyle();
 
     stateTxt->document()->setPlainText("");
-    lastPlanTxt->document()->setPlainText("");
-    currentPlanTxt->document()->setPlainText("");
+    lastPlanList->clear();
+    currentPlanList->clear();
     currentActionTxt->setText("");
     goalReachedTxt->setText("");
 }
@@ -65,11 +65,27 @@ void ContinualPlanningMonitorWindow::on_actionPause_activated()
     }
 }
 
+/// Extract "detect-object table1_loc1_room1" from 1.00000000: (detect-objects table1_loc1_room1) [1.00000000]
+QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
+{
+    QString ret = action;
+    int openParen = ret.indexOf("(");
+    if(openParen > 0)
+        ret = ret.mid(openParen + 1);   // skip everything before (
+
+    int closeParen = ret.indexOf(")");
+    if(closeParen > 0)
+        ret = ret.mid(0, closeParen);   // skip everything after (
+
+    return ret;
+}
+
 void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_executive::ContinualPlanningStatus & status)
 {
     QGroupBox* grp = NULL;
     QTextDocument* doc = NULL;
     QLineEdit* lineEdit = NULL;
+    QListWidget* list = NULL;
     switch(status.component) {
         case continual_planning_executive::ContinualPlanningStatus::STATE_ESTIMATION:
             grp = stateEstimationGrp;
@@ -81,7 +97,7 @@ void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_exe
             break;
         case continual_planning_executive::ContinualPlanningStatus::PLANNING:
             grp = planningGrp;
-            doc = lastPlanTxt->document();
+            list = lastPlanList;
             break;
         case continual_planning_executive::ContinualPlanningStatus::EXECUTION:
             grp = executionGrp;
@@ -89,7 +105,7 @@ void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_exe
             break;
         case continual_planning_executive::ContinualPlanningStatus::CURRENT_PLAN:
             // do not set status for CURRENT_PLAN
-            doc = currentPlanTxt->document();
+            list = currentPlanList;
             break;
         case continual_planning_executive::ContinualPlanningStatus::CONTINUAL_PLANNING_FINISHED:
             grp = resultGrp;
@@ -125,6 +141,48 @@ void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_exe
             doc->setPlainText(status.description.c_str());
         if(lineEdit != NULL)
             lineEdit->setText(status.description.c_str());
+        if(list != NULL) {
+            list->clear();
+            QString desc = status.description.c_str();
+            QStringList parts = desc.split('\n');
+            foreach(QString s, parts) {
+                list->addItem(s);
+            }
+        }
+        // execution can also update the current action in the currentPlanList
+        if(status.component == continual_planning_executive::ContinualPlanningStatus::EXECUTION) {
+            currentPlanList->setCurrentRow(-1);
+            int itemRow = -1;
+            for(int i = 0; i < currentPlanList->count(); i++) {
+                QListWidgetItem* item = currentPlanList->item(i);
+                if(item == NULL)
+                    continue;
+                if(item->text() == status.description.c_str()) {
+                    itemRow = i;
+                    break;
+                }
+            }
+            currentPlanList->setCurrentRow(itemRow);
+            if(itemRow < 0)
+                ROS_WARN("Found no matching item for execution in currentPlan: %s.", status.description.c_str());
+
+            lastPlanList->setCurrentRow(-1);
+            itemRow = -1;
+            // in currentPlan this was a full match, in lastPlan the timestamps might be different, so ignore those
+            QString match = getActionDescription(status.description.c_str());
+            for(int i = 0; i < lastPlanList->count(); i++) {
+                QListWidgetItem* item = lastPlanList->item(i);
+                if(item == NULL)
+                    continue;
+                if(getActionDescription(item->text()) == match) {
+                    itemRow = i;
+                    break;
+                }
+            }
+            lastPlanList->setCurrentRow(itemRow);
+            if(itemRow < 0)
+                ROS_WARN("Found no matching item for execution in lastPlan: %s.", status.description.c_str());
+        }
     }
 
     restyle();
