@@ -62,8 +62,8 @@ class ContinualPlanning
         /// Does _currentState match _goal?
         bool isGoalFulfilled() const;
 
-        /// For debugging, just executive this action.
-        bool executeActionDirectly(const DurativeAction & a);
+        /// For debugging, just execute this action.
+        bool executeActionDirectly(const DurativeAction & a, bool publishStatus);
 
     protected:
         /// Update _currentState from the world.

@@ -10,6 +10,7 @@
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
 #include "continual_planning_executive/SetContinualPlanningMode.h"
+#include "continual_planning_executive/ExecuteActionDirectly.h"
 #include "planExecutor.h"
 #include "continualPlanning.h"
 #include <pluginlib/class_loader.h>
@@ -308,6 +309,14 @@ bool setModeHandler(continual_planning_executive::SetContinualPlanningMode::Requ
     return true;
 }
 
+bool executeActionDirectlyHandler(continual_planning_executive::ExecuteActionDirectly::Request & req,
+        continual_planning_executive::ExecuteActionDirectly::Response & resp)
+{
+    DurativeAction a(req.action);
+
+    return s_ContinualPlanning->executeActionDirectly(a, true);
+}
+
 void signal_handler(int signal)
 {
     if(signal != SIGINT) {
@@ -369,12 +378,14 @@ int main(int argc, char** argv)
     }
 
     if(executeDebug) {
-        bool execOK = s_ContinualPlanning->executeActionDirectly(debugAction);
+        bool execOK = s_ContinualPlanning->executeActionDirectly(debugAction, false);
         return execOK ? 0 : 1;
     }
 
     ros::ServiceServer serviceContinualPlanningMode =
         nh.advertiseService("set_continual_planning_mode", setModeHandler);
+    ros::ServiceServer serviceExecuteActionDirectly =
+        nh.advertiseService("execute_action_directly", executeActionDirectlyHandler);
 
     ros::Rate loopSleep(5);
     ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
