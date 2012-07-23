@@ -322,23 +322,55 @@ void signal_handler(int signal)
     ros::shutdown();
 }
 
+/// Parse options for this node:
+/**
+ * If an action is given only this action is executed for debugging, e.g.:
+ * drive-base robot_location door_kitchen_room1
+ * arm-to-side left_arm
+ *
+ * \returns true, if the DurativeAction was filled and thus we should execute this action
+ * instead of full continual planning
+ */
+bool parseOptions(int argc, char** argv, DurativeAction & a)
+{
+    if(argc < 2)
+        return false;
+
+    a.name = argv[1];
+    for(int i = 2; i < argc; i++)
+        a.parameters.push_back(argv[i]);
+    return true;
+}
+
 int main(int argc, char** argv)
 {
     ROS_INFO("Continual Planning Executive started.");
 
-    ros::init(argc, argv, "continual_planning_executive", ros::init_options::NoSigintHandler);
+    unsigned int initOps = ros::init_options::NoSigintHandler;
+    if(argc > 1)        // this is usually not the "main" continual_planning_executive, but a debug node
+        initOps |= ros::init_options::AnonymousName;
+    ros::init(argc, argv, "continual_planning_executive", initOps);
     signal(SIGINT, signal_handler);
 
     ros::NodeHandle nh;
 
+    DurativeAction debugAction;
+    bool executeDebug = parseOptions(argc, argv, debugAction);
+
     // clear module param cache
-    nh.deleteParam("tfd_modules/cache");
+    if(!executeDebug)
+        nh.deleteParam("tfd_modules/cache");
 
     s_ContinualPlanning = new ContinualPlanning();
 
     if(!init()) {
         ROS_FATAL("Init failed.");
         return 1;
+    }
+
+    if(executeDebug) {
+        bool execOK = s_ContinualPlanning->executeActionDirectly(debugAction);
+        return execOK ? 0 : 1;
     }
 
     ros::ServiceServer serviceContinualPlanningMode =
