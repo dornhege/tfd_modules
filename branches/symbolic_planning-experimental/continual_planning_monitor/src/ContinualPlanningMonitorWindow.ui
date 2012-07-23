@@ -252,7 +252,15 @@ p, li { white-space: pre-wrap; }
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuExecution">
+    <property name="title">
+     <string>Execution</string>
+    </property>
+    <addaction name="actionRun"/>
+    <addaction name="actionPause"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuExecution"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
@@ -266,6 +274,16 @@ p, li { white-space: pre-wrap; }
   <action name="actionReset">
    <property name="text">
     <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>Pause</string>
    </property>
   </action>
  </widget>

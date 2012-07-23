@@ -17,6 +17,8 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
     private Q_SLOTS:
         void on_actionExit_activated();
         void on_actionReset_activated();
+        void on_actionRun_activated();
+        void on_actionPause_activated();
 
     protected:
         /// restyle the dynamically styled widgets
@@ -27,6 +29,8 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
     private:
         continual_planning_executive::ContinualPlanningStatus st;
         ros::Subscriber _subStatus;
+
+        ros::ServiceClient _serviceContinualPlanningMode;
 };
 
 #endif

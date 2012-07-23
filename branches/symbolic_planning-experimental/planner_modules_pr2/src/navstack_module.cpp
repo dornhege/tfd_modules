@@ -122,6 +122,7 @@ void navstack_init(int argc, char** argv)
     if(!g_GetPlan) {
         ROS_FATAL("Could not initialize get plan service from %s (client name: %s)", service_name.c_str(), g_GetPlan.getService().c_str());
     }
+    ROS_INFO("Service connection to %s established.", g_GetPlan.getService().c_str());
 
     g_PathCostCache.initialize("move_base", g_NodeHandle);
 
@@ -212,7 +213,7 @@ double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationNa
     double cost = INFINITE_COST;
     if (!g_GetPlan)
     {
-        ROS_ERROR("Persistent service connection to %s failed.", g_GetPlan.getService().c_str());
+        ROS_ERROR("GetPlan Persistent service connection to %s failed.", g_GetPlan.getService().c_str());
         // FIXME reconnect - this shouldn't happen.
         return INFINITE_COST;
     }
