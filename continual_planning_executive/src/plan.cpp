@@ -52,6 +52,14 @@ bool DurativeAction::operator==(const DurativeAction & a) const
     return true;
 }
 
+DurativeAction::DurativeAction(const continual_planning_executive::TemporalAction & msg)
+{
+    this->startTime = msg.start_time;
+    this->duration = msg.duration;
+    this->name = msg.name;
+    this->parameters = msg.parameters;
+}
+
 void Plan::removeAction(const DurativeAction & a)
 {
     double earliestTime = HUGE_VAL;

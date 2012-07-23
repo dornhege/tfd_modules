@@ -66,26 +66,28 @@ ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
     return Running;
 }
 
-bool ContinualPlanning::executeActionDirectly(const DurativeAction & a)
+bool ContinualPlanning::executeActionDirectly(const DurativeAction & a, bool publishStatus)
 {
-    _status.shutdown();      // don't interfere with the normal status, this should be a different node
+    _status.setEnabled(publishStatus);
 
     if(!estimateCurrentState()) {
-        ROS_FATAL("State estimation failed.");
+        ROS_ERROR("State estimation failed.");
+        _status.setEnabled(true);
         return false;
     }
 
-    Plan newPlan;
-    newPlan.actions.push_back(a);
-    _currentPlan = newPlan;
+    Plan plan;
+    plan.actions.push_back(a);
 
     std::set<DurativeAction> executedActions;
     // should not be empty (see above), FIXME exec should only exec the first
-    if(!_planExecutor.executeBlocking(_currentPlan, _currentState, executedActions)) {
-        ROS_ERROR_STREAM("No action was executed for current plan:\n" << _currentPlan << "\nWaiting for 10 sec...");
+    if(!_planExecutor.executeBlocking(plan, _currentState, executedActions)) {
+        ROS_ERROR_STREAM("No action was executed for current plan:\n" << plan);
+        _status.setEnabled(true);
         return false;
     }
 
+    _status.setEnabled(true);
     return !executedActions.empty();
 }
 

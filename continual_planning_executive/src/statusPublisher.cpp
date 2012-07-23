@@ -8,6 +8,7 @@ StatusPublisher::StatusPublisher()
     ros::NodeHandle nh;
     _pubStatus = nh.advertise<ContinualPlanningStatus>(
             "continual_planning_status", 10);
+    _enabled = true;
 }
 
 StatusPublisher::~StatusPublisher()
@@ -95,7 +96,7 @@ void StatusPublisher::publishStatus(int component, int status, const std::string
     msg.status = status;
     msg.description = description;
 
-    if(_pubStatus)
+    if(_enabled && _pubStatus)
         _pubStatus.publish(msg);
 }
 

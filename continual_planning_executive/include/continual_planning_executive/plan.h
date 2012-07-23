@@ -6,10 +6,14 @@
 using std::string;
 using std::vector;
 #include <iostream>
+#include "continual_planning_executive/TemporalAction.h"
 
 class DurativeAction
 {
     public:
+        DurativeAction() { }
+        DurativeAction(const continual_planning_executive::TemporalAction & msg);
+
         string name;
         vector<string> parameters;
         double duration;

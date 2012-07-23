@@ -31,10 +31,11 @@ class StatusPublisher
 
       void publishStatus(int component, int status, const std::string & description);
 
-      void shutdown() { _pubStatus.shutdown(); }
+      void setEnabled(bool on) { _enabled = on; }
 
    private:
       ros::Publisher _pubStatus;
+      bool _enabled;
 };
 
 #endif
