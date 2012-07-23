@@ -47,8 +47,8 @@ namespace StringUtil
    {
       if(s.length() == 0)
          return s;
-      unsigned int b = s.find_first_not_of(" \t\r\n");
-      unsigned int e = s.find_last_not_of(" \t\r\n");
+      size_t b = s.find_first_not_of(" \t\r\n");
+      size_t e = s.find_last_not_of(" \t\r\n");
       if(b == std::string::npos)
          return "";
       return std::string(s, b, e - b + 1);
