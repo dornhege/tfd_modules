@@ -95,6 +95,7 @@ void StatusPublisher::publishStatus(int component, int status, const std::string
     msg.status = status;
     msg.description = description;
 
-    _pubStatus.publish(msg);
+    if(_pubStatus)
+        _pubStatus.publish(msg);
 }
 

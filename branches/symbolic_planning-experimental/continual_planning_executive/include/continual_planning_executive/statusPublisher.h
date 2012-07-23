@@ -31,6 +31,8 @@ class StatusPublisher
 
       void publishStatus(int component, int status, const std::string & description);
 
+      void shutdown() { _pubStatus.shutdown(); }
+
    private:
       ros::Publisher _pubStatus;
 };
