@@ -59,16 +59,20 @@ class ContinualPlanning
          */
         ContinualPlanningState loop();
 
+        /// Update _currentState from the world.
+        bool estimateCurrentState();
+
         /// Does _currentState match _goal?
         bool isGoalFulfilled() const;
+
 
         /// For debugging, just execute this action.
         bool executeActionDirectly(const DurativeAction & a, bool publishStatus);
 
-    protected:
-        /// Update _currentState from the world.
-        bool estimateCurrentState();
+        /// Force replanning in the next loop.
+        void forceReplanning() { _forceReplan = true; }
 
+    protected:
         /// Return a plan that reaches the goal.
         /**
          * This might either be a copy of the current plan if that
