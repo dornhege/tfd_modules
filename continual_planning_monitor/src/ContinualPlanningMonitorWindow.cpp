@@ -188,8 +188,6 @@ void ContinualPlanningMonitorWindow::statusCallback(
                 }
             }
             currentPlanList->setCurrentRow(itemRow);
-            if(itemRow < 0)
-                ROS_WARN("Found no matching item for execution in currentPlan: %s.", status.description.c_str());
 
             lastPlanList->setCurrentRow(-1);
             itemRow = -1;
