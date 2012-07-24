@@ -2,9 +2,32 @@
 #define CONTINUALPLANNINGMONITOR_WINDOW_H
 
 #include <QMainWindow>
+#include <QThread>
 #include "ui_ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/ContinualPlanningStatus.h"
+#include "continual_planning_executive/ExecuteActionDirectly.h"
 #include <ros/ros.h>
+
+class ExecuteActionThread : public QThread
+{
+    Q_OBJECT
+
+    public:
+        ExecuteActionThread();
+
+        /// Execute the action described by actionTxt
+        void executeAction(QString actionTxt);
+
+    Q_SIGNALS:
+        void actionExecutionFailed(QString result);
+
+    protected:
+        void run();
+
+        QString _actionTxt;
+        continual_planning_executive::ExecuteActionDirectly _srv;
+        ros::ServiceClient _serviceExecuteActionDirectly;
+};
 
 class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::ContinualPlanningMonitorWindow
 {
@@ -25,6 +48,8 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         void currentPlanList_contextMenu(const QPoint & pos);
         void lastPlanList_contextMenu(const QPoint & pos);
 
+        void actionExecutionFailed(QString error);
+
     protected:
         /// restyle the dynamically styled widgets
         void restyle();
@@ -41,9 +66,6 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
          */
         void executeActionDirectly_contextMenu(QListWidgetItem* item, const QPoint & globalPos);
 
-        /// Execute the action described by actionTxt
-        void executeActionDirectly(QString actionTxt);
-
         /// Bring up a QInputDialog asking to edit the given actionTxt.
         QString queryActionText(QString actionTxt);
 
@@ -52,7 +74,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         ros::Subscriber _subStatus;
 
         ros::ServiceClient _serviceContinualPlanningMode;
-        ros::ServiceClient _serviceExecuteActionDirectly;
+        ExecuteActionThread _executeActionThread;
 };
 
 #endif
