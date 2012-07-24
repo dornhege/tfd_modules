@@ -54,8 +54,9 @@ ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
         _forceReplan = true;        // force here in the hope that it fixes something.
         ros::WallDuration sleep(10.0);
         sleep.sleep();
+    } else {
+        _status.finishedExecution(true, _currentPlan.actions.front());
     }
-    _status.finishedExecution(true, _currentPlan.actions.front());
 
     // remove executedActions from plan
     for(std::set<DurativeAction>::iterator it = executedActions.begin(); it != executedActions.end(); it++) {
@@ -81,10 +82,14 @@ bool ContinualPlanning::executeActionDirectly(const DurativeAction & a, bool pub
 
     std::set<DurativeAction> executedActions;
     // should not be empty (see above), FIXME exec should only exec the first
+    _status.startedExecution(plan.actions.front()); 
     if(!_planExecutor.executeBlocking(plan, _currentState, executedActions)) {
+        _status.finishedExecution(false, plan.actions.front());
         ROS_ERROR_STREAM("No action was executed for current plan:\n" << plan);
         _status.setEnabled(true);
         return false;
+    } else {
+        _status.finishedExecution(true, plan.actions.front());
     }
 
     _status.setEnabled(true);
