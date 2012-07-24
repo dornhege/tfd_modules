@@ -1,9 +1,9 @@
 #include <QMessageBox>
 #include <QInputDialog>
+#include <boost/thread.hpp>
 #include "ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/SetContinualPlanningMode.h"
 #include "continual_planning_executive/TemporalAction.h"
-#include "continual_planning_executive/ExecuteActionDirectly.h"
 
 extern bool g_Quit;
 
@@ -23,8 +23,6 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
             &ContinualPlanningMonitorWindow::statusCallback, this);
     _serviceContinualPlanningMode =
         nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
-    _serviceExecuteActionDirectly =
-        nh.serviceClient<continual_planning_executive::ExecuteActionDirectly>("execute_action_directly");
 
     currentPlanList->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(currentPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
@@ -32,6 +30,9 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
     lastPlanList->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(lastPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(lastPlanList_contextMenu(const QPoint &)));
+
+    connect(&_executeActionThread, SIGNAL(actionExecutionFailed(QString)),
+            this, SLOT(actionExecutionFailed(QString)));
 }
 
 ContinualPlanningMonitorWindow::~ContinualPlanningMonitorWindow()
@@ -81,7 +82,7 @@ void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
 {
     QString actionTxt = queryActionText("");
 
-    executeActionDirectly(actionTxt);
+    _executeActionThread.executeAction(actionTxt);
 }
 
 void ContinualPlanningMonitorWindow::on_actionForce_Replanning_activated()
@@ -251,7 +252,7 @@ void ContinualPlanningMonitorWindow::executeActionDirectly_contextMenu(QListWidg
             actionTxt = queryActionText(actionTxt);
         }
 
-        executeActionDirectly(actionTxt);
+        _executeActionThread.executeAction(actionTxt);
     }
 }
 
@@ -272,29 +273,9 @@ QString ContinualPlanningMonitorWindow::queryActionText(QString actionTxt)
     return actionTxt;
 }
 
-void ContinualPlanningMonitorWindow::executeActionDirectly(QString actionTxt)
+void ContinualPlanningMonitorWindow::actionExecutionFailed(QString error)
 {
-    if(actionTxt.length() <= 0)
-        return;
-
-    continual_planning_executive::ExecuteActionDirectly srv;
-    continual_planning_executive::TemporalAction temporalAction;
-    QStringList parts = actionTxt.split(" ", QString::SkipEmptyParts);
-    if(parts.size() < 1) {
-        ROS_ERROR("Empty parts for action: %s", qPrintable(actionTxt));
-        return;
-    }
-    temporalAction.name = qPrintable(parts.at(0));
-    for(int i = 1; i < parts.size(); i++) {
-        temporalAction.parameters.push_back(qPrintable(parts.at(i)));
-    }
-    temporalAction.start_time = 0;  // make it executable now
-    temporalAction.duration = 1;
-    srv.request.action = temporalAction;
-    if(!_serviceExecuteActionDirectly.call(srv)) {
-        QMessageBox::critical(this, "ExecuteAction",
-                QString("Executing action %1 failed.").arg(actionTxt));
-    }
+    QMessageBox::critical(this, "Execute Action failed", error);
 }
 
 void ContinualPlanningMonitorWindow::restyle()
@@ -309,5 +290,54 @@ void ContinualPlanningMonitorWindow::restyle()
     style()->polish(executionGrp);
     style()->unpolish(resultGrp);
     style()->polish(resultGrp);
+}
+
+ExecuteActionThread::ExecuteActionThread()
+{
+    ros::NodeHandle nh;
+
+    _serviceExecuteActionDirectly =
+        nh.serviceClient<continual_planning_executive::ExecuteActionDirectly>("execute_action_directly");
+}
+
+void ExecuteActionThread::executeAction(QString actionTxt)
+{
+    if(isRunning()) {
+        Q_EMIT actionExecutionFailed("Execute action failed as another action is still running.");
+        return;
+    }
+    // thread isn't running, and as we are here in the main thread
+    // nobody can start it.
+
+    if(actionTxt.length() <= 0)
+        return;
+
+    continual_planning_executive::TemporalAction temporalAction;
+    QStringList parts = actionTxt.split(" ", QString::SkipEmptyParts);
+    if(parts.size() < 1) {
+        ROS_ERROR("Empty parts for action: %s", qPrintable(actionTxt));
+        return;
+    }
+    temporalAction.name = qPrintable(parts.at(0));
+    for(int i = 1; i < parts.size(); i++) {
+        temporalAction.parameters.push_back(qPrintable(parts.at(i)));
+    }
+    temporalAction.start_time = 0;  // make it executable now
+    temporalAction.duration = 1;
+    _srv.request.action = temporalAction;
+    _actionTxt = actionTxt;
+
+    // set cur srv
+    start(LowPriority);
+}
+
+void ExecuteActionThread::run()
+{
+    // Put this service call in a background thread to reenable
+    // GUI updates from the service call
+    if(!_serviceExecuteActionDirectly.call(_srv)) {
+        Q_EMIT actionExecutionFailed(QString("Executing action %1 failed.").arg(_actionTxt));
+    }
+    // FIXME Thread stops running now.
 }
 
