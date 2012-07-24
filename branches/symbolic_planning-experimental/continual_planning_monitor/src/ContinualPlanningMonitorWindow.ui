@@ -255,7 +255,9 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionRun"/>
     <addaction name="actionPause"/>
     <addaction name="separator"/>
+    <addaction name="actionReestimate_State"/>
     <addaction name="actionForce_Replanning"/>
+    <addaction name="separator"/>
     <addaction name="actionExecute_Action"/>
    </widget>
    <addaction name="menuFile"/>
@@ -293,6 +295,16 @@ p, li { white-space: pre-wrap; }
   <action name="actionForce_Replanning">
    <property name="text">
     <string>Force Replanning</string>
+   </property>
+  </action>
+  <action name="actionReesimate_State">
+   <property name="text">
+    <string>Reesimate State</string>
+   </property>
+  </action>
+  <action name="actionReestimate_State">
+   <property name="text">
+    <string>Reestimate State</string>
    </property>
   </action>
  </widget>

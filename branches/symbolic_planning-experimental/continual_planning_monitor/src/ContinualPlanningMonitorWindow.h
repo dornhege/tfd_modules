@@ -5,7 +5,7 @@
 #include <QThread>
 #include "ui_ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/ContinualPlanningStatus.h"
-#include "continual_planning_executive/SetContinualPlanningMode.h"
+#include "continual_planning_executive/SetContinualPlanningControl.h"
 #include "continual_planning_executive/ExecuteActionDirectly.h"
 #include <ros/ros.h>
 
@@ -46,8 +46,8 @@ class ContinualPlanningControlThread : public QThread
     protected:
         void run();
 
-        continual_planning_executive::SetContinualPlanningMode _srv;
-        ros::ServiceClient _serviceContinualPlanningMode;
+        continual_planning_executive::SetContinualPlanningControl _srv;
+        ros::ServiceClient _serviceContinualPlanningControl;
 };
 
 class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::ContinualPlanningMonitorWindow
@@ -65,6 +65,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         void on_actionPause_activated();
         void on_actionExecute_Action_activated();
         void on_actionForce_Replanning_activated();
+        void on_actionReestimate_State_activated();
 
         void currentPlanList_contextMenu(const QPoint & pos);
         void lastPlanList_contextMenu(const QPoint & pos);
