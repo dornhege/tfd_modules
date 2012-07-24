@@ -254,6 +254,9 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionRun"/>
     <addaction name="actionPause"/>
+    <addaction name="separator"/>
+    <addaction name="actionForce_Replanning"/>
+    <addaction name="actionExecute_Action"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuExecution"/>
@@ -280,6 +283,16 @@ p, li { white-space: pre-wrap; }
   <action name="actionPause">
    <property name="text">
     <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionExecute_Action">
+   <property name="text">
+    <string>Execute Action...</string>
+   </property>
+  </action>
+  <action name="actionForce_Replanning">
+   <property name="text">
+    <string>Force Replanning</string>
    </property>
   </action>
  </widget>
