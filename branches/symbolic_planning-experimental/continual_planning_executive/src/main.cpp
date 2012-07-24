@@ -302,6 +302,17 @@ bool setControlHandler(continual_planning_executive::SetContinualPlanningControl
             s_ContinualPlanningMode = req.command;
             resp.command = s_ContinualPlanningMode;
             break;
+        case continual_planning_executive::SetContinualPlanningControl::Request::FORCE_REPLANNING:
+            s_ContinualPlanning->forceReplanning();
+            resp.command = req.command;
+            break;
+        case continual_planning_executive::SetContinualPlanningControl::Request::REESTIMATE_STATE:
+            if(!s_ContinualPlanning->estimateCurrentState()) {
+                ROS_WARN("SetContinualPlanningControl: State estimation failed.");
+                return false;
+            }
+            resp.command = req.command;
+            break;
         default:
             ROS_ERROR("Invalid command in continual_planning_executive::SetContinualPlanningControl: %d",
                     req.command);
