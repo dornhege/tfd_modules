@@ -62,13 +62,13 @@ void ContinualPlanningMonitorWindow::on_actionReset_activated()
 void ContinualPlanningMonitorWindow::on_actionRun_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningMode::Request::RUN);
+            continual_planning_executive::SetContinualPlanningControl::Request::RUN);
 }
 
 void ContinualPlanningMonitorWindow::on_actionPause_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningMode::Request::PAUSE);
+            continual_planning_executive::SetContinualPlanningControl::Request::PAUSE);
 }
 
 void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
@@ -80,7 +80,14 @@ void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
 
 void ContinualPlanningMonitorWindow::on_actionForce_Replanning_activated()
 {
-    // TODO ContinualPlanningControl
+    _continualPlanningControlThread.setContinualPlanningControl(
+            continual_planning_executive::SetContinualPlanningControl::Request::FORCE_REPLANNING);
+}
+
+void ContinualPlanningMonitorWindow::on_actionReestimate_State_activated()
+{
+    _continualPlanningControlThread.setContinualPlanningControl(
+            continual_planning_executive::SetContinualPlanningControl::Request::REESTIMATE_STATE);
 }
 
 QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
@@ -347,21 +354,22 @@ ContinualPlanningControlThread::ContinualPlanningControlThread()
 {
     ros::NodeHandle nh;
 
-    _serviceContinualPlanningMode =
-        nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
+    _serviceContinualPlanningControl =
+        nh.serviceClient<continual_planning_executive::SetContinualPlanningControl>
+        ("set_continual_planning_control");
 }
 
 void ContinualPlanningControlThread::setContinualPlanningControl(int command)
 {
     if(isRunning()) {
-        Q_EMIT controlCommandSet(false, "Set ContinualPlanningMode",
-                "Set ContinualPlanningMode failed as another request is still running.");
+        Q_EMIT controlCommandSet(false, "Set ContinualPlanningControl",
+                "Set ContinualPlanningControl failed as another request is still running.");
         return;
     }
     // thread isn't running, and as we are here in the main thread
     // nobody can start it.
 
-    _srv.request.mode = command;
+    _srv.request.command = command;
 
     start(LowPriority);
 }
@@ -370,14 +378,14 @@ void ContinualPlanningControlThread::run()
 {
     // Put this service call in a background thread to reenable
     // GUI updates from the run
-    if(!_serviceContinualPlanningMode.call(_srv)) {
-        Q_EMIT controlCommandSet(false, "Set ContinualPlanningMode",
-                QString("Setting ContinualPlanningMode to %1 failed.").arg(_srv.request.mode));
+    if(!_serviceContinualPlanningControl.call(_srv)) {
+        Q_EMIT controlCommandSet(false, "Set ContinualPlanningControl",
+                QString("Setting ContinualPlanningControl to %1 failed.").arg(_srv.request.command));
     } else {
         // don't send for RUN, we'll see that because it's running now
-        if(_srv.response.mode != continual_planning_executive::SetContinualPlanningMode::Request::RUN)
-            Q_EMIT controlCommandSet(true, "Set ContinualPlanningMode",
-                    QString("Set ContinualPlanningMode to %1 successfully.").arg(_srv.response.mode));
+        if(_srv.response.command != continual_planning_executive::SetContinualPlanningControl::Request::RUN)
+            Q_EMIT controlCommandSet(true, "Set ContinualPlanningControl",
+                    QString("Set ContinualPlanningControl to %1 successfully.").arg(_srv.response.command));
     }
 }
 

@@ -9,7 +9,7 @@
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
-#include "continual_planning_executive/SetContinualPlanningMode.h"
+#include "continual_planning_executive/SetContinualPlanningControl.h"
 #include "continual_planning_executive/ExecuteActionDirectly.h"
 #include "planExecutor.h"
 #include "continualPlanning.h"
@@ -22,7 +22,7 @@ static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_Sta
 static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>* s_ActionExecutorLoader = NULL;
 
-static int s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningMode::Request::RUN;
+static int s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::RUN;
 
 std::deque<std::string> splitString(const std::string & s, const char* delim)
 {
@@ -290,20 +290,21 @@ bool init()
     return true;
 }
 
-bool setModeHandler(continual_planning_executive::SetContinualPlanningMode::Request & req,
-        continual_planning_executive::SetContinualPlanningMode::Response & resp)
+bool setControlHandler(continual_planning_executive::SetContinualPlanningControl::Request & req,
+        continual_planning_executive::SetContinualPlanningControl::Response & resp)
 {
-    switch(req.mode) {
-        case continual_planning_executive::SetContinualPlanningMode::Request::RUN:
-        case continual_planning_executive::SetContinualPlanningMode::Request::PAUSE:
-            if(s_ContinualPlanningMode != req.mode) {
-                ROS_INFO("Setting ContinualPlanningMode to %d", req.mode);
+    switch(req.command) {
+        case continual_planning_executive::SetContinualPlanningControl::Request::RUN:
+        case continual_planning_executive::SetContinualPlanningControl::Request::PAUSE:
+            if(s_ContinualPlanningMode != req.command) {
+                ROS_INFO("Setting ContinualPlanningMode to %d", req.command);
             }
-            s_ContinualPlanningMode = req.mode;
-            resp.mode = s_ContinualPlanningMode;
+            s_ContinualPlanningMode = req.command;
+            resp.command = s_ContinualPlanningMode;
             break;
         default:
-            ROS_ERROR("Invalid mode in continual_planning_executive::SetContinualPlanningMode: %d", req.mode);
+            ROS_ERROR("Invalid command in continual_planning_executive::SetContinualPlanningControl: %d",
+                    req.command);
             return false;
     }
     return true;
@@ -383,7 +384,7 @@ int main(int argc, char** argv)
     }
 
     ros::ServiceServer serviceContinualPlanningMode =
-        nh.advertiseService("set_continual_planning_mode", setModeHandler);
+        nh.advertiseService("set_continual_planning_control", setControlHandler);
     ros::ServiceServer serviceExecuteActionDirectly =
         nh.advertiseService("execute_action_directly", executeActionDirectlyHandler);
 
@@ -392,7 +393,7 @@ int main(int argc, char** argv)
     while(ros::ok()) {
         ros::spinOnce();
 
-        if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningMode::Request::RUN) {
+        if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN) {
             cpState = s_ContinualPlanning->loop();
             if(cpState != ContinualPlanning::Running) {
                 break;

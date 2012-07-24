@@ -1,6 +1,0 @@
-int32 RUN=0
-int32 PAUSE=1
-
-int32 mode
----
-int32 mode
