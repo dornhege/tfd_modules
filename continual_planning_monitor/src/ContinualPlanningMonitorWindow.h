@@ -5,6 +5,7 @@
 #include <QThread>
 #include "ui_ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/ContinualPlanningStatus.h"
+#include "continual_planning_executive/SetContinualPlanningMode.h"
 #include "continual_planning_executive/ExecuteActionDirectly.h"
 #include <ros/ros.h>
 
@@ -19,7 +20,7 @@ class ExecuteActionThread : public QThread
         void executeAction(QString actionTxt);
 
     Q_SIGNALS:
-        void actionExecutionFailed(QString result);
+        void actionExecutionFailed(bool success, QString title, QString message);
 
     protected:
         void run();
@@ -27,6 +28,26 @@ class ExecuteActionThread : public QThread
         QString _actionTxt;
         continual_planning_executive::ExecuteActionDirectly _srv;
         ros::ServiceClient _serviceExecuteActionDirectly;
+};
+
+class ContinualPlanningControlThread : public QThread
+{
+    Q_OBJECT
+
+    public:
+        ContinualPlanningControlThread();
+
+        /// Set the passed in control command
+        void setContinualPlanningControl(int command);
+
+    Q_SIGNALS:
+        void controlCommandSet(bool success, QString title, QString message);
+
+    protected:
+        void run();
+
+        continual_planning_executive::SetContinualPlanningMode _srv;
+        ros::ServiceClient _serviceContinualPlanningMode;
 };
 
 class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::ContinualPlanningMonitorWindow
@@ -48,7 +69,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         void currentPlanList_contextMenu(const QPoint & pos);
         void lastPlanList_contextMenu(const QPoint & pos);
 
-        void actionExecutionFailed(QString error);
+        void notifyUser(bool success, QString title, QString message);
 
     protected:
         /// restyle the dynamically styled widgets
@@ -73,7 +94,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         continual_planning_executive::ContinualPlanningStatus st;
         ros::Subscriber _subStatus;
 
-        ros::ServiceClient _serviceContinualPlanningMode;
+        ContinualPlanningControlThread _continualPlanningControlThread;
         ExecuteActionThread _executeActionThread;
 };
 

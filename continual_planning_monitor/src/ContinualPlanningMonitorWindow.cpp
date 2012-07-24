@@ -2,7 +2,6 @@
 #include <QInputDialog>
 #include <boost/thread.hpp>
 #include "ContinualPlanningMonitorWindow.h"
-#include "continual_planning_executive/SetContinualPlanningMode.h"
 #include "continual_planning_executive/TemporalAction.h"
 
 extern bool g_Quit;
@@ -21,8 +20,6 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
     ros::NodeHandle nh;
     _subStatus = nh.subscribe("continual_planning_status", 10,
             &ContinualPlanningMonitorWindow::statusCallback, this);
-    _serviceContinualPlanningMode =
-        nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
 
     currentPlanList->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(currentPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
@@ -31,8 +28,10 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
     connect(lastPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(lastPlanList_contextMenu(const QPoint &)));
 
-    connect(&_executeActionThread, SIGNAL(actionExecutionFailed(QString)),
-            this, SLOT(actionExecutionFailed(QString)));
+    connect(&_executeActionThread, SIGNAL(actionExecutionFailed(bool, QString, QString)),
+            this, SLOT(notifyUser(bool, QString, QString)));
+    connect(&_continualPlanningControlThread, SIGNAL(controlCommandSet(bool, QString, QString)),
+            this, SLOT(notifyUser(bool, QString, QString)));
 }
 
 ContinualPlanningMonitorWindow::~ContinualPlanningMonitorWindow()
@@ -62,20 +61,14 @@ void ContinualPlanningMonitorWindow::on_actionReset_activated()
 
 void ContinualPlanningMonitorWindow::on_actionRun_activated()
 {
-    continual_planning_executive::SetContinualPlanningMode srv;
-    srv.request.mode = continual_planning_executive::SetContinualPlanningMode::Request::RUN;
-    if(!_serviceContinualPlanningMode.call(srv)) {
-        QMessageBox::critical(this, "SetContinualPlanningMode", "Setting ContinualPlanningMode to run failed.");
-    }
+    _continualPlanningControlThread.setContinualPlanningControl(
+            continual_planning_executive::SetContinualPlanningMode::Request::RUN);
 }
 
 void ContinualPlanningMonitorWindow::on_actionPause_activated()
 {
-    continual_planning_executive::SetContinualPlanningMode srv;
-    srv.request.mode = continual_planning_executive::SetContinualPlanningMode::Request::PAUSE;
-    if(!_serviceContinualPlanningMode.call(srv)) {
-        QMessageBox::critical(this, "SetContinualPlanningMode", "Setting ContinualPlanningMode to pause failed.");
-    }
+    _continualPlanningControlThread.setContinualPlanningControl(
+            continual_planning_executive::SetContinualPlanningMode::Request::PAUSE);
 }
 
 void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
@@ -104,7 +97,8 @@ QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
     return ret;
 }
 
-void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_executive::ContinualPlanningStatus & status)
+void ContinualPlanningMonitorWindow::statusCallback(
+        const continual_planning_executive::ContinualPlanningStatus & status)
 {
     QGroupBox* grp = NULL;
     QTextDocument* doc = NULL;
@@ -273,9 +267,12 @@ QString ContinualPlanningMonitorWindow::queryActionText(QString actionTxt)
     return actionTxt;
 }
 
-void ContinualPlanningMonitorWindow::actionExecutionFailed(QString error)
+void ContinualPlanningMonitorWindow::notifyUser(bool success, QString title, QString message)
 {
-    QMessageBox::critical(this, "Execute Action failed", error);
+    if(success)
+        QMessageBox::information(this, title, message);
+    else
+        QMessageBox::critical(this, title, message);
 }
 
 void ContinualPlanningMonitorWindow::restyle()
@@ -303,7 +300,8 @@ ExecuteActionThread::ExecuteActionThread()
 void ExecuteActionThread::executeAction(QString actionTxt)
 {
     if(isRunning()) {
-        Q_EMIT actionExecutionFailed("Execute action failed as another action is still running.");
+        Q_EMIT actionExecutionFailed(false, "Execute action",
+                "Execute action failed as another action is still running.");
         return;
     }
     // thread isn't running, and as we are here in the main thread
@@ -336,8 +334,50 @@ void ExecuteActionThread::run()
     // Put this service call in a background thread to reenable
     // GUI updates from the service call
     if(!_serviceExecuteActionDirectly.call(_srv)) {
-        Q_EMIT actionExecutionFailed(QString("Executing action %1 failed.").arg(_actionTxt));
+        Q_EMIT actionExecutionFailed(false, "Execute Action",
+                QString("Executing action %1 failed.").arg(_actionTxt));
+    } else {
+        // Send an OK is too annoying?
+        //Q_EMIT actionExecutionFailed(true, "Execute Action",
+          //      QString("Executed action %1.").arg(_actionTxt));
     }
-    // FIXME Thread stops running now.
+}
+
+ContinualPlanningControlThread::ContinualPlanningControlThread()
+{
+    ros::NodeHandle nh;
+
+    _serviceContinualPlanningMode =
+        nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
+}
+
+void ContinualPlanningControlThread::setContinualPlanningControl(int command)
+{
+    if(isRunning()) {
+        Q_EMIT controlCommandSet(false, "Set ContinualPlanningMode",
+                "Set ContinualPlanningMode failed as another request is still running.");
+        return;
+    }
+    // thread isn't running, and as we are here in the main thread
+    // nobody can start it.
+
+    _srv.request.mode = command;
+
+    start(LowPriority);
+}
+
+void ContinualPlanningControlThread::run()
+{
+    // Put this service call in a background thread to reenable
+    // GUI updates from the run
+    if(!_serviceContinualPlanningMode.call(_srv)) {
+        Q_EMIT controlCommandSet(false, "Set ContinualPlanningMode",
+                QString("Setting ContinualPlanningMode to %1 failed.").arg(_srv.request.mode));
+    } else {
+        // don't send for RUN, we'll see that because it's running now
+        if(_srv.response.mode != continual_planning_executive::SetContinualPlanningMode::Request::RUN)
+            Q_EMIT controlCommandSet(true, "Set ContinualPlanningMode",
+                    QString("Set ContinualPlanningMode to %1 successfully.").arg(_srv.response.mode));
+    }
 }
 
