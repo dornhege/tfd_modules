@@ -1,6 +1,9 @@
 #include <QMessageBox>
+#include <QInputDialog>
 #include "ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/SetContinualPlanningMode.h"
+#include "continual_planning_executive/TemporalAction.h"
+#include "continual_planning_executive/ExecuteActionDirectly.h"
 
 extern bool g_Quit;
 
@@ -20,6 +23,15 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
             &ContinualPlanningMonitorWindow::statusCallback, this);
     _serviceContinualPlanningMode =
         nh.serviceClient<continual_planning_executive::SetContinualPlanningMode>("set_continual_planning_mode");
+    _serviceExecuteActionDirectly =
+        nh.serviceClient<continual_planning_executive::ExecuteActionDirectly>("execute_action_directly");
+
+    currentPlanList->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(currentPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(currentPlanList_contextMenu(const QPoint &)));
+    lastPlanList->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(lastPlanList, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(lastPlanList_contextMenu(const QPoint &)));
 }
 
 ContinualPlanningMonitorWindow::~ContinualPlanningMonitorWindow()
@@ -65,7 +77,18 @@ void ContinualPlanningMonitorWindow::on_actionPause_activated()
     }
 }
 
-/// Extract "detect-object table1_loc1_room1" from 1.00000000: (detect-objects table1_loc1_room1) [1.00000000]
+void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
+{
+    QString actionTxt = queryActionText("");
+
+    executeActionDirectly(actionTxt);
+}
+
+void ContinualPlanningMonitorWindow::on_actionForce_Replanning_activated()
+{
+    // TODO ContinualPlanningControl
+}
+
 QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
 {
     QString ret = action;
@@ -186,6 +209,92 @@ void ContinualPlanningMonitorWindow::statusCallback(const continual_planning_exe
     }
 
     restyle();
+}
+
+void ContinualPlanningMonitorWindow::lastPlanList_contextMenu(const QPoint & pos)
+{
+    QListWidgetItem* item = lastPlanList->itemAt(pos);
+    QPoint globalPos = lastPlanList->mapToGlobal(pos);
+
+    executeActionDirectly_contextMenu(item, globalPos);
+}
+
+void ContinualPlanningMonitorWindow::currentPlanList_contextMenu(const QPoint & pos)
+{
+    QListWidgetItem* item = currentPlanList->itemAt(pos);
+    QPoint globalPos = currentPlanList->mapToGlobal(pos);
+
+    executeActionDirectly_contextMenu(item, globalPos);
+}
+
+void ContinualPlanningMonitorWindow::executeActionDirectly_contextMenu(QListWidgetItem* item,
+        const QPoint & globalPos)
+{
+    QMenu myMenu;
+    QAction* executeActionDirectlyAction = myMenu.addAction("Execute Action Directly");
+    QAction* executeAction = myMenu.addAction("Execute Action ...");
+
+    QAction* selectedItem = myMenu.exec(globalPos);
+    if(selectedItem == NULL)
+        return;
+
+    if(selectedItem == executeAction || selectedItem == executeActionDirectlyAction) {
+        QString actionTxt = "";
+        if(item != NULL) {
+            actionTxt = getActionDescription(item->text()).trimmed();
+        }
+
+        if(selectedItem == executeActionDirectlyAction) { // directly = don't ask/edit
+            if(actionTxt.length() <= 0)
+                return;
+        } else {
+            actionTxt = queryActionText(actionTxt);
+        }
+
+        executeActionDirectly(actionTxt);
+    }
+}
+
+QString ContinualPlanningMonitorWindow::queryActionText(QString actionTxt)
+{
+    // the whole point of doing this manually is to be able to resize the dialog.
+    QInputDialog inp(this);
+    inp.setInputMode(QInputDialog::TextInput);
+    inp.setWindowTitle("Execute Action Directly");
+    inp.setLabelText("Action:");
+    inp.setTextValue(actionTxt);
+    QSize s = inp.size();
+    s.setWidth(s.width() + 200);
+    if(inp.exec() == QDialog::Accepted)
+        actionTxt = inp.textValue().trimmed();
+    else
+        actionTxt = "";
+    return actionTxt;
+}
+
+void ContinualPlanningMonitorWindow::executeActionDirectly(QString actionTxt)
+{
+    if(actionTxt.length() <= 0)
+        return;
+
+    continual_planning_executive::ExecuteActionDirectly srv;
+    continual_planning_executive::TemporalAction temporalAction;
+    QStringList parts = actionTxt.split(" ", QString::SkipEmptyParts);
+    if(parts.size() < 1) {
+        ROS_ERROR("Empty parts for action: %s", qPrintable(actionTxt));
+        return;
+    }
+    temporalAction.name = qPrintable(parts.at(0));
+    for(int i = 1; i < parts.size(); i++) {
+        temporalAction.parameters.push_back(qPrintable(parts.at(i)));
+    }
+    temporalAction.start_time = 0;  // make it executable now
+    temporalAction.duration = 1;
+    srv.request.action = temporalAction;
+    if(!_serviceExecuteActionDirectly.call(srv)) {
+        QMessageBox::critical(this, "ExecuteAction",
+                QString("Executing action %1 failed.").arg(actionTxt));
+    }
 }
 
 void ContinualPlanningMonitorWindow::restyle()
