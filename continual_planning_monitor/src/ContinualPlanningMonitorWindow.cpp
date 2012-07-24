@@ -382,10 +382,10 @@ void ContinualPlanningControlThread::run()
         Q_EMIT controlCommandSet(false, "Set ContinualPlanningControl",
                 QString("Setting ContinualPlanningControl to %1 failed.").arg(_srv.request.command));
     } else {
-        // don't send for RUN, we'll see that because it's running now
-        if(_srv.response.command != continual_planning_executive::SetContinualPlanningControl::Request::RUN)
+        // don't send for RUN, etc. we'll see that because it's running now
+        if(_srv.response.command == continual_planning_executive::SetContinualPlanningControl::Request::PAUSE)
             Q_EMIT controlCommandSet(true, "Set ContinualPlanningControl",
-                    QString("Set ContinualPlanningControl to %1 successfully.").arg(_srv.response.command));
+                    "ContinualPlanningControl paused successfully.");
     }
 }
 
