@@ -523,21 +523,21 @@ bool SymbolicState::equals(const SymbolicState & other) const
 
 void SymbolicState::toPDDLProblem(std::ostream & os) const
 {
-    os << "  (:objects ";
+    os << "  (:objects" << std::endl << "    ";
     string lastType = "";
     for(multimap<string,string>::const_iterator it = _typedObjects.begin(); it != _typedObjects.end(); it++) {
         if(!isMostSpecificType(it->second, it->first))  // only insert obj entries for its most specific type
             continue;
 
         if(lastType != "" && it->first != lastType) {  // type changed
-            os << "- " << lastType << " ";
+            os << "- " << lastType << std::endl << "    ";
         }
         lastType = it->first;
         os << it->second << " ";
     }
     if(lastType != "")
         os << "- " << lastType;
-    os << ")" << std::endl;
+    os << std::endl << "  )" << std::endl;
     os << "  (:init" << std::endl;
     forEach(const BooleanPredicateEntry & p, _booleanPredicates) {
         if(p.second)
