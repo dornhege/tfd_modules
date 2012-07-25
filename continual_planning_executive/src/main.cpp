@@ -56,7 +56,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
     if(!nh.getParam("state_creators", xmlRpc)) {
         ROS_ERROR("No state_creators defined.");
         return false;
-    } 
+    }
     if(xmlRpc.getType() != XmlRpc::XmlRpcValue::TypeArray) {
         ROS_ERROR("state_creators param should be a list.");
         return false;
@@ -324,6 +324,11 @@ bool setControlHandler(continual_planning_executive::SetContinualPlanningControl
 bool executeActionDirectlyHandler(continual_planning_executive::ExecuteActionDirectly::Request & req,
         continual_planning_executive::ExecuteActionDirectly::Response & resp)
 {
+    if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN) {
+        ROS_WARN("Recevied executeActionDirectly request during RUN - ignoring, PAUSE first.");
+        return false;
+    }
+
     DurativeAction a(req.action);
 
     return s_ContinualPlanning->executeActionDirectly(a, true);
@@ -398,6 +403,12 @@ int main(int argc, char** argv)
         nh.advertiseService("set_continual_planning_control", setControlHandler);
     ros::ServiceServer serviceExecuteActionDirectly =
         nh.advertiseService("execute_action_directly", executeActionDirectlyHandler);
+
+    ros::NodeHandle nhPriv("~");
+    bool paused = false;
+    nhPriv.param("start_paused", paused, false);
+    if(paused)
+        s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::PAUSE;
 
     ros::Rate loopSleep(5);
     ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
