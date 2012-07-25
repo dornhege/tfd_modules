@@ -132,6 +132,7 @@ namespace tidyup_actions
                 current.setNumericalFluent("qz", object.name, object.pose.pose.orientation.z);
                 current.setNumericalFluent("qw", object.name, object.pose.pose.orientation.w);
                 current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
+                current.setBooleanPredicate("on", object.name + " " + static_object, true);
                 current.setObjectFluent("object-detected-from", object.name, location);
                 // tidy-location: (tidy-location ?o ?s)
                 current.setBooleanPredicate("tidy-location", object.name + " " + tidyLocationName, true);
