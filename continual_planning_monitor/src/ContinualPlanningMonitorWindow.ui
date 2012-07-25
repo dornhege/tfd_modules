@@ -242,7 +242,7 @@ p, li { white-space: pre-wrap; }
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionReset"/>
     <addaction name="separator"/>
@@ -250,7 +250,7 @@ p, li { white-space: pre-wrap; }
    </widget>
    <widget class="QMenu" name="menuExecution">
     <property name="title">
-     <string>Execution</string>
+     <string>&amp;Execution</string>
     </property>
     <addaction name="actionRun"/>
     <addaction name="actionPause"/>
@@ -279,22 +279,22 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionRun">
    <property name="text">
-    <string>Run</string>
+    <string>&amp;Run</string>
    </property>
   </action>
   <action name="actionPause">
    <property name="text">
-    <string>Pause</string>
+    <string>&amp;Pause</string>
    </property>
   </action>
   <action name="actionExecute_Action">
    <property name="text">
-    <string>Execute Action...</string>
+    <string>&amp;Execute Action...</string>
    </property>
   </action>
   <action name="actionForce_Replanning">
    <property name="text">
-    <string>Force Replanning</string>
+    <string>&amp;Force Replanning</string>
    </property>
   </action>
   <action name="actionReesimate_State">
@@ -304,7 +304,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionReestimate_State">
    <property name="text">
-    <string>Reestimate State</string>
+    <string>Reestimate &amp;State</string>
    </property>
   </action>
  </widget>
