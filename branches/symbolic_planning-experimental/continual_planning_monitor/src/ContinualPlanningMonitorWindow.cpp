@@ -265,6 +265,7 @@ QString ContinualPlanningMonitorWindow::queryActionText(QString actionTxt)
     inp.setTextValue(actionTxt);
     QSize s = inp.size();
     s.setWidth(s.width() + 200);
+    inp.resize(s);
     if(inp.exec() == QDialog::Accepted)
         actionTxt = inp.textValue().trimmed();
     else
