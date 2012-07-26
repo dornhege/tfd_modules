@@ -28,6 +28,10 @@ extern std::string g_WorldFrame;
 
 extern double g_GoalTolerance;
 
+/// speed values for computing the estimated time as cost of a path
+extern double g_TransSpeed; // m/s
+extern double g_RotSpeed;   // rad/s
+
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
 //extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
