@@ -1,10 +1,10 @@
 (define (domain tidyup-putdown)
     (:requirements :strips :typing :durative-actions :fluents :derived-predicates :equality)
 
-    (:types 
+    (:types
         pose                            ; any pose in space
         frameid                         ; the coordinate frame of a pose, ideally a fixed frame
-        
+
         location - pose                 ; a pose for the robot base
         manipulation_location - location       ; a location that grasp actions can be applied from
                                         ; (e.g. a location at a table)
@@ -42,7 +42,7 @@
         (can-grasp ?a - arm)                           ; is this arm allowed to grasp objects?
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
 
-        (tidy-location ?o - movable_object ?s - static_object) ; if ?o is on ?s it is considered tidied 
+        (tidy-location ?o - movable_object ?s - static_object) ; if ?o is on ?s it is considered tidied
         (door-open ?d - door)
         (door-state-known ?d - door)
         ;(door-connects-rooms ?d - door ?r1 ?r2 - room) ; between which two room is the door?
@@ -60,8 +60,8 @@
         (timestamp ?p - pose) - number      ; unix time in s
         (frame-id ?p - pose) - frameid
         (arm-state ?a - arm) - arm_state
-        (belongs-to-door ?l - door_location) - door 
-        (location-in-room ?l - location) - room 
+        (belongs-to-door ?l - door_location) - door
+        (location-in-room ?l - location) - room
         (object-detected-from ?o - movable_object) - manipulation_location
     )
 
@@ -69,20 +69,20 @@
     (:durative-action pickup-object
         :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (can-grasp ?a))
             (at start (at-base ?l))
             (at start (on ?o ?s))
             (at start (hand-free ?a))
-            (at start (graspable-from ?o ?l ?a)) 
+            (at start (graspable-from ?o ?l ?a))
             (at start (recent-detected-objects ?l))
             (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
         )
         :effect
-        (and 
+        (and
             (at end (grasped ?o ?a))
             (at start (assign (arm-state ?a) arm_unknown))
             ; force re-detect objects after grasp
@@ -97,7 +97,7 @@
     (:durative-action putdown-object
         :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
@@ -107,7 +107,7 @@
             (at start (static-object-at-location ?s ?l))
         )
         :effect
-        (and 
+        (and
             (at end (not (grasped ?o ?a)))
             (at end (on ?o ?s))
             (at start (assign (arm-state ?a) arm_unknown))
@@ -120,10 +120,10 @@
     (:durative-action detect-objects
         :parameters (?l - manipulation_location)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (at-base ?l))
-            (at start 
+            (at start
                 (or
                     (not (searched ?l))
                     (not (recent-detected-objects ?l))
@@ -131,7 +131,7 @@
             )
             (at start (arms-drive-pose))
         )
-        :effect 
+        :effect
         (and
             (at end (searched ?l))
             (at end (recent-detected-objects ?l))
@@ -141,14 +141,14 @@
     (:durative-action detect-door-state
         :parameters (?l - door_in_location ?d - door)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (at-base ?l))
             (at start (= (belongs-to-door ?l) ?d))
             (at start (not (door-state-known ?d)))
             (at start (arms-drive-pose))
         )
-        :effect 
+        :effect
         (and
             (at end (door-state-known ?d))
          )
@@ -157,7 +157,7 @@
     (:durative-action open-door
         :parameters (?l - door_in_location ?d - door ?a - arm)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (at-base ?l))
             (at start (= (belongs-to-door ?l) ?d))
@@ -166,7 +166,7 @@
             (at start (hand-free ?a))
             (at start (arms-drive-pose))
         )
-        :effect 
+        :effect
         (and
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (door-open ?d))
@@ -177,7 +177,7 @@
     (:durative-action drive-base
         :parameters (?s - location ?g - location)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
@@ -185,7 +185,7 @@
             (at start (arms-drive-pose))
         )
         :effect
-        (and 
+        (and
             (at start (not (at-base ?s)))
             (at end (at-base ?g))
             (at start (not (recent-detected-objects ?s)))
@@ -194,8 +194,8 @@
 
     (:durative-action drive-through-door
         :parameters (?d - door ?s - door_in_location ?g - door_out_location)
-        :duration (= ?duration 1.0)
-        :condition 
+        :duration (= ?duration 2.5)
+        :condition
         (and
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
@@ -208,7 +208,7 @@
             (at start (arms-drive-pose))
         )
         :effect
-        (and 
+        (and
             (at start (not (at-base ?s)))
             (at end (at-base ?g))
             (at end (not (door-state-known ?d)))
@@ -219,11 +219,11 @@
     (:durative-action arm-to-carry
         :parameters (?a - arm)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (not (= (arm-state ?a) arm_at_carry)))
         )
-        :effect 
+        :effect
         (and
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (assign (arm-state ?a) arm_at_carry))
@@ -233,11 +233,11 @@
     (:durative-action arm-to-side
         :parameters (?a - arm)
         :duration (= ?duration 1.0)
-        :condition 
+        :condition
         (and
             (at start (not (= (arm-state ?a) arm_at_side)))
         )
-        :effect 
+        :effect
         (and
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (assign (arm-state ?a) arm_at_side))
@@ -247,7 +247,7 @@
     ; A hand is free, iff no movable_object is grasped in it
     (:derived
         (hand-free ?a - arm)
-        (not 
+        (not
             (exists (?_o - movable_object)
                 (grasped ?_o ?a)
             )
@@ -276,12 +276,15 @@
     ; It should always be possible to get from a door_location to any other (non-door) location either as it
     ; is a door_out_location or because one might be at a door_in_location and must put objects down.
     ;
+    ; We also never want to drive back to the robot_location as that doesn't make any sense.
+    ;
     ; (drive-through-door is handled explicitly and doesn't require can-navigate)
     (:derived
         (can-navigate ?s ?g - location)
         (and
             (= (location-in-room ?s) (location-in-room ?g))
             (not (is-door-out-location ?g))
+            (not (= ?g robot_location))
         )
     )
 
@@ -311,7 +314,7 @@
     (:derived
         (tidy ?o - movable_object)
         ; no way to get grasped means none of those:
-        (and 
+        (and
             ; It is not already grasped
             (not (exists (?a - arm) (grasped ?o ?a)))
 
@@ -320,7 +323,7 @@
                 (exists (?l - manipulation_location)                           ; some location so that
                     (graspable-from ?o ?l ?a))                          ; we can somehow grasp the object
                 )
-            )                        
+            )
         )
     )
 )
