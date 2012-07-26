@@ -27,6 +27,9 @@ std::string g_WorldFrame;
 
 double g_GoalTolerance = 0.5;
 
+double g_TransSpeed = 0.3;
+double g_RotSpeed = angles::from_degrees(30);
+
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
 //map< pair<string,string>, double> g_PathCostCache;
@@ -53,6 +56,9 @@ void navstack_init(int argc, char** argv)
     g_WorldFrame = tf::resolve(tfPrefix, argv[1]);
     ROS_INFO("World frame is: %s", g_WorldFrame.c_str());
 
+    nhPriv.param("trans_speed", g_TransSpeed, g_TransSpeed);
+    nhPriv.param("rot_speed", g_RotSpeed, g_RotSpeed);
+
     // get goal tolerance
     char* checkPtr;
     g_GoalTolerance = strtod(argv[2], &checkPtr);
@@ -67,7 +73,7 @@ void navstack_init(int argc, char** argv)
         ROS_INFO("Using absolute goal tolerance.");
     } else if(strcmp(argv[3], "1") == 0) {
         ROS_INFO("Trying to estimate base_local_planner namespace");
-        
+
         std::string local_planner;
         if(!nh.getParam("move_base_node/base_local_planner", local_planner)
                 && !nh.getParam("move_base/base_local_planner", local_planner)) {
@@ -203,7 +209,7 @@ double getPlanCost(const std::vector<geometry_msgs::PoseStamped> & plan)
 
         lastPose = p;
     }
-    return pathLength + rotLength/M_PI_2;   // 1m equiv. 90 deg turn
+    return pathLength/g_TransSpeed + rotLength/g_RotSpeed;
 }
 
 double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationName, const string& goalLocationName,
