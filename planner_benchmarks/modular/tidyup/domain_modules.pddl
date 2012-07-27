@@ -76,7 +76,7 @@
     ; while at ?l grasp ?o from ?s using ?a
     (:durative-action pickup-object
         :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 5.0)
         :condition
         (and
             (at start (can-grasp ?a))
@@ -104,7 +104,7 @@
     ; place ?o in ?a at pose ?p (while robot is at ?l)
     (:durative-action putdown-object
         :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 5.0)
         :condition
         (and
             (at start (at-base ?l))
@@ -166,7 +166,7 @@
 
     (:durative-action open-door
         :parameters (?l - door_in_location ?d - door ?a - arm)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 5.0)
         :condition
         (and
             (at start (at-base ?l))
@@ -204,7 +204,7 @@
 
     (:durative-action drive-through-door
         :parameters (?d - door ?s - door_in_location ?g - door_out_location)
-        :duration (= ?duration 2.5)
+        :duration (= ?duration 10.0)
         :condition
         (and
             (at start (at-base ?s))
@@ -228,7 +228,7 @@
 
     (:durative-action arm-to-carry
         :parameters (?a - arm)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 4.0)
         :condition
         (and
             (at start (not (= (arm-state ?a) arm_at_carry)))
@@ -242,7 +242,7 @@
 
     (:durative-action arm-to-side
         :parameters (?a - arm)
-        :duration (= ?duration 1.0)
+        :duration (= ?duration 4.0)
         :condition
         (and
             (at start (not (= (arm-state ?a) arm_at_side)))
