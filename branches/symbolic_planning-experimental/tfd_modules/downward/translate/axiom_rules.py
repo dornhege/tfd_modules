@@ -118,9 +118,11 @@ def compute_necessary_axiom_literals(axioms_by_atom, operators,
             register_literals(op.conditions[time], False)
         for time in range(2):
             for (cond, _) in op.add_effects[time]:
-                register_literals(cond, False)
+                for tt in range(3):
+                    register_literals(cond[tt], False)
             for (cond, _) in op.del_effects[time]:
-                register_literals(cond, True)
+                for tt in range(3):
+                    register_literals(cond[tt], True)
 
     while queue:
         literal = queue.pop()
