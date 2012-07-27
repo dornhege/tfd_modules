@@ -1,4 +1,4 @@
-(define (domain tidyup-putdown)
+(define (domain tidyup)
     (:requirements :strips :typing :durative-actions :fluents :derived-predicates :equality)
 
     (:types
