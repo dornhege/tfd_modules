@@ -1,5 +1,6 @@
 #include "planner_modules_pr2/navstack_module_full_body.h"
 #include "planner_modules_pr2/navstack_module.h"
+#include "tidyup_utils/arm_state.h"
 #include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -17,7 +18,6 @@ using std::pair; using std::make_pair;
 #include <sys/times.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
-#include "planner_modules_pr2/arm_state.h"
 
 VERIFY_CONDITIONCHECKER_DEF(fullbody_pathCost);
 

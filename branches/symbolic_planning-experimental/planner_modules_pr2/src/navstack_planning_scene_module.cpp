@@ -100,7 +100,8 @@ bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const Paramete
         numericalFluentCallbackType numericalFluentCallback)
 {
     // update objects in planning scene
-    vector<arm_navigation_msgs::CollisionObject>& objectList = spsdService.request.planning_scene_diff.collision_objects;
+    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
+    vector<arm_navigation_msgs::CollisionObject>& objectList = scene.collision_objects;
     vector<arm_navigation_msgs::CollisionObject>::iterator objectIterator = objectList.begin();
     for ( ; objectIterator != objectList.end(); objectIterator++)
     {
@@ -141,8 +142,8 @@ bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const Paramete
     // set robot state
     ROS_ASSERT(parameterList.size() > 1);
     const string& robotStartPose = parameterList[0].value;
-    fillPoseFromState(spsdService.request.planning_scene_diff.robot_state.multi_dof_joint_state.poses[0], robotStartPose, numericalFluentCallback);
-    return setPlanningSceneService.call(spsdService);
+    fillPoseFromState(scene.robot_state.multi_dof_joint_state.poses[0], robotStartPose, numericalFluentCallback);
+    return PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
 }
 
 void PlanningSceneNavigationModule::initModule(int argc, char** argv)
@@ -152,36 +153,16 @@ void PlanningSceneNavigationModule::initModule(int argc, char** argv)
     g_NodeHandle->getParam("/continual_planning_executive/door_location_file", doorLocationFileName);
     loadDoorPoses(doorLocationFileName);
 
-    // init service for planning scene
-    std::string service_name = "/environment_server/set_planning_scene_diff";
-    while (!ros::service::waitForService(service_name, ros::Duration(3.0)))
-    {
-        ROS_ERROR("Service %s not available - waiting.", service_name.c_str());
-    }
-    setPlanningSceneService = g_NodeHandle->serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(service_name, true);
-    if (!setPlanningSceneService)
-    {
-        ROS_FATAL("Could not initialize get plan service from %s (client name: %s)", service_name.c_str(), setPlanningSceneService.getService().c_str());
-    }
     // init arm joint states
     armStates.push_back(ArmState("right_arm", "/arm_configurations/side_tuck/position/right_arm"));
     armStates.push_back(ArmState("left_arm", "/arm_configurations/side_tuck/position/left_arm"));
-
-    // init planning scene
-    if (setPlanningSceneService.call(spsdService))
-    {
-        spsdService.request.planning_scene_diff = spsdService.response.planning_scene;
-    }
-    else
-    {
-        ROS_ERROR("%s Could not initialize planning scene.", __PRETTY_FUNCTION__);
-    }
-
+    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
     // replace arm joint states
-    for (int i = RIGHT_ARM_AT_SIDE; i <= LEFT_ARM_AT_SIDE; i++)
+    for (size_t i = 0; i <= armStates.size(); i++)
     {
-        armStates[i].replaceJointPositions(spsdService.request.planning_scene_diff.robot_state.joint_state);
+        armStates[i].replaceJointPositions(scene.robot_state.joint_state);
     }
+    PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
 
     ROS_INFO("Initialized planning scene navstack module.\n");
 }
