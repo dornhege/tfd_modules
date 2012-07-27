@@ -1,4 +1,6 @@
 #include "planner_modules_pr2/putdown_modules.h"
+#include "tidyup_utils/arm_state.h"
+#include "tidyup_utils/planning_scene_interface.h"
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <map>
@@ -61,6 +63,14 @@ void putdown_init(int argc, char** argv)
     PutdownCache::key_type empty_key;
     //g_PutdownCache.insert(make_pair(empty_key, make_pair(false, geometry_msgs::PoseStamped())));
     g_PutdownCache[empty_key] = make_pair(false, geometry_msgs::PoseStamped());
+
+    // init arm joint states
+    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
+    ArmState rightArmAtSide("right_arm", "/arm_configurations/side_tuck/position/right_arm");
+    rightArmAtSide.replaceJointPositions(scene.robot_state.joint_state);
+    ArmState leftArmAtSide("left_arm", "/arm_configurations/side_tuck/position/left_arm");
+    leftArmAtSide.replaceJointPositions(scene.robot_state.joint_state);
+    PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
 
     ROS_INFO("Initialized Putdown Module.\n");
 }
@@ -177,10 +187,10 @@ bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackTy
 
     // get poses for everything from planner interface
     NumericalFluentList nfRequest;
-    nfRequest.reserve(7 * (2 + objects_on_static.size()));
+    nfRequest.reserve(7 * (1 + objects_on_static.size()));
     addPoseRequest(nfRequest, robot_location);
-    addPoseRequest(nfRequest, putdown_object);
-    for(vector<Parameter>::iterator it = objects_on_static.begin(); it != objects_on_static.end(); it++) {
+    for(vector<Parameter>::iterator it = objects_on_static.begin(); it != objects_on_static.end(); it++)
+    {
         addPoseRequest(nfRequest, *it);
     }
 
@@ -194,20 +204,32 @@ bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackTy
     // create the putdown pose query for service
     request.static_object = static_object.value;
 
-    fillPoseStamped(request.robot_pose, nfRequest, 0 * 7);
+    // fill planning scene
+    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
+    geometry_msgs::PoseStamped robotPose;
+    fillPoseStamped(robotPose, nfRequest, 0 * 7);
+    scene.robot_state.multi_dof_joint_state.poses[0] = robotPose.pose;
+    scene.robot_state.multi_dof_joint_state.frame_ids[0] = robotPose.header.frame_id;
 
-    request.object_to_putdown.name = putdown_object.value;
-    fillPoseStamped(request.object_to_putdown.pose, nfRequest, 1 * 7);
+    request.putdown_object = putdown_object.value;
 
-    for(unsigned int i = 0; i < objects_on_static.size(); i++) {
-        tidyup_msgs::GraspableObject go;
-        go.name = objects_on_static[i].value;
-        fillPoseStamped(go.pose, nfRequest, (2 + i) * 7);
-        request.blocking_objects.push_back(go);
+    int index = 0;
+    for(vector<Parameter>::iterator graspableObjectIterator = objects_on_static.begin(); graspableObjectIterator != objects_on_static.end(); graspableObjectIterator++)
+    {
+        string object_name = graspableObjectIterator->value;
+        for (std::vector< ::arm_navigation_msgs::CollisionObject>::iterator collisionObjectIterator = scene.collision_objects.begin(); collisionObjectIterator != scene.collision_objects.end(); collisionObjectIterator++)
+        {
+            if (collisionObjectIterator->id == object_name)
+            {
+                geometry_msgs::PoseStamped pose;
+                fillPoseStamped(pose, nfRequest, (1 + index) * 7);
+                collisionObjectIterator->poses[0] = pose.pose;
+            }
+        }
+        index++;
     }
-
     request.arm = arm.value;
-    return true;
+    return PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
 }
 
 PutdownCache::key_type createCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback)
