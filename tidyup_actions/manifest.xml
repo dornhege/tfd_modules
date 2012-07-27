@@ -14,6 +14,10 @@
   <depend package="hardcoded_facts"/>
   <depend package="tidyup_utils"/>
   <depend package="continual_planning_executive"/>
+  <depend package="continual_planning_monitor"/>
+  <depend package="tfd_modules"/>
+  <depend package="planner_benchmarks"/>
+  <depend package="planner_modules_pr2"/>
   <depend package="roscpp"/>
   <depend package="tf"/>
   <depend package="visualization_msgs"/>
