@@ -286,9 +286,10 @@ double pathCost(const ParameterList & parameterList,
             ROS_DEBUG("Got %d module calls.\n", calls);
         }
     }
+    ROS_ASSERT(parameterList.size() == 2);
 
     // first lookup in the cache if we answered the query already
-    double cost = 0;
+    double cost = INFINITE_COST;
     string cacheKey = computePathCacheKey(parameterList[0].value, parameterList[1].value);
     if (g_PathCostCache.get(cacheKey, cost))
     {
@@ -309,7 +310,9 @@ double pathCost(const ParameterList & parameterList,
     bool callSuccessful;
     cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callSuccessful);
     if(callSuccessful) {      // only cache real computed paths (including INFINITE_COST)
-        g_PathCostCache.set(cacheKey, cost);
+        bool isRobotLocation =
+            (parameterList[0].value == "robot_location" || parameterList[1].value == "robot_location");
+        g_PathCostCache.set(cacheKey, cost, !isRobotLocation);  // do no param cache robot_location calls
 //        g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
     }
     return cost;
