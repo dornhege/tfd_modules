@@ -34,7 +34,7 @@ namespace tidyup_actions
 
         goal.surface_name = static_object;
 
-        // TODO: reset planning scene to the state of world.
+        // reset planning scene to the state of world.
         PlanningSceneInterface::instance()->resetPlanningScene();
 
         tidyup_msgs::GetPutdownPose srv;
@@ -56,6 +56,8 @@ namespace tidyup_actions
                 return false;
             }
         }
+        // set the obtained putdown pose in goal
+        goal.position = srv.response.putdown_pose;
 
         return (goal.left_arm || goal.right_arm);
     }
