@@ -18,6 +18,10 @@ namespace tidyup_actions
             virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState,
                     const tidyup_msgs::PlaceObjectResult & result,
                     const DurativeAction & a, SymbolicState & current);
+
+        private:
+            bool fillPoseStamped(const string& poseName, const SymbolicState& state, geometry_msgs::PoseStamped& poseStamped);
+            ros::ServiceClient g_GetPutdownPose;
     };
 
 };

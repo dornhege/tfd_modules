@@ -1,6 +1,6 @@
 #include "tidyup_actions/goalCreatorTidyupObjects.h"
 #include "hardcoded_facts/geometryPoses.h"
-#include "gki_utils/stringutil.h"
+#include "tidyup_utils/stringutil.h"
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 #include <tf/transform_datatypes.h>
