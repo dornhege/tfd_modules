@@ -7,8 +7,7 @@
 
 #include "planner_modules_pr2/module_param_cache.h"
 
-std::string ModuleParamCache::baseNamespace = "/tfd_modules/cache";
-
+std::string ModuleParamCache::baseNamespace = "/tfd_modules/module_cache";
 
 ModuleParamCache::ModuleParamCache()
 {
@@ -18,8 +17,7 @@ ModuleParamCache::ModuleParamCache()
 void ModuleParamCache::initialize(const std::string& moduleNamespace, ros::NodeHandle* node)
 {
     this->node = node;
-    this->baseNamespace = baseNamespace;
-    keyPrefix = baseNamespace + "/" + moduleNamespace + "/";
+    keyPrefix = ModuleParamCache::baseNamespace + "/" + moduleNamespace + "/";
 }
 
 ModuleParamCache::~ModuleParamCache()
@@ -28,22 +26,40 @@ ModuleParamCache::~ModuleParamCache()
 
 void ModuleParamCache::clearAll()
 {
-    ros::NodeHandle s_node = ros::NodeHandle();
-    if (s_node.hasParam(baseNamespace))
+    if(node->hasParam(keyPrefix))
     {
-        s_node.deleteParam(baseNamespace);
+        node->deleteParam(keyPrefix);
     }
+    _localCache.clear();
 }
 
-void ModuleParamCache::set(const std::string& key, double value)
+void ModuleParamCache::set(const std::string& key, double value, bool allowCacheAsParam)
 {
 //    ROS_INFO("[cache]: writing to cache: %s -> %f", key.c_str(), value);
-    node->setParam(keyPrefix + key, value);
+    if(allowCacheAsParam) {
+        std::map<std::string, double>::iterator it = _localCache.find(key);
+        // if we found the same key,value in the local cache, it was inserted by this function and thus
+        // is already on the param server, no need to make an extra setParam call here.
+        if(it == _localCache.end() || it->second != value) {
+            node->setParam(keyPrefix + key, value);
+        }
+    }
+    _localCache.insert(std::make_pair(key, value));
 }
 
-bool ModuleParamCache::get(const std::string& key, double& value) const
+bool ModuleParamCache::get(const std::string& key, double& value)
 {
 //    ROS_INFO("[cache]: lookup in cache: %s -> %f", key.c_str(), value);
-    return node->getParamCached(keyPrefix + key, value);
+    std::map<std::string, double>::iterator it = _localCache.find(key);
+    if(it != _localCache.end()) {       // local cache hit
+        value = it->second;
+        return true;
+    }
+    // local miss, look on param server
+    bool found = node->getParamCached(keyPrefix + key, value);
+    if(found) { // we found this on the param server, insert locally to prevent additional setParam calls
+        _localCache.insert(std::make_pair(key, value));
+    }
+    return found;
 }
 
