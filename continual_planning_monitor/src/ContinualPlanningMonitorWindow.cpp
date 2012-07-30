@@ -71,6 +71,12 @@ void ContinualPlanningMonitorWindow::on_actionPause_activated()
             continual_planning_executive::SetContinualPlanningControl::Request::PAUSE);
 }
 
+void ContinualPlanningMonitorWindow::on_actionStep_activated()
+{
+    _continualPlanningControlThread.setContinualPlanningControl(
+            continual_planning_executive::SetContinualPlanningControl::Request::STEP);
+}
+
 void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
 {
     QString actionTxt = queryActionText("");
