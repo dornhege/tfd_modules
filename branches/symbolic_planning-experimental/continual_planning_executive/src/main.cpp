@@ -296,6 +296,7 @@ bool setControlHandler(continual_planning_executive::SetContinualPlanningControl
     switch(req.command) {
         case continual_planning_executive::SetContinualPlanningControl::Request::RUN:
         case continual_planning_executive::SetContinualPlanningControl::Request::PAUSE:
+        case continual_planning_executive::SetContinualPlanningControl::Request::STEP:
             if(s_ContinualPlanningMode != req.command) {
                 ROS_INFO("Setting ContinualPlanningMode to %d", req.command);
             }
@@ -415,11 +416,15 @@ int main(int argc, char** argv)
     while(ros::ok()) {
         ros::spinOnce();
 
-        if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN) {
+        if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN
+            || s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::STEP) {
             cpState = s_ContinualPlanning->loop();
             if(cpState != ContinualPlanning::Running) {
                 break;
             }
+            // STEP means RUN once.
+            if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::STEP)
+                s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::PAUSE;
         }
 
         loopSleep.sleep();

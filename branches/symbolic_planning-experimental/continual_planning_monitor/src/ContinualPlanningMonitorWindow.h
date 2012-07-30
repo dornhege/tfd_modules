@@ -63,6 +63,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         void on_actionReset_activated();
         void on_actionRun_activated();
         void on_actionPause_activated();
+        void on_actionStep_activated();
         void on_actionExecute_Action_activated();
         void on_actionForce_Replanning_activated();
         void on_actionReestimate_State_activated();

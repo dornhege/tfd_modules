@@ -254,6 +254,7 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionRun"/>
     <addaction name="actionPause"/>
+    <addaction name="actionStep"/>
     <addaction name="separator"/>
     <addaction name="actionReestimate_State"/>
     <addaction name="actionForce_Replanning"/>
@@ -305,6 +306,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionReestimate_State">
    <property name="text">
     <string>Reestimate &amp;State</string>
+   </property>
+  </action>
+  <action name="actionStep">
+   <property name="text">
+    <string>Step</string>
    </property>
   </action>
  </widget>
