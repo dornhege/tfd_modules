@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QSignalMapper>
+#include <QSettings>
 #include "ui_ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/ContinualPlanningStatus.h"
 #include "continual_planning_executive/SetContinualPlanningControl.h"
@@ -65,8 +67,11 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         void on_actionPause_activated();
         void on_actionStep_activated();
         void on_actionExecute_Action_activated();
+        void on_actionAdd_Action_activated();
         void on_actionForce_Replanning_activated();
         void on_actionReestimate_State_activated();
+
+        void executeAction(QString actionTxt);
 
         void currentPlanList_contextMenu(const QPoint & pos);
         void lastPlanList_contextMenu(const QPoint & pos);
@@ -98,6 +103,10 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
 
         ContinualPlanningControlThread _continualPlanningControlThread;
         ExecuteActionThread _executeActionThread;
+
+        unsigned int _nCustomActions;
+        QSettings* _settings;
+        QSignalMapper* _signalMapper;
 };
 
 #endif

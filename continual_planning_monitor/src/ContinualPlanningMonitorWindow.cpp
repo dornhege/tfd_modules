@@ -1,5 +1,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QAction>
+#include <QList>
 #include <boost/thread.hpp>
 #include "ContinualPlanningMonitorWindow.h"
 #include "continual_planning_executive/TemporalAction.h"
@@ -32,6 +34,34 @@ ContinualPlanningMonitorWindow::ContinualPlanningMonitorWindow()
             this, SLOT(notifyUser(bool, QString, QString)));
     connect(&_continualPlanningControlThread, SIGNAL(controlCommandSet(bool, QString, QString)),
             this, SLOT(notifyUser(bool, QString, QString)));
+
+    _signalMapper = new QSignalMapper(this);
+    _settings = new QSettings("gki", "ContinualPlanningMonitor");
+    _nCustomActions = 0;
+
+    int size = _settings->beginReadArray("custom_actions");
+    for(int i = 0; i < size; ++i) {
+        _settings->setArrayIndex(i);
+        QString actionTxt = _settings->value("action").toString();
+
+        // check last is the exec action, then add sep
+        if(menuExecution->actions().size() > 0) {
+            if(menuExecution->actions().back() == actionExecute_Action) {
+                menuExecution->addSeparator();
+            }
+        }
+
+        QAction* act = menuExecution->addAction(actionTxt);
+
+        _signalMapper->setMapping(act, actionTxt);
+        connect(act, SIGNAL(triggered()),
+                _signalMapper, SLOT (map()));
+        connect(_signalMapper, SIGNAL(mapped(QString)),
+                this, SLOT(executeAction(QString)));
+
+        _nCustomActions++;
+    }
+    _settings->endArray();
 }
 
 ContinualPlanningMonitorWindow::~ContinualPlanningMonitorWindow()
@@ -81,6 +111,39 @@ void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
 {
     QString actionTxt = queryActionText("");
 
+    executeAction(actionTxt);
+}
+
+void ContinualPlanningMonitorWindow::on_actionAdd_Action_activated()
+{
+    QString actionTxt = queryActionText("");
+    if(actionTxt.length() <= 0)
+        return;
+
+    // check last is the exec action, then add sep
+    if(menuExecution->actions().size() > 0) {
+        if(menuExecution->actions().back() == actionExecute_Action) {
+            menuExecution->addSeparator();
+        }
+    }
+
+    QAction* act = menuExecution->addAction(actionTxt);
+
+    _signalMapper->setMapping(act, actionTxt);
+    connect(act, SIGNAL(triggered()),
+            _signalMapper, SLOT (map()));
+    connect(_signalMapper, SIGNAL(mapped(QString)),
+            this, SLOT(executeAction(QString)));
+
+    _settings->beginWriteArray("custom_actions");
+    _settings->setArrayIndex(_nCustomActions);
+    _settings->setValue("action", actionTxt);
+    _nCustomActions++;
+    _settings->endArray();
+}
+
+void ContinualPlanningMonitorWindow::executeAction(QString actionTxt)
+{
     _executeActionThread.executeAction(actionTxt);
 }
 
@@ -311,7 +374,7 @@ ExecuteActionThread::ExecuteActionThread()
 
 void ExecuteActionThread::executeAction(QString actionTxt)
 {
-    if(isRunning()) {
+    if(isRunning() && actionTxt != _actionTxt) {
         Q_EMIT actionExecutionFailed(false, "Execute action",
                 "Execute action failed as another action is still running.");
         return;
