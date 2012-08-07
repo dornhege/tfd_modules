@@ -102,7 +102,6 @@
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
             (at start (recent-detected-objects ?l))
-            (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
         )
