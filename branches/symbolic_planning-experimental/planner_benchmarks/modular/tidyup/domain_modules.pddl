@@ -111,7 +111,6 @@
             (at start (grasped ?o ?a))
             (at start ([canPutdown ?o ?a ?s ?l]))
             (at start (recent-detected-objects ?l))
-            (at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
         )
