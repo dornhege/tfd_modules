@@ -198,9 +198,17 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
             }
         }
 
+        // No ops applicable in any trace, so output the current ones (in the state before the op)
+        // to set what might have gone wrong.
+        if(nextTraces.empty()) {
+            for(deque<FullPlanTrace>::iterator it = currentTraces.begin(); it != currentTraces.end(); it++) {
+                printf("Trace State was:\n");
+                it->dumpLastState();
+            }
+        }
         currentTraces = nextTraces;
         if(currentTraces.empty()) {
-            ROS_DEBUG("Step [% 6d]: Could not apply operator: \"%s\" to any state.", i, plan[i].op->get_name().c_str());
+            ROS_INFO("Step [% 6d]: Could not apply operator: \"%s\" to any state.", i, plan[i].op->get_name().c_str());
             return false;
         }
         ROS_DEBUG("Step [% 6d]: Applied operator: \"%s\"", i, plan[i].op->get_name().c_str());
@@ -231,7 +239,7 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
     }
 
     if(!ret)
-        ROS_DEBUG("Applied all operators but final plan doesn't fulfill goal.");
+        ROS_INFO("Applied all operators but final plan doesn't fulfill goal.");
 
     if(best != NULL) {
         stringstream os;
