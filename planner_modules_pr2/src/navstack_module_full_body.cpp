@@ -25,7 +25,6 @@ static ros::ServiceClient s_SwitchJointTopicClient;
 static ros::Subscriber s_JointStateSubscriber;
 static ros::Publisher s_PlanningJointStatePublisher;
 static sensor_msgs::JointState s_CurrentState;
-static vector<ArmState> s_ArmStates;
 bool receivedJointState;
 
 void jointStateCallback(const sensor_msgs::JointState& msg)
@@ -46,8 +45,8 @@ void publishPlanningArmState()
     if (s_SwitchJointTopicClient.call(switchSrv))
     {
         ROS_INFO("%s: switched to topic \"%s\".", __FUNCTION__, switchSrv.request.topic.c_str());
-        s_ArmStates[0].replaceJointPositions(s_CurrentState);
-        s_ArmStates[1].replaceJointPositions(s_CurrentState);
+        ArmState::get("/arm_configurations/side_tuck/position/", "right_arm").replaceJointPositions(s_CurrentState);
+        ArmState::get("/arm_configurations/side_tuck/position/", "left_arm").replaceJointPositions(s_CurrentState);
         s_PlanningJointStatePublisher.publish(s_CurrentState);
         ROS_INFO("Publishing planning arm states...");
         ros::Rate rate = 1.0; // HACK: make sure sbpl gets the new armstate
@@ -98,10 +97,6 @@ void fullbody_navstack_init(int argc, char** argv)
     receivedJointState = false;
     s_JointStateSubscriber = g_NodeHandle->subscribe("/joint_states_throttle", 3, jointStateCallback);
     s_PlanningJointStatePublisher = g_NodeHandle->advertise<sensor_msgs::JointState>("/joint_states_tfd", 5, false);
-
-    // init arm joint states
-    s_ArmStates.push_back(ArmState("right_arm", "/arm_configurations/side_tuck/position/right_arm"));
-    s_ArmStates.push_back(ArmState("left_arm", "/arm_configurations/side_tuck/position/left_arm"));
 
     ROS_INFO("Initialized full body navstack module.");
 }
