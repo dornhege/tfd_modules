@@ -3,6 +3,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <sstream>
 #include <signal.h>
 
 #include "continual_planning_executive/symbolicState.h"
@@ -431,10 +432,17 @@ int main(int argc, char** argv)
     }
 
     if(s_ContinualPlanning->isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal) {
+        std::stringstream ss2;
+        ss2 << "\n\nContinual planning ended.\n";
+        if(s_ContinualPlanning->isGoalFulfilled())
+            ss2 << "GOAL REACHED by agent!\n";
+        if(cpState == ContinualPlanning::FinishedAtGoal)
+            ss2 << "ContinualPlanningState: FinishedAtGoal!\n";
+        ss2 << "\n";
         if(ros::ok())
-            ROS_INFO("\n\nContinual planning ended.\nGOAL REACHED by agent!\n\n");
+            ROS_INFO("%s", ss2.str().c_str());
         else
-            printf("\n\nContinual planning ended.\nGOAL REACHED by agent!\n\n\n");
+            printf("%s", ss2.str().c_str());
     } else {
         if(ros::ok())
             ROS_ERROR("\n\nContinual planning ended.\nGOAL was NOT REACHED.\n\n");

@@ -23,7 +23,7 @@ class ActionExecutorActionlib : public continual_planning_executive::ActionExecu
    public:
       ActionExecutorActionlib();
       ~ActionExecutorActionlib();
- 
+
 
       /// Initialize the executor by creating the ActionClient.
       /**
