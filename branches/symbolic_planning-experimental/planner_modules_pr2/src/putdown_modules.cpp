@@ -1,6 +1,7 @@
 #include "planner_modules_pr2/putdown_modules.h"
 #include "tidyup_utils/arm_state.h"
 #include "tidyup_utils/planning_scene_interface.h"
+#include "tidyup_utils/transformer.h"
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <map>
@@ -36,27 +37,31 @@ typedef map< boost::tuple<string,string,string,string, set<string> >,
         pair<bool, geometry_msgs::PoseStamped> > PutdownCache;
 
 PutdownCache g_PutdownCache;
+string logName;
+geometry_msgs::Pose defaultAttachPose;
+
 
 void putdown_init(int argc, char** argv)
 {
     ROS_ASSERT(argc == 2);
+    logName = "[putdownModule]";
 
     // get world frame
     ros::NodeHandle nhPriv("~");
     std::string tfPrefix = tf::getPrefixParam(nhPriv);
     g_WorldFrame = tf::resolve(tfPrefix, argv[1]);
-    ROS_INFO("World frame is: %s", g_WorldFrame.c_str());
+    ROS_INFO_NAMED(logName, "World frame is: %s", g_WorldFrame.c_str());
 
     g_NodeHandle = new ros::NodeHandle();
     string service_name = "/tidyup/request_putdown_pose";
 
     while(!ros::service::waitForService(service_name, ros::Duration(3.0))) {
-        ROS_ERROR("Service %s not available - waiting.", service_name.c_str());
+        ROS_ERROR_NAMED(logName, "Service %s not available - waiting.", service_name.c_str());
     }
 
     g_GetPutdownPose = g_NodeHandle->serviceClient<tidyup_msgs::GetPutdownPose>(service_name, true);
     if(!g_GetPutdownPose) {
-        ROS_FATAL("Could not initialize get putdown service from %s (client name: %s)", service_name.c_str(), g_GetPutdownPose.getService().c_str());
+        ROS_FATAL_NAMED(logName, "Could not initialize get putdown service from %s (client name: %s)", service_name.c_str(), g_GetPutdownPose.getService().c_str());
     }
 
     // empty key/no key maps to no pose
@@ -64,15 +69,15 @@ void putdown_init(int argc, char** argv)
     //g_PutdownCache.insert(make_pair(empty_key, make_pair(false, geometry_msgs::PoseStamped())));
     g_PutdownCache[empty_key] = make_pair(false, geometry_msgs::PoseStamped());
 
-    // init arm joint states
-    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
-    ArmState rightArmAtSide("right_arm", "/arm_configurations/side_tuck/position/right_arm");
-    rightArmAtSide.replaceJointPositions(scene.robot_state.joint_state);
-    ArmState leftArmAtSide("left_arm", "/arm_configurations/side_tuck/position/left_arm");
-    leftArmAtSide.replaceJointPositions(scene.robot_state.joint_state);
-    PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
+    defaultAttachPose.position.x = 0.032;
+    defaultAttachPose.position.y = 0.015;
+    defaultAttachPose.position.z = 0.0;
+    defaultAttachPose.orientation.x = 0.707;
+    defaultAttachPose.orientation.y = -0.106;
+    defaultAttachPose.orientation.z = -0.690;
+    defaultAttachPose.orientation.w = 0.105;
 
-    ROS_INFO("Initialized Putdown Module.\n");
+    ROS_INFO_NAMED(logName, "Initialized Putdown Module.\n");
 }
 
 bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType predicateCallback,
@@ -83,7 +88,7 @@ bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType 
     }
 
     if(!g_GetPutdownPose) {
-        ROS_ERROR("Persistent service connection to %s failed.", g_GetPutdownPose.getService().c_str());
+        ROS_ERROR_NAMED(logName, "Persistent service connection to %s failed.", g_GetPutdownPose.getService().c_str());
         // FIXME reconnect - this shouldn't happen.
         return false;
     }
@@ -100,57 +105,90 @@ bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType 
             ros::Time callEndTime = ros::Time::now();
             ros::Duration dt = callEndTime - callStartTime;
             totalCallsTime += dt;
-            ROS_DEBUG("ServiceCall took: %f, avg: %f (num %f).",
+            ROS_DEBUG_NAMED(logName, "ServiceCall took: %f, avg: %f (num %f).",
                     dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
         }
 
         if(srv.response.error_code.val == arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS) {
-            ROS_INFO("Got a putdown pose.");
+            ROS_INFO_NAMED(logName, "Got a putdown pose.");
             return true;
         }
 
-        ROS_WARN("GetPutdownPose failed. Reason: %s (%d)",
+        ROS_WARN_NAMED(logName, "GetPutdownPose failed. Reason: %s (%d)",
                 arm_navigation_msgs::armNavigationErrorCodeToString(srv.response.error_code).c_str(),
                 srv.response.error_code.val);
         return false;
     }
 
-    ROS_ERROR("Failed to call service %s.", g_GetPutdownPose.getService().c_str());
+    ROS_ERROR_NAMED(logName, "Failed to call service %s.", g_GetPutdownPose.getService().c_str());
     return false;
 }
 
-void addPoseRequest(NumericalFluentList & nfRequest, Parameter objectId)
-{
-    ParameterList params;
-    params.push_back(objectId);
+//void addPoseRequest(NumericalFluentList & nfRequest, Parameter objectId)
+//{
+//    ParameterList params;
+//    params.push_back(objectId);
+//
+//    nfRequest.push_back(NumericalFluent("x", params));
+//    nfRequest.push_back(NumericalFluent("y", params));
+//    nfRequest.push_back(NumericalFluent("z", params));
+//    nfRequest.push_back(NumericalFluent("qx", params));
+//    nfRequest.push_back(NumericalFluent("qy", params));
+//    nfRequest.push_back(NumericalFluent("qz", params));
+//    nfRequest.push_back(NumericalFluent("qw", params));
+//}
 
-    nfRequest.push_back(NumericalFluent("x", params));
-    nfRequest.push_back(NumericalFluent("y", params));
-    nfRequest.push_back(NumericalFluent("z", params));
-    nfRequest.push_back(NumericalFluent("qx", params));
-    nfRequest.push_back(NumericalFluent("qy", params));
-    nfRequest.push_back(NumericalFluent("qz", params));
-    nfRequest.push_back(NumericalFluent("qw", params));
+void fillPoseFromState(geometry_msgs::Pose& pose, const string& poseName, numericalFluentCallbackType numericalFluentCallback)
+{
+    // create the numerical fluent request
+    ParameterList startParams;
+    startParams.push_back(Parameter("", "", poseName));
+    NumericalFluentList nfRequest;
+    nfRequest.reserve(7);
+    nfRequest.push_back(NumericalFluent("x", startParams));
+    nfRequest.push_back(NumericalFluent("y", startParams));
+    nfRequest.push_back(NumericalFluent("z", startParams));
+    nfRequest.push_back(NumericalFluent("qx", startParams));
+    nfRequest.push_back(NumericalFluent("qy", startParams));
+    nfRequest.push_back(NumericalFluent("qz", startParams));
+    nfRequest.push_back(NumericalFluent("qw", startParams));
+
+    // get the fluents
+    NumericalFluentList* nfRequestP = &nfRequest;
+    if (!numericalFluentCallback(nfRequestP))
+    {
+        ROS_INFO("fillPoseFromState failed for object: %s", poseName.c_str());
+        return;
+    }
+
+    // fill pose stamped
+    pose.position.x = nfRequest[0].value;
+    pose.position.y = nfRequest[1].value;
+    pose.position.z = nfRequest[2].value;
+    pose.orientation.x = nfRequest[3].value;
+    pose.orientation.y = nfRequest[4].value;
+    pose.orientation.z = nfRequest[5].value;
+    pose.orientation.w = nfRequest[6].value;
 }
 
-void fillPoseStamped(geometry_msgs::PoseStamped & pose, const NumericalFluentList & fluents, unsigned int startIdx)
-{
-    pose.header.frame_id = g_WorldFrame;
-    pose.pose.position.x = fluents[startIdx + 0].value;
-    pose.pose.position.y = fluents[startIdx + 1].value;
-    pose.pose.position.z = fluents[startIdx + 2].value;
-    pose.pose.orientation.x = fluents[startIdx + 3].value;
-    pose.pose.orientation.y = fluents[startIdx + 4].value;
-    pose.pose.orientation.z = fluents[startIdx + 5].value;
-    pose.pose.orientation.w = fluents[startIdx + 6].value;
-}
+//void fillPoseStamped(geometry_msgs::PoseStamped & pose, const NumericalFluentList & fluents, unsigned int startIdx)
+//{
+//    pose.header.frame_id = g_WorldFrame;
+//    pose.pose.position.x = fluents[startIdx + 0].value;
+//    pose.pose.position.y = fluents[startIdx + 1].value;
+//    pose.pose.position.z = fluents[startIdx + 2].value;
+//    pose.pose.orientation.x = fluents[startIdx + 3].value;
+//    pose.pose.orientation.y = fluents[startIdx + 4].value;
+//    pose.pose.orientation.z = fluents[startIdx + 5].value;
+//    pose.pose.orientation.w = fluents[startIdx + 6].value;
+//}
 
 bool fillObjectsOnStatic(predicateCallbackType predicateCallback, Parameter static_object,
         vector<Parameter> & objects_on_static)
 {
     PredicateList* list = NULL;
     if(!predicateCallback(list)) {
-        ROS_ERROR("predicateCallback failed.");
+        ROS_ERROR_NAMED(logName, "predicateCallback failed.");
         return false;
     }
     ROS_ASSERT(list != NULL);
@@ -173,63 +211,67 @@ bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackTy
         numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request)
 {
     // get robot location, object and static object id, and arm from parameters
+    // (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location)
     ROS_ASSERT(parameterList.size() == 4);
-    Parameter robot_location = parameterList[0];
-    Parameter putdown_object = parameterList[1];
+    Parameter putdown_object = parameterList[0];
+    Parameter arm = parameterList[1];
     Parameter static_object = parameterList[2];
-    Parameter arm = parameterList[3];
-
-    // get objects on static object from planner interface
-    vector<Parameter> objects_on_static;
-    if(!fillObjectsOnStatic(predicateCallback, static_object, objects_on_static)) {
-        return false;
-    }
-
-    // get poses for everything from planner interface
-    NumericalFluentList nfRequest;
-    nfRequest.reserve(7 * (1 + objects_on_static.size()));
-    addPoseRequest(nfRequest, robot_location);
-    for(vector<Parameter>::iterator it = objects_on_static.begin(); it != objects_on_static.end(); it++)
-    {
-        addPoseRequest(nfRequest, *it);
-    }
-
-    // perform the actual callback
-    NumericalFluentList* nfRequestP = &nfRequest;
-    if(!numericalFluentCallback(nfRequestP)) {
-        ROS_ERROR("numericalFluentCallback failed.");
-        return false;
-    }
-
-    // create the putdown pose query for service
+    Parameter robot_location = parameterList[3];
     request.static_object = static_object.value;
-
-    // fill planning scene
-    arm_navigation_msgs::PlanningScene scene = PlanningSceneInterface::instance()->getPlanningScene();
-    geometry_msgs::PoseStamped robotPose;
-    fillPoseStamped(robotPose, nfRequest, 0 * 7);
-    scene.robot_state.multi_dof_joint_state.poses[0] = robotPose.pose;
-    scene.robot_state.multi_dof_joint_state.frame_ids[0] = robotPose.header.frame_id;
-
     request.putdown_object = putdown_object.value;
+    request.arm = arm.value;
+    ROS_INFO_NAMED(logName, "putdown request: %s, %s, %s, %s", parameterList[0].value.c_str(), parameterList[1].value.c_str(), parameterList[2].value.c_str(), parameterList[3].value.c_str());
 
-    int index = 0;
+    // get objects on static object from internal state
+    vector<Parameter> objects_on_static;
+    if (!fillObjectsOnStatic(predicateCallback, static_object, objects_on_static))
+    {
+        return false;
+    }
+
+    //TODO: generalize: set all objec poses, all attached objects and correct arm states
+
+    PlanningSceneInterface* psi = PlanningSceneInterface::instance();
+    psi->resetPlanningScene();
+
+    // set robot state in planning scene
+    ROS_INFO_NAMED(logName, "update robot state in planning scene");
+    arm_navigation_msgs::RobotState state = psi->getRobotState();
+    fillPoseFromState(state.multi_dof_joint_state.poses[0], robot_location.value, numericalFluentCallback);
+    ArmState::get("/arm_configurations/side_carry/position/", "right_arm").replaceJointPositions(state.joint_state);
+    ArmState::get("/arm_configurations/side_carry/position/", "left_arm").replaceJointPositions(state.joint_state);
+    psi->setRobotState(state);
+
+    // attach putdown object to the correct arm
+    ROS_INFO_NAMED(logName, "attaching object %s to arm %s", request.putdown_object.c_str(), request.arm.c_str());
+//    const arm_navigation_msgs::CollisionObject* object = psi->getCollisionObject(request.putdown_object);
+    psi->attachObjectToGripper(request.putdown_object, request.arm);
+    psi->updateObject(request.putdown_object, defaultAttachPose);
+
+    // update pose of graspable object in the planning scene
     for(vector<Parameter>::iterator graspableObjectIterator = objects_on_static.begin(); graspableObjectIterator != objects_on_static.end(); graspableObjectIterator++)
     {
         string object_name = graspableObjectIterator->value;
-        for (std::vector< ::arm_navigation_msgs::CollisionObject>::iterator collisionObjectIterator = scene.collision_objects.begin(); collisionObjectIterator != scene.collision_objects.end(); collisionObjectIterator++)
+        ROS_INFO_NAMED(logName, "updating object %s", object_name.c_str());
+        // if this object is attached somewhere we need to detach it
+        if (psi->getAttachedCollisionObject(object_name) != NULL)
         {
-            if (collisionObjectIterator->id == object_name)
-            {
-                geometry_msgs::PoseStamped pose;
-                fillPoseStamped(pose, nfRequest, (1 + index) * 7);
-                collisionObjectIterator->poses[0] = pose.pose;
-            }
+            psi->detachObjectAndAdd(object_name);
         }
-        index++;
+        // object is not attached, update pose
+        if (psi->getCollisionObject(object_name) != NULL)
+        {
+            geometry_msgs::Pose pose;
+            fillPoseFromState(pose, object_name, numericalFluentCallback);
+            psi->updateObject(object_name, pose);
+        }
+        else
+        {
+            ROS_ERROR_NAMED(logName, "object %s does not exist in planning scene.", object_name.c_str());
+            return false;
+        }
     }
-    request.arm = arm.value;
-    return PlanningSceneInterface::instance()->setPlanningSceneDiff(scene);
+    return psi->sendDiff();
 }
 
 PutdownCache::key_type createCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback)
@@ -268,7 +310,7 @@ double canPutdown(const ParameterList & parameterList,
         static unsigned int calls = 0;
         calls++;
         if(calls % 10000 == 0) {
-            ROS_DEBUG("Got %d putdown module calls.\n", calls);
+            ROS_DEBUG_NAMED(logName, "Got %d putdown module calls.\n", calls);
         }
     }
 
@@ -299,13 +341,13 @@ int updatePutdownPose(const ParameterList & parameterList, predicateCallbackType
 
     if(it != g_PutdownCache.end()) {
         if(!it->second.first) {
-            ROS_ERROR("updatePutdownPose called and cache said no pose was found.");
+            ROS_ERROR_NAMED(logName, "updatePutdownPose called and cache said no pose was found.");
             return 1;
         }
         // cache found set putdown_pose
         srv.response.putdown_pose = it->second.second;
     } else if(!getPutdownPoses(parameterList, predicateCallback, numericalFluentCallback, srv)) {
-        ROS_ERROR("updatePutdownPose called and getPutdownPoses failed to produce one.");
+        ROS_ERROR_NAMED(logName, "updatePutdownPose called and getPutdownPoses failed to produce one.");
         return 1;
     }
 

@@ -3,9 +3,9 @@
 
 #include "tfd_modules/module_api/pddlModuleTypes.h"
 #include "tidyup_utils/arm_state.h"
+#include "tidyup_utils/planning_scene_interface.h"
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 
 using namespace modules;
 
@@ -21,8 +21,8 @@ public:
     void initModule(int argc, char** argv);
 
     // TEST and DEBUG methods
-    const arm_navigation_msgs::SetPlanningSceneDiff& getPlanningScene() const {return spsdService;}
-    bool setPlanningSceneDiff(arm_navigation_msgs::SetPlanningSceneDiff& service) {return setPlanningSceneService.call(service);}
+//    const arm_navigation_msgs::SetPlanningSceneDiff& getPlanningScene() const {return spsdService;}
+//    bool setPlanningSceneDiff(arm_navigation_msgs::SetPlanningSceneDiff& service) {return setPlanningSceneService.call(service);}
 
 private:
     static PlanningSceneNavigationModule* singleton_instance;
@@ -34,15 +34,7 @@ private:
         Door(string name){this->name = name;}
     };
     map<string, Door> doors;
-    arm_navigation_msgs::SetPlanningSceneDiff spsdService;
-    ros::ServiceClient setPlanningSceneService;
     vector<ArmState> armStates;
-    enum ArmConfigurations
-    {
-        RIGHT_ARM_AT_SIDE,
-        LEFT_ARM_AT_SIDE,
-    };
-
     PlanningSceneNavigationModule(){}
     void loadDoorPoses(const string& doorLocationFileName);
 };

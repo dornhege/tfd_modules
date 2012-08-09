@@ -3,8 +3,8 @@
 #include "hardcoded_facts/geometryPoses.h"
 #include "tidyup_utils/stringutil.h"
 #include <ros/ros.h>
-#include <utility>
 #include <geometry_msgs/Pose.h>
+#include <utility>
 using std::map; using std::pair; using std::make_pair;
 
 VERIFY_CONDITIONCHECKER_DEF(planning_scene_pathCost);
@@ -99,50 +99,48 @@ bool PlanningSceneNavigationModule::setPlanningSceneDiffFromState(const Paramete
         predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback)
 {
+
     // update objects in planning scene
-    vector<arm_navigation_msgs::CollisionObject>& objectList = spsdService.request.planning_scene_diff.collision_objects;
-    vector<arm_navigation_msgs::CollisionObject>::iterator objectIterator = objectList.begin();
-    for ( ; objectIterator != objectList.end(); objectIterator++)
+    PlanningSceneInterface* psi = PlanningSceneInterface::instance();
+    psi->resetPlanningScene();
+    for (map<string, Door>::const_iterator doorIterator = doors.begin(); doorIterator != doors.end(); doorIterator++)
     {
-        const string& objectName = objectIterator->id;
-        map<string, Door>::const_iterator doorIterator = doors.find(objectName);
-//        ROS_INFO("update object: %s", objectName.c_str());
-        if (doorIterator != doors.end())
+        string doorName = doorIterator->first;
+        if (psi->getCollisionObject(doorName) != NULL)
         {
-            // set door pose
+            // update door pose
             PredicateList predicates;
             ParameterList pl;
-            pl.push_back(Parameter("", "", objectName));
+            pl.push_back(Parameter("", "", doorName));
             predicates.push_back(Predicate("door-open", pl));
             PredicateList* predicateRequest = &predicates;
             if ( ! predicateCallback(predicateRequest))
             {
-                ROS_ERROR("predicateCallback failed for door: %s", objectName.c_str());
+                ROS_ERROR("predicateCallback failed for door: %s", doorName.c_str());
                 return false;
             }
+            geometry_msgs::Pose pose;
             if (predicates[0].value)
             {
                 // door is open
-                objectIterator->poses[0] = doorIterator->second.openPose.pose;
-//                ROS_WARN("door open: %s", objectName.c_str());
+                psi->updateObject(doorName, doorIterator->second.openPose.pose);
             }
             else
             {
                 // door is closed
-                objectIterator->poses[0] = doorIterator->second.closedPose.pose;
-//                ROS_INFO("door closed: %s", objectName.c_str());
+                psi->updateObject(doorName, doorIterator->second.closedPose.pose);
             }
-        }
-        else
-        {
-            fillPoseFromState(objectIterator->poses[0], objectName, numericalFluentCallback);
         }
     }
     // set robot state
     ROS_ASSERT(parameterList.size() > 1);
     const string& robotStartPose = parameterList[0].value;
-    fillPoseFromState(spsdService.request.planning_scene_diff.robot_state.multi_dof_joint_state.poses[0], robotStartPose, numericalFluentCallback);
-    return setPlanningSceneService.call(spsdService);
+    arm_navigation_msgs::RobotState state = psi->getRobotState();
+    ArmState::get("/arm_configurations/side_tuck/position/", "right_arm").replaceJointPositions(state.joint_state);
+    ArmState::get("/arm_configurations/side_tuck/position/", "left_arm").replaceJointPositions(state.joint_state);
+    fillPoseFromState(state.multi_dof_joint_state.poses[0], robotStartPose, numericalFluentCallback);
+    psi->setRobotState(state);
+    return psi->sendDiff();
 }
 
 void PlanningSceneNavigationModule::initModule(int argc, char** argv)
@@ -151,37 +149,6 @@ void PlanningSceneNavigationModule::initModule(int argc, char** argv)
     string doorLocationFileName;
     g_NodeHandle->getParam("/continual_planning_executive/door_location_file", doorLocationFileName);
     loadDoorPoses(doorLocationFileName);
-
-    // init service for planning scene
-    std::string service_name = "/environment_server/set_planning_scene_diff";
-    while (!ros::service::waitForService(service_name, ros::Duration(3.0)))
-    {
-        ROS_ERROR("Service %s not available - waiting.", service_name.c_str());
-    }
-    setPlanningSceneService = g_NodeHandle->serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(service_name, true);
-    if (!setPlanningSceneService)
-    {
-        ROS_FATAL("Could not initialize get plan service from %s (client name: %s)", service_name.c_str(), setPlanningSceneService.getService().c_str());
-    }
-    // init arm joint states
-    armStates.push_back(ArmState("right_arm", "/arm_configurations/side_tuck/position/right_arm"));
-    armStates.push_back(ArmState("left_arm", "/arm_configurations/side_tuck/position/left_arm"));
-
-    // init planning scene
-    if (setPlanningSceneService.call(spsdService))
-    {
-        spsdService.request.planning_scene_diff = spsdService.response.planning_scene;
-    }
-    else
-    {
-        ROS_ERROR("%s Could not initialize planning scene.", __PRETTY_FUNCTION__);
-    }
-
-    // replace arm joint states
-    for (int i = RIGHT_ARM_AT_SIDE; i <= LEFT_ARM_AT_SIDE; i++)
-    {
-        armStates[i].replaceJointPositions(spsdService.request.planning_scene_diff.robot_state.joint_state);
-    }
 
     ROS_INFO("Initialized planning scene navstack module.\n");
 }
