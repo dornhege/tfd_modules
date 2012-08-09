@@ -35,7 +35,7 @@ extern double g_RotSpeed;   // rad/s
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
 //extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
-extern ModuleParamCache g_PathCostCache;
+extern ModuleParamCacheDouble g_PathCostCache;
 string computePathCacheKey(const string& startLocation, const string& goalLocation);
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,

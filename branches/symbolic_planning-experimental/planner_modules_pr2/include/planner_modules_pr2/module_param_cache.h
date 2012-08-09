@@ -13,11 +13,13 @@
 #include <ros/ros.h>
 
 /// Module cache that allows to cache entries locally (for one run) or additionally
-/// on the param server between multiple runs.
+/// on the param server between multiple runs. ValueType needs to be able to be written
+/// as a ROS param.
 /**
  * It is assumed that during a planner run only this class accesses the
  * module cache stored on the param server, i.e. nobody interferes.
  */
+template <class ValueType>
 class ModuleParamCache
 {
 public:
@@ -39,7 +41,7 @@ public:
      * Therefore their value should obviously not change in the world
      * throughout multiple calls.
      */
-    void set(const std::string& key, double value, bool allowCacheAsParam);
+    void set(const std::string& key, ValueType value, bool allowCacheAsParam);
 
     /// Retrieve a cached value for key.
     /**
@@ -47,7 +49,7 @@ public:
      * \param [out] value the retrieved value, if found.
      * \returns true, if the value was found in the cache.
      */
-    bool get(const std::string& key, double& value);
+    bool get(const std::string& key, ValueType& value);
 
 private:
     static std::string baseNamespace;
@@ -56,8 +58,13 @@ private:
     ros::NodeHandle* node;
     std::string keyPrefix;
 
-    std::map<std::string, double> _localCache;  ///< local cache only for this planner run
+    std::map<std::string, ValueType> _localCache;  ///< local cache only for this planner run
 };
+
+#include "module_param_cache.hpp"
+
+typedef ModuleParamCache<double> ModuleParamCacheDouble;
+typedef ModuleParamCache<std::string> ModuleParamCacheString;
 
 #endif /* MODULE_PARAM_CACHE_H_ */
 

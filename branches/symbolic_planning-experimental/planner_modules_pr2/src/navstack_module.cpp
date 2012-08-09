@@ -33,7 +33,7 @@ double g_RotSpeed = angles::from_degrees(30);
 // Using a cache of queried path costs to prevent calling the path planning service multiple times
 // Better: Can we assume symmetric path costs?
 //map< pair<string,string>, double> g_PathCostCache;
-ModuleParamCache g_PathCostCache;
+ModuleParamCacheDouble g_PathCostCache;
 string computePathCacheKey(const string& startLocation, const string& goalLocation)
 {
     if (startLocation < goalLocation)
