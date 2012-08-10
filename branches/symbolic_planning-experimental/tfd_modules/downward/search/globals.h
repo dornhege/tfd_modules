@@ -43,13 +43,6 @@ struct PlanStep
         void dump() const;
 };
 
-class PlanStepCompareStartTime
-{
-   public:
-      bool operator()(const PlanStep & s1, const PlanStep & s2) const {
-         return s1.start_time < s2.start_time;
-      }
-};
 typedef std::vector<PlanStep> Plan;
 typedef std::vector<TimeStampedState*> PlanTrace;
 

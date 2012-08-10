@@ -67,7 +67,7 @@ int lower_case(int c)
 
 bool MonitorEngine::validatePlan(vector<string>& plan)
 {
-    vector<PlanStep> p;
+    std::vector< std::vector<PlanStep> > p;
     for (unsigned int i = 0; i < plan.size(); i++) {
         if(plan[i].length() == 0)   // empty line
             continue;
@@ -110,19 +110,19 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
 
         // lookup op
         bool opFound = false;
-        for (unsigned int j = 0; j < g_operators.size(); j++) {
-            if (g_operators[j].get_name() == name) {
+        p.push_back(std::vector<PlanStep>());
+        for(unsigned int j = 0; j < g_operators.size(); j++) {
+            if(g_operators[j].get_name() == name) {
                 // forward state? FIXME no state here, determined by next step
-                p.push_back(PlanStep(start,duration,&g_operators[j], NULL));
+                p.back().push_back(PlanStep(start,duration,&g_operators[j], NULL));
                 opFound = true;
-                break;
             }
         }
         if(!opFound) {
             ROS_FATAL("%s: Could not find matching operator for plan step: \"%s\"", __func__, name.c_str());
             return false;
         }
-
+        ROS_ASSERT(!p.back().empty());
     }
 
     // sort the PlanSteps according to their start time (usually they are already).
@@ -130,9 +130,10 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
 
     ROS_DEBUG_STREAM("Validating Plan:");
     unsigned int count = 0;
-    for(vector<PlanStep>::iterator it = p.begin(); it != p.end(); it++) {
-        ROS_DEBUG_STREAM("[" << count << "] \t" << setprecision(2) << fixed << it->start_time 
-                << "  \"" << it->op->get_name() << "\"  " << it->duration);
+    for(std::vector< std::vector<PlanStep> >::iterator it = p.begin(); it != p.end(); it++) {
+        // only output the first op per step, they should all have the same params
+        ROS_DEBUG_STREAM("[" << count << "] \t" << setprecision(2) << fixed << it->front().start_time 
+                << "  \"" << it->front().op->get_name() << "\"  " << it->front().duration);
         count++;
     }
 
@@ -153,8 +154,12 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
  * When applying same-time operators the plans order is used. If those operators were in conflict with each
  * other (violating no-moving-targets-rule) they should have been epsilonized before (i.e. not the same timestamp).
  * This means that any order should be applicable, just using the original one should thus always work.
+ *
+ * \param [in] plan a vector of the plan's actions.
+ * Each action can consist of >= 1 PlanStep, thus there is a vector of PlanStep for each action.
+ * The reason is that during grounding, one ground action might be split into multiple operators with the same name.
  */
-bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
+bool MonitorEngine::validatePlan(const std::vector< std::vector<PlanStep> > & plan)
 {
     if(plan.empty()) {
         return g_initial_state->satisfies(g_goal);
@@ -175,25 +180,31 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
         for(deque<FullPlanTrace>::iterator it = currentTraces.begin(); it != currentTraces.end(); it++) {
             //printf("Checking STATE:\n");
             //it->dumpLastState();
+
             // if applicable apply the operator to every state in the queue
             FullPlanTrace curTrace = *it;
 
             if(g_parameters.monitoring_verify_timestamps) {
                 // this plan trace should now be at the start time of plan[i]
-                double dt = fabs(plan[i].start_time - curTrace.lastTimestamp());
+                double dt = fabs(plan[i].front().start_time - curTrace.lastTimestamp());
                 if(dt > EPS_TIME) {     // timestamp doesn't match -> stop this trace
                     continue;
                 }
             }
 
-            if(curTrace.isApplicable(plan[i].op)) {
-                FullPlanTrace nextTrace = curTrace.applyOperator(plan[i].op);
-                nextTraces.push_back(nextTrace);
+            // add all applicable versions of this operator
+            // FIXME use this plan[i] stuff as ref, better
+            for(std::vector<PlanStep>::const_iterator stepOpsIt = plan[i].begin();
+                    stepOpsIt != plan[i].end(); stepOpsIt++) {
+                if(curTrace.isApplicable(stepOpsIt->op)) {
+                    FullPlanTrace nextTrace = curTrace.applyOperator(stepOpsIt->op);
+                    nextTraces.push_back(nextTrace);
 
-                // for every state in the queue produce as many versions of let_time_pass
-                // as possible and construct the next queue from those
-                while(nextTraces.back().canLetTimePass()) {
-                    nextTraces.push_back(nextTraces.back().letTimePass());
+                    // for every state in the queue produce as many versions of let_time_pass
+                    // as possible and construct the next queue from those
+                    while(nextTraces.back().canLetTimePass()) {
+                        nextTraces.push_back(nextTraces.back().letTimePass());
+                    }
                 }
             }
         }
@@ -208,10 +219,10 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
         }
         currentTraces = nextTraces;
         if(currentTraces.empty()) {
-            ROS_INFO("Step [% 6d]: Could not apply operator: \"%s\" to any state.", i, plan[i].op->get_name().c_str());
+            ROS_INFO("Step [% 6d]: Could not apply operator: \"%s\" to any state.", i, plan[i].front().op->get_name().c_str());
             return false;
         }
-        ROS_DEBUG("Step [% 6d]: Applied operator: \"%s\"", i, plan[i].op->get_name().c_str());
+        ROS_DEBUG("Step [% 6d]: Applied operator: \"%s\"", i, plan[i].front().op->get_name().c_str());
     }
 
     // final step: Finalize all ops in queue by letting time pass to finish all ops
@@ -261,14 +272,14 @@ bool MonitorEngine::validatePlan(std::vector<PlanStep> & plan)
 }
 
 // TODO check this and use as verify-timestamps version if we can produce the plan for output
-bool MonitorEngine::validatePlanOld(const vector<PlanStep>& plan)
+bool MonitorEngine::validatePlanOld(const std::vector< std::vector<PlanStep> >& plan)
 {
     TimeStampedState current = *g_initial_state;
 
     for (int i = 0; i < plan.size(); i++) {
-        while (plan[i].start_time > current.timestamp) {
+        while (plan[i].front().start_time > current.timestamp) {
             double curren_time = current.timestamp;
-            if (plan[i].start_time - 2 * EPS_TIME - EPSILON
+            if (plan[i].front().start_time - 2 * EPS_TIME - EPSILON
                     <= current.timestamp) {
                 current.timestamp += EPS_TIME;
             } else {
@@ -279,14 +290,15 @@ bool MonitorEngine::validatePlanOld(const vector<PlanStep>& plan)
             }
         }
         cout << "Current time_stamp: " << current.timestamp << endl;
-        cout << "Next op: " << plan[i].op->get_name() << " ";
+        cout << "Next op: " << plan[i].front().op->get_name() << " ";
         // replace with correct function
-        if(!plan[i].op->is_applicable(current)) {
+        // FIXME: at this point the front() stuff is wrong
+        if(!plan[i].front().op->is_applicable(current)) {
             cout << "is not applicable!" << endl;
             return false;
         } else {
             cout << "is applicable!" << endl;
-            current = TimeStampedState(current,(*plan[i].op));
+            current = TimeStampedState(current,(*plan[i].front().op));
         }
     }
 

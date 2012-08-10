@@ -24,7 +24,7 @@ class FullPlanTrace
          public:
             FullPlanStep(const TimeStampedState & p, const Operator* o, const TimeStampedState & s)
                : predecessor(p), op(o), state(s) {}
-            
+
             TimeStampedState predecessor;
             const Operator* op;
             TimeStampedState state;
@@ -87,9 +87,21 @@ class MonitorEngine
         bool validatePlan(std::vector<std::string> & plan);
 
         /// Validate a plan.
-        bool validatePlan(std::vector<PlanStep> & plan);
+        bool validatePlan(const std::vector< std::vector<PlanStep> > & plan);
         /// Old version - no idea how that works
-        bool validatePlanOld(const std::vector<PlanStep> & plan) __attribute__((deprecated));
+        bool validatePlanOld(const std::vector< std::vector<PlanStep> > & plan) __attribute__((deprecated));
+};
+
+class PlanStepCompareStartTime
+{
+   public:
+      bool operator()(const std::vector<PlanStep> & s1, const std::vector<PlanStep> & s2) const {
+          if(s1.empty())
+              return false;
+          if(s2.empty())
+              return true;
+         return s1.front().start_time < s2.front().start_time;
+      }
 };
 
 #endif
