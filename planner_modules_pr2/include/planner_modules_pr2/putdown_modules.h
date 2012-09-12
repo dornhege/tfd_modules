@@ -20,12 +20,11 @@ static const bool g_Debug = false;
 /**
  * \returns true on success.
  */
-bool getPutdownPoses(const ParameterList & parameterList, predicateCallbackType predicateCallback,
-        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Response & putdownPoses);
+bool callFindPutdownPoseService(tidyup_msgs::GetPutdownPose & srv);
 
 /// Fill the GetPutdownPose Request from the planner state.
-bool fillPutdownRequest(const ParameterList & parameterList, predicateCallbackType predicateCallback,
-        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request);
+bool fillRequestAndCreatCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback,
+        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request, string& cacheKey);
 
 
 #ifdef __cplusplus
