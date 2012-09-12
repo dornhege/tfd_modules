@@ -232,6 +232,7 @@ double callPlanningService(nav_msgs::GetPlan& srv, const string& startLocationNa
     ros::Time callStartTime = ros::Time::now();
     // This construct is here, because when the robot is moving move_base will not produce other paths
     // we retry for a certain amount of time to not fail directly.
+    ROS_INFO_STREAM("planner call: start "<<srv.request.start.pose.position << ". goal " <<srv.request.goal.pose.position);
     static unsigned int failCounter = 0;
     ros::Rate retryRate = 1;
     do

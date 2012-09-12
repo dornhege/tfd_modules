@@ -25,10 +25,12 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 rosbuild_add_library(planner_modules_pr2
     src/navstack_module.cpp
     src/navstack_planning_scene_module.cpp
-    src/navstack_module_full_body.cpp)
+    src/navstack_module_full_body.cpp
+    src/tidyup_planning_scene_updater.cpp)
 
 rosbuild_add_library(putdown_modules
-    src/putdown_modules.cpp)
+    src/putdown_modules.cpp
+    src/tidyup_planning_scene_updater.cpp)
 
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
