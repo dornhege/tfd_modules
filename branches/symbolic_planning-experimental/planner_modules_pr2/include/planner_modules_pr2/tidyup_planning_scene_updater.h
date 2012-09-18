@@ -20,7 +20,9 @@ class TidyupPlanningSceneUpdater
 public:
     virtual ~TidyupPlanningSceneUpdater();
 
-    static bool readState(predicateCallbackType predicateCallback,
+    static bool readState(
+            const string& robotLocation,
+            predicateCallbackType predicateCallback,
             numericalFluentCallbackType numericalFluentCallback,
             geometry_msgs::Pose& robotPose,
             std::map<std::string, geometry_msgs::Pose>& movableObjects,
@@ -35,7 +37,9 @@ public:
 
 private:
     TidyupPlanningSceneUpdater();
-    bool readState_(predicateCallbackType predicateCallback,
+    bool readState_(
+            const string& robotLocation,
+            predicateCallbackType predicateCallback,
             numericalFluentCallbackType numericalFluentCallback,
             geometry_msgs::Pose& robotPose,
             std::map<std::string, geometry_msgs::Pose>& movableObjects,

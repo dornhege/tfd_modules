@@ -12,6 +12,7 @@
 #include <hardcoded_facts/geometryPoses.h>
 #include <ros/ros.h>
 
+using std::vector;
 using std::map;
 using std::set;
 using std::string;
@@ -39,7 +40,9 @@ TidyupPlanningSceneUpdater::~TidyupPlanningSceneUpdater()
 {
 }
 
-bool TidyupPlanningSceneUpdater::readState(predicateCallbackType predicateCallback,
+bool TidyupPlanningSceneUpdater::readState(
+        const string& robotLocation,
+        predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback,
         geometry_msgs::Pose& robotPose,
         map<string, geometry_msgs::Pose>& movableObjects,
@@ -48,10 +51,12 @@ bool TidyupPlanningSceneUpdater::readState(predicateCallbackType predicateCallba
         set<string>& openDoors)
 {
     if (instance == NULL) instance = new TidyupPlanningSceneUpdater();
-    return instance->readState_(predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors);
+    return instance->readState_(robotLocation, predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors);
 }
 
-bool TidyupPlanningSceneUpdater::readState_(predicateCallbackType predicateCallback,
+bool TidyupPlanningSceneUpdater::readState_(
+        const string& robotLocation,
+        predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback,
         geometry_msgs::Pose& robotPose,
         map<string, geometry_msgs::Pose>& movableObjects,
@@ -61,10 +66,11 @@ bool TidyupPlanningSceneUpdater::readState_(predicateCallbackType predicateCallb
 {
     // get poses of all movable objects
     PlanningSceneInterface* psi = PlanningSceneInterface::instance();
-    psi->resetPlanningScene();
+   // psi->resetPlanningScene();
     geometry_msgs::Pose pose;
     const vector <arm_navigation_msgs::CollisionObject>& collisionObjects = psi->getCollisionObjects();
-    for (vector <arm_navigation_msgs::CollisionObject>::const_iterator it = collisionObjects.begin(); it != collisionObjects.end(); it++)
+    for (vector <arm_navigation_msgs::CollisionObject>::const_iterator it = collisionObjects.begin();
+            it != collisionObjects.end(); it++)
     {
         const string& objectName = it->id;
         if (StringUtil::startsWith(objectName, "table"))
@@ -126,6 +132,12 @@ bool TidyupPlanningSceneUpdater::readState_(predicateCallbackType predicateCallb
             openDoors.insert(p.parameters.front().value);
         }
     }
+
+    // Robot pose
+    if (! fillPoseFromState(robotPose, robotLocation, numericalFluentCallback))
+    {
+        ROS_ERROR("%s get robot location failed.", logName.c_str());
+    }
     return true;
 }
 
@@ -153,19 +165,6 @@ bool TidyupPlanningSceneUpdater::update_(const geometry_msgs::Pose& robotPose,
     ArmState::get("/arm_configurations/side_tuck/position/", "right_arm").replaceJointPositions(state.joint_state);
     ArmState::get("/arm_configurations/side_tuck/position/", "left_arm").replaceJointPositions(state.joint_state);
 
-    // attach putdown object to the correct arm
-//    const arm_navigation_msgs::CollisionObject* object = psi->getCollisionObject(request.putdown_object);
-    for (map<string, string>::const_iterator graspedIt = graspedObjects.begin(); graspedIt != graspedObjects.end(); graspedIt++)
-    {
-        const string& objectName = graspedIt->first;
-        const string& arm = graspedIt->second;
-        ROS_INFO("%s attaching object %s to arm %s", logName.c_str(), objectName.c_str(), arm.c_str());
-        ArmState::get("/arm_configurations/side_carry/position/", arm).replaceJointPositions(state.joint_state);
-        psi->attachObjectToGripper(objectName, arm);
-        psi->updateObject(objectName, defaultAttachPose);
-    }
-    psi->setRobotState(state);
-
     // update pose of graspable object in the planning scene
     for(map<string, geometry_msgs::Pose>::const_iterator movabelObjectIt = movableObjects.begin(); movabelObjectIt != movableObjects.end(); movabelObjectIt++)
     {
@@ -187,6 +186,19 @@ bool TidyupPlanningSceneUpdater::update_(const geometry_msgs::Pose& robotPose,
             return false;
         }
     }
+
+    // attach putdown object to the correct arm
+//    const arm_navigation_msgs::CollisionObject* object = psi->getCollisionObject(request.putdown_object);
+    for (map<string, string>::const_iterator graspedIt = graspedObjects.begin(); graspedIt != graspedObjects.end(); graspedIt++)
+    {
+        const string& objectName = graspedIt->first;
+        const string& arm = graspedIt->second;
+        ROS_INFO("%s attaching object %s to arm %s", logName.c_str(), objectName.c_str(), arm.c_str());
+        ArmState::get("/arm_configurations/side_carry/position/", arm).replaceJointPositions(state.joint_state);
+        psi->attachObjectToGripper(objectName, arm);
+        psi->updateObject(objectName, defaultAttachPose);
+    }
+    psi->setRobotState(state);
 
     // update doors
     for (map<string, Door>::const_iterator doorIt = doors.begin(); doorIt != doors.end(); doorIt++)
