@@ -101,6 +101,8 @@ class ContinualPlanning
         bool _forceReplan;      ///< If true, someone want to hard trigger replanning in the next step
         ReplanningTriggerMethod _replanningTrigger;
 
+        bool _allowDirectGoalCheck;     ///< Allow to check reached goal by using the _goal instead of monitoring
+
         StatusPublisher _status;
 };
 
