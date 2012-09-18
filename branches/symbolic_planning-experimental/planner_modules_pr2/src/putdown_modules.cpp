@@ -380,9 +380,6 @@ bool findPutdownPose(const ParameterList & parameterList,
     }
 
     // call putdown service
-    srv.request.planning_scene = PlanningSceneInterface::instance()->getCurrentScene();
-//    PlanningSceneInterface::printDiff(srv.request.planning_scene, world);
-    PlanningSceneInterface::printObjects(srv.request.planning_scene);
     ROS_INFO("%s call putdown service", logName.c_str());
     if (! callFindPutdownPoseService(srv))
     {
