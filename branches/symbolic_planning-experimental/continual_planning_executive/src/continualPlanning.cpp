@@ -6,6 +6,7 @@
 ContinualPlanning::ContinualPlanning() : _planner(NULL)
 {
     _replanningTrigger = ReplanByMonitoring;
+    _allowDirectGoalCheck = false;      // OK, we do this via monitoring
     _forceReplan = true;
 }
 
@@ -20,7 +21,7 @@ ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
         return Running;
     }
 
-    if(isGoalFulfilled()) { // done!
+    if(_allowDirectGoalCheck && isGoalFulfilled()) { // done!
         _status.finishedContinualPlanning(true, "Goal fulfilled");
         return FinishedAtGoal;
     }
