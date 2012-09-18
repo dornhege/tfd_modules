@@ -147,7 +147,7 @@ string logName = "[psNavModule]";
 void planning_scene_navstack_init(int argc, char** argv)
 {
     navstack_init(argc, argv);
-    ROS_INFO("Initialized planning scene navstack module.\n");
+    ROS_INFO("%s initialized.", logName.c_str());
 }
 
 double planning_scene_pathCost(const ParameterList & parameterList,
@@ -160,12 +160,14 @@ double planning_scene_pathCost(const ParameterList & parameterList,
         return cost;
     }
     // read state
+    string robotLocation = parameterList[0].value;
     geometry_msgs::Pose robotPose;
     map<string, geometry_msgs::Pose> movableObjects;
     map<string, string> graspedObjects;
     map<string, string> objectsOnStatic;
     set<string> openDoors;
-    if (! TidyupPlanningSceneUpdater::readState(predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors))
+//    arm_navigation_msgs::PlanningScene world = PlanningSceneInterface::instance()->getCurrentScene();
+    if (! TidyupPlanningSceneUpdater::readState(robotLocation, predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors))
     {
         ROS_ERROR("%s read state failed.", logName.c_str());
         return INFINITE_COST;
@@ -176,6 +178,7 @@ double planning_scene_pathCost(const ParameterList & parameterList,
         ROS_ERROR("%s update planning scene failed.", logName.c_str());
         return INFINITE_COST;
     }
+//    PlanningSceneInterface::instance()->printDiffToCurrent(world);
     return pathCost(parameterList, predicateCallback, numericalFluentCallback, relaxed);
 }
 

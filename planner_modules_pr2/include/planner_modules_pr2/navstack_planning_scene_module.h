@@ -25,7 +25,6 @@ using namespace modules;
 //    PlanningSceneNavigationModule(){}
 //};
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

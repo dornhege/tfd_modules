@@ -3,6 +3,7 @@
 //#include "tidyup_utils/arm_state.h"
 //#include "tidyup_utils/planning_scene_interface.h"
 #include "planner_modules_pr2/tidyup_planning_scene_updater.h"
+#include "tidyup_utils/planning_scene_interface.h"
 //#include "tidyup_utils/transformer.h"
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -70,11 +71,6 @@ void putdown_init(int argc, char** argv)
 
     // initialize cache
     paramCache.initialize("putdown", g_NodeHandle);
-
-//    // empty key/no key maps to no pose
-//    PutdownCache::key_type empty_key;
-//    //g_PutdownCache.insert(make_pair(empty_key, make_pair(false, geometry_msgs::PoseStamped())));
-//    g_PutdownCache[empty_key] = make_pair(false, geometry_msgs::PoseStamped());
 
     defaultAttachPose.position.x = 0.032;
     defaultAttachPose.position.y = 0.015;
@@ -325,24 +321,26 @@ bool findPutdownPose(const ParameterList & parameterList,
         numericalFluentCallbackType numericalFluentCallback,
         geometry_msgs::Pose& putdown_pose)
 {
-    // read state
-    geometry_msgs::Pose robotPose;
-    map<string, geometry_msgs::Pose> movableObjects;
-    map<string, string> graspedObjects;
-    map<string, string> objectsOnStatic;
-    set<string> openDoors;
-    if (! TidyupPlanningSceneUpdater::readState(predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors))
-    {
-        ROS_ERROR("%s read state failed.", logName.c_str());
-        return false;
-    }
-
     // (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location)
     ROS_ASSERT(parameterList.size() == 4);
     Parameter putdown_object = parameterList[0];
     Parameter arm = parameterList[1];
     Parameter static_object = parameterList[2];
     Parameter robot_location = parameterList[3];
+
+    // read state
+    geometry_msgs::Pose robotPose;
+    map<string, geometry_msgs::Pose> movableObjects;
+    map<string, string> graspedObjects;
+    map<string, string> objectsOnStatic;
+    set<string> openDoors;
+    arm_navigation_msgs::PlanningScene world = PlanningSceneInterface::instance()->getCurrentScene();
+    if (! TidyupPlanningSceneUpdater::readState(robot_location.value, predicateCallback, numericalFluentCallback, robotPose, movableObjects, graspedObjects, objectsOnStatic, openDoors))
+    {
+        ROS_ERROR("%s read state failed.", logName.c_str());
+        return false;
+    }
+
     tidyup_msgs::GetPutdownPose srv;
     srv.request.static_object = static_object.value;
     srv.request.putdown_object = putdown_object.value;
@@ -382,16 +380,23 @@ bool findPutdownPose(const ParameterList & parameterList,
     }
 
     // call putdown service
-    ROS_DEBUG("%s call putdown service", logName.c_str());
+    srv.request.planning_scene = PlanningSceneInterface::instance()->getCurrentScene();
+//    PlanningSceneInterface::printDiff(srv.request.planning_scene, world);
+    PlanningSceneInterface::printObjects(srv.request.planning_scene);
+    ROS_INFO("%s call putdown service", logName.c_str());
     if (! callFindPutdownPoseService(srv))
     {
-        ROS_DEBUG("%s service returned: impossible", logName.c_str());
+        ROS_ERROR("%s service call failed", logName.c_str());
+    }
+    if (srv.response.error_code.val == srv.response.error_code.PLANNING_FAILED)
+    {
+        ROS_INFO("%s service returned: impossible", logName.c_str());
         paramCache.set(cacheKey, "impossible", true);
         return false;
     }
 
     // insert results into cache
-    ROS_DEBUG("%s service returned: pose found, adding to cache", logName.c_str());
+    ROS_INFO("%s service returned: pose found, adding to cache", logName.c_str());
     putdown_pose = srv.response.putdown_pose.pose;
     paramCache.set(cacheKey, writePoseToString(putdown_pose), true);
     return true;
