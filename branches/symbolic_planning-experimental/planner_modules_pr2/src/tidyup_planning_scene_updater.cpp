@@ -66,7 +66,7 @@ bool TidyupPlanningSceneUpdater::readState_(
 {
     // get poses of all movable objects
     PlanningSceneInterface* psi = PlanningSceneInterface::instance();
-    psi->resetPlanningScene();
+//    psi->resetPlanningScene();
     geometry_msgs::Pose pose;
     const vector <arm_navigation_msgs::CollisionObject>& collisionObjects = psi->getCollisionObjects();
     for (vector <arm_navigation_msgs::CollisionObject>::const_iterator it = collisionObjects.begin();

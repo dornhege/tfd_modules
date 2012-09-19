@@ -37,12 +37,6 @@ string g_WorldFrame;
 ros::NodeHandle* g_NodeHandle = NULL;
 ros::ServiceClient g_GetPutdownPose;
 
-// all params + blocking_objs -> success + the chosen putdown pose
-//typedef map< boost::tuple<string,string,string,string, set<string> >,
-//        pair<bool, geometry_msgs::PoseStamped> > PutdownCache;
-//
-//PutdownCache g_PutdownCache;
-
 ModuleParamCacheString paramCache;
 string separator = " ";
 
@@ -99,127 +93,31 @@ bool callFindPutdownPoseService(tidyup_msgs::GetPutdownPose & srv)
     ros::Time callStartTime = ros::Time::now();
 
     // perform the actual path planner call
-    if (g_GetPutdownPose.call(srv))
+    if (! g_GetPutdownPose.call(srv))
     {
-        if (g_Debug)
-        {
-            ros::Time callEndTime = ros::Time::now();
-            ros::Duration dt = callEndTime - callStartTime;
-            totalCallsTime += dt;
-            ROS_DEBUG("%s ServiceCall took: %f, avg: %f (num %f).", logName.c_str(),
-                    dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
-        }
-
-        if (srv.response.error_code.val == arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS)
-        {
-            ROS_INFO("%s Got a putdown pose.", logName.c_str());
-            return true;
-        }
-
-        ROS_WARN("%s GetPutdownPose failed. Reason: %s (%d)", logName.c_str(),
-                arm_navigation_msgs::armNavigationErrorCodeToString(srv.response.error_code).c_str(),
-                srv.response.error_code.val);
+        ROS_ERROR("%s Failed to call service %s.", logName.c_str(), g_GetPutdownPose.getService().c_str());
         return false;
     }
-
-    ROS_ERROR("%s Failed to call service %s.", logName.c_str(), g_GetPutdownPose.getService().c_str());
-    return false;
+    if (g_Debug)
+    {
+        ros::Time callEndTime = ros::Time::now();
+        ros::Duration dt = callEndTime - callStartTime;
+        totalCallsTime += dt;
+        ROS_DEBUG("%s ServiceCall took: %f, avg: %f (num %f).", logName.c_str(),
+                dt.toSec(), totalCallsTime.toSec()/plannerCalls, plannerCalls);
+    }
+//
+//    if (srv.response.error_code.val == arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS)
+//    {
+//        ROS_INFO("%s Got a putdown pose.", logName.c_str());
+//        return true;
+//    }
+//
+//    ROS_WARN("%s GetPutdownPose failed. Reason: %s (%d)", logName.c_str(),
+//            arm_navigation_msgs::armNavigationErrorCodeToString(srv.response.error_code).c_str(),
+//            srv.response.error_code.val);
+    return true;
 }
-
-//bool readState2(const ParameterList & parameterList,
-//        predicateCallbackType predicateCallback,
-//        numericalFluentCallbackType numericalFluentCallback,
-//        map<string, geometry_msgs::Pose>& objects)
-//{
-//    const Parameter& static_object;
-//    PredicateList* prdicates = NULL;
-//    if (!predicateCallback(prdicates))
-//    {
-//        ROS_ERROR("%s predicateCallback failed.");
-//        return false;
-//    }
-//    ROS_ASSERT(prdicates != NULL);
-//    for (PredicateList::iterator it = prdicates->begin(); it != prdicates->end(); it++)
-//    {
-//        Predicate p = *it;
-//        if (!p.value)
-//            continue;
-//        if (p.name == "on")
-//        {
-//            ROS_ASSERT(p.parameters.size() == 2);
-//            // (on movable static)
-//            if (p.parameters.back().value == static_object.value)
-//            {
-//                geometry_msgs::Pose pose;
-//                const string& objectName = p.parameters.front().value;
-//                if (! fillPoseFromState(pose, objectName, numericalFluentCallback))
-//                {
-//                    return false;
-//                }
-//                objects.insert(make_pair(objectName, pose));
-//            }
-//        }
-//        if (p.name == "grasped")
-//        {
-//            ROS_ASSERT(p.parameters.size() == 2);
-//            // (grasped object arm)
-//            // TODO: put them somewhere
-//        }
-//    }
-//    return true;
-//}
-
-//bool fillObjectsOnStatic(predicateCallbackType predicateCallback, Parameter static_object,
-//        vector<Parameter> & objects_on_static)
-//{
-//    PredicateList* list = NULL;
-//    if (!predicateCallback(list))
-//    {
-//        ROS_ERROR("%s predicateCallback failed.");
-//        return false;
-//    }
-//    ROS_ASSERT(list != NULL);
-//    for (PredicateList::iterator it = list->begin(); it != list->end(); it++)
-//    {
-//        Predicate p = *it;
-//        if (!p.value)
-//            continue;
-//        if (p.name != "on")
-//            continue;
-//        ROS_ASSERT(p.parameters.size() == 2);
-//        // (on movable static)
-//        if (p.parameters.back().value == static_object.value)
-//        {
-//            objects_on_static.push_back(p.parameters.front());
-//        }
-//    }
-//
-//    return true;
-//}
-
-//bool fillRequestAndCreatCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback,
-//        numericalFluentCallbackType numericalFluentCallback, tidyup_msgs::GetPutdownPose::Request & request, string& cacheKey)
-//{
-//    // get robot location, object and static object id, and arm from parameters
-//    // (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location)
-//    ROS_ASSERT(parameterList.size() == 4);
-//    Parameter putdown_object = parameterList[0];
-//    Parameter arm = parameterList[1];
-//    Parameter static_object = parameterList[2];
-//    Parameter robot_location = parameterList[3];
-//    request.static_object = static_object.value;
-//    request.putdown_object = putdown_object.value;
-//    request.arm = arm.value;
-//    ROS_INFO("%s putdown request: %s, %s, %s, %s", parameterList[0].value.c_str(), parameterList[1].value.c_str(), parameterList[2].value.c_str(), parameterList[3].value.c_str());
-//
-//    // get objects on static object from internal state
-////    vector<Parameter> objects_on_static;
-//    map<string, geometry_msgs::Pose> objects;
-//    if (! readState(predicateCallback, numericalFluentCallback, static_object, objects))
-//    {
-//        return false;
-//    }
-//}
 
 string writePoseToString(const geometry_msgs::Pose& pose)
 {
@@ -286,36 +184,6 @@ string createCacheKey(const string& putdownObject,
     return stream.str();
 }
 
-
-//PutdownCache::key_type createCacheKey(const ParameterList & parameterList, predicateCallbackType predicateCallback)
-//{
-//    PutdownCache::key_type ret;
-//
-//    ROS_ASSERT(parameterList.size() == 4);
-//    Parameter robot_location = parameterList[0];
-//    Parameter putdown_object = parameterList[1];
-//    Parameter static_object = parameterList[2];
-//    Parameter arm = parameterList[3];
-//
-//    vector<Parameter> objects_on_static;
-//    if(!fillObjectsOnStatic(predicateCallback, static_object, objects_on_static))
-//    {
-//        return ret;
-//    }
-//    set<string> blocking_objects;
-//    forEach(Parameter & p, objects_on_static) {
-//        blocking_objects.insert(p.value);
-//    }
-//
-//    ret.get<0>() = robot_location.value;
-//    ret.get<1>() = putdown_object.value;
-//    ret.get<2>() = static_object.value;
-//    ret.get<3>() = arm.value;
-//    ret.get<4>() = blocking_objects;
-//
-//    return ret;
-//}
-
 bool findPutdownPose(const ParameterList & parameterList,
         predicateCallbackType predicateCallback,
         numericalFluentCallbackType numericalFluentCallback,
@@ -372,6 +240,7 @@ bool findPutdownPose(const ParameterList & parameterList,
     }
 
     // no cache entry, set planning scene
+    PlanningSceneInterface::instance()->resetPlanningScene();
     ROS_DEBUG("%s set planning scene", logName.c_str());
     if (! TidyupPlanningSceneUpdater::update(robotPose, movableObjects, graspedObjects, openDoors))
     {
@@ -384,6 +253,7 @@ bool findPutdownPose(const ParameterList & parameterList,
     if (! callFindPutdownPoseService(srv))
     {
         ROS_ERROR("%s service call failed", logName.c_str());
+        return false;
     }
     if (srv.response.error_code.val == srv.response.error_code.PLANNING_FAILED)
     {
@@ -391,12 +261,19 @@ bool findPutdownPose(const ParameterList & parameterList,
         paramCache.set(cacheKey, "impossible", true);
         return false;
     }
+    if  (srv.response.error_code.val == srv.response.error_code.SUCCESS)
+    {
+        // insert results into cache
+        ROS_INFO("%s service returned: pose found, adding to cache", logName.c_str());
+        putdown_pose = srv.response.putdown_pose.pose;
+        paramCache.set(cacheKey, writePoseToString(putdown_pose), true);
+        return true;
+    }
 
-    // insert results into cache
-    ROS_INFO("%s service returned: pose found, adding to cache", logName.c_str());
-    putdown_pose = srv.response.putdown_pose.pose;
-    paramCache.set(cacheKey, writePoseToString(putdown_pose), true);
-    return true;
+    ROS_ERROR("%s GetPutdownPose failed. Reason: %s (%d)", logName.c_str(),
+            arm_navigation_msgs::armNavigationErrorCodeToString(srv.response.error_code).c_str(),
+            srv.response.error_code.val);
+    return false;
 }
 
 
