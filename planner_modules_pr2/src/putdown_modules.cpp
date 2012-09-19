@@ -122,7 +122,7 @@ bool callFindPutdownPoseService(tidyup_msgs::GetPutdownPose & srv)
 string writePoseToString(const geometry_msgs::Pose& pose)
 {
     std::stringstream stream;
-    stream.precision(3);
+    stream.precision(0);
     stream << std::fixed;
     stream << pose.position.x << separator;
     stream << pose.position.y << separator;
@@ -164,7 +164,7 @@ string createCacheKey(const string& putdownObject,
 {
     ROS_DEBUG("%s createCacheKey %s %s %s", logName.c_str(), putdownObject.c_str(), arm.c_str(), staticObject.c_str());
     std::stringstream stream;
-    stream.precision(3);
+    stream.precision(0);
     stream << std::fixed << putdownObject << arm << staticObject;
     for (map<string, string>::const_iterator objectIt = objectsOnStatic.begin(); objectIt != objectsOnStatic.end(); objectIt++)
     {
@@ -172,13 +172,29 @@ string createCacheKey(const string& putdownObject,
         if (objectIt->second == staticObject)
         {
             const geometry_msgs::Pose& pose = movableObjects.find(objectIt->first)->second;
-            stream << pose.position.x;
-            stream << pose.position.y;
-            stream << pose.position.z;
-            stream << pose.orientation.x;
-            stream << pose.orientation.y;
-            stream << pose.orientation.z;
-            stream << pose.orientation.w;
+            // the actual values don't matter as long as they are unique for this object
+            // cannot use doubles here, as param keys are not allowed to contain '.'
+            if(pose.position.x < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.position.x));
+            if(pose.position.y < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.position.y));
+            if(pose.position.z < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.position.z));
+            if(pose.orientation.x < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.orientation.x));
+            if(pose.orientation.y < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.orientation.y));
+            if(pose.orientation.z < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.orientation.z));
+            if(pose.orientation.w < 0)
+                stream << "N";
+            stream << abs(static_cast<int>(10000.0 * pose.orientation.w));
         }
     }
     return stream.str();
