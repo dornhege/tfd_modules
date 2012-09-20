@@ -47,7 +47,7 @@ class BestFirstSearchEngine : public SearchEngine
         std::vector<Heuristic *> preferred_operator_heuristics;
         std::vector<OpenListInfo> open_lists;
         ClosedList closed_list;
-        
+
         LogicalStateClosedList logical_state_closed_list;
 
         std::vector<double> best_heuristic_values;

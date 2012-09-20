@@ -12,6 +12,8 @@ PlannerParameters::PlannerParameters()
     disallow_concurrent_actions = false;
     timeout_while_no_plan_found = 0;
     timeout_if_plan_found = 0;
+    min_search_time_after_plan_found = 0;
+    min_search_time_factor_after_plan_found = 0.0;
 
     greedy = false;
     lazy_evaluation = true;
@@ -78,6 +80,16 @@ bool PlannerParameters::readParameters(int argc, char** argv)
         timeout_while_no_plan_found = 0;
         ret = false;
     }
+    if(min_search_time_after_plan_found < 0) {
+        cerr << "Error: min_search_time_after_plan_found < 0, have: " << min_search_time_after_plan_found << endl;
+        min_search_time_after_plan_found = 0;
+        ret = false;
+    }
+    if(min_search_time_factor_after_plan_found < 0.0) {
+        cerr << "Error: min_search_time_factor_after_plan_found < 0, have: " << min_search_time_factor_after_plan_found << endl;
+        min_search_time_factor_after_plan_found = 0.0;
+        ret = false;
+    }
     if(use_known_by_logical_state_only) {
         cerr << "WARNING: known by logical state only is experimental and might lead to incompleteness!" << endl;
     }
@@ -100,6 +112,8 @@ void PlannerParameters::dump() const
     if(timeout_while_no_plan_found == 0)
         cout << " (no timeout)";
     cout << endl;
+    cout << "Min search time after plan found: " << min_search_time_after_plan_found << " seconds" << endl;
+    cout << "Min search time factor after plan found: " << min_search_time_factor_after_plan_found << " seconds" << endl;
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
     cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
@@ -181,6 +195,10 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("disallow_concurrent_actions", disallow_concurrent_actions, disallow_concurrent_actions);
     nhPriv.param("timeout_if_plan_found", timeout_if_plan_found, timeout_if_plan_found);
     nhPriv.param("timeout_while_no_plan_found", timeout_while_no_plan_found, timeout_while_no_plan_found); 
+    nhPriv.param("min_search_time_after_plan_found",
+            min_search_time_after_plan_found, min_search_time_after_plan_found);
+    nhPriv.param("min_search_time_factor_after_plan_found",
+            min_search_time_factor_after_plan_found, min_search_time_factor_after_plan_found);
 
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
