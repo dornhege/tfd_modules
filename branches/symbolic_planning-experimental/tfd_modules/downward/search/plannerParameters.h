@@ -19,10 +19,12 @@ class PlannerParameters
    public:
       bool anytime_search;          ///< Perform anytime search (don't stop at first plan)
       bool disallow_concurrent_actions;     ///< Do NOT allow any concurrent actions, i.e. do NOT plan temporally
-      
+
       int timeout_if_plan_found;          ///< Timeout if a plan was found (0 - inf).
       int timeout_while_no_plan_found;    ///< Timeout while no plan found (0 - inf).
-      
+      int min_search_time_after_plan_found;     ///< Minimum search time after a plan was found, might result in extending the time over timeout_if_plan_found (0 - 0s, not inf)
+      double min_search_time_factor_after_plan_found;  ///< Min search time after plan was found as proportion to the search time until plan found (e.g. 0.2 = 20% more)
+
       bool greedy;                  ///< Perform greedy search
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
       bool verbose;                 ///< Verbose outputs
@@ -61,7 +63,7 @@ class PlannerParameters
 
       /** when enabled: if two plans have the same makespan, consider one better 
           if it has lower number of subgoals, otherwise same */
-      bool use_subgoals_to_break_makespan_ties;     
+      bool use_subgoals_to_break_makespan_ties;
  
       bool reschedule_plans;        ///< Use scheduler to reschedule found plans
       bool epsilonize_internally;   ///< add eps_time when applying an operator
@@ -72,7 +74,7 @@ class PlannerParameters
       string planMonitorFileName;   ///< Filename for monitoring (if set, implies monitoring mode)
 
       bool monitoring_verify_timestamps;     ///< During monitoring only accept the monitored plan if the timestamps match the original one.
-   
+
    protected:
       /// Read parameters from param server (ros must be initialized).
       bool readROSParameters();

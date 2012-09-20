@@ -6,6 +6,7 @@
 #include "plannerParameters.h"
 #include <time.h>
 #include <iomanip>
+#include "ros_printouts.h"
 
 #include <cassert>
 #include <cmath>
@@ -200,11 +201,33 @@ SearchEngine::status BestFirstSearchEngine::step()
 
     // use different timeouts depending if we found a plan or not.
     if(found_solution()) {
-        if (g_parameters.timeout_if_plan_found > 0 
+        static time_t first_solution_time = current_time;
+        // first check: timeout if plan found
+        if(g_parameters.timeout_if_plan_found > 0 
                 && current_time - start_time > g_parameters.timeout_if_plan_found) {
-            if(g_parameters.verbose)
-                statistics(current_time);
-            return SOLVED_TIMEOUT;
+            // second check: timeout from first plan found to min_search_time_after_plan_found
+            // only do this, if the extra time is request, otherwise we ran into the timeout
+            if(g_parameters.min_search_time_after_plan_found <= 0
+                    && g_parameters.min_search_time_factor_after_plan_found <= 0) {
+                ROS_INFO("Ran into timeout_if_plan_found");
+                if(g_parameters.verbose)
+                    statistics(current_time);
+                return SOLVED_TIMEOUT;
+            } else {
+                int extra_timeout = g_parameters.min_search_time_after_plan_found;
+                int proportion_extra =
+                    int(g_parameters.min_search_time_factor_after_plan_found
+                            * double(first_solution_time - start_time));
+                if(proportion_extra > extra_timeout)
+                    extra_timeout = proportion_extra;
+
+                if(current_time - first_solution_time > extra_timeout) {
+                    ROS_INFO("Ran into min_search_time_(factor_)after_plan_found");
+                    if(g_parameters.verbose)
+                        statistics(current_time);
+                    return SOLVED_TIMEOUT;
+                }
+            }
         }
     } else {
         if (g_parameters.timeout_while_no_plan_found > 0 

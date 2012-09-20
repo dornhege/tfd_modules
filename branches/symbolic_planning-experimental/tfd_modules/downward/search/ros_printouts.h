@@ -5,6 +5,7 @@
 
 #if ROS_BUILD
     // Nothing to do, use the ROS functionality
+    #include <ros/ros.h>
 #else
 
     #define ROS_DEBUG_STREAM(args) \
