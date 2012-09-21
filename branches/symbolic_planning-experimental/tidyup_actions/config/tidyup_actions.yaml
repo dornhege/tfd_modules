@@ -4,9 +4,9 @@ state_creators:
 goal_creators:
     - tidyup_actions/goal_creator_tidyup_objects
 action_executors:
-    - tidyup_actions/action_executor_pickup_object pickup-object /learned_grasping/learned_grasping_action
+    - tidyup_actions/action_executor_pickup_object pickup-object /tidyup/grasping_action
     - tidyup_actions/action_executor_putdown_object putdown-object /tidyup/placing_action
-    - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects /learned_grasping/request_objects_graspability table2_loc4
+    - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects /tidyup/request_graspability table2_loc4
     - tidyup_actions/action_executor_detect_door_state detect-door-state /tidyup/detect_door_state
     - tidyup_actions/action_executor_open_door open-door /tidyup/open_door
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base start recent-detected-objects false
