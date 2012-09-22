@@ -34,15 +34,19 @@ double g_RotSpeed = angles::from_degrees(30);
 // Better: Can we assume symmetric path costs?
 //map< pair<string,string>, double> g_PathCostCache;
 ModuleParamCacheDouble g_PathCostCache;
-string computePathCacheKey(const string& startLocation, const string& goalLocation)
+string computePathCacheKey(const string& startLocation, const string& goalLocation,
+        const geometry_msgs::Pose & startPose, const geometry_msgs::Pose & goalPose)
 {
+    std::string startPoseStr = createPoseParamString(startPose);
+    std::string goalPoseStr = createPoseParamString(goalPose);
+
     if (startLocation < goalLocation)
     {
-        return startLocation + "__" + goalLocation;
+        return startLocation + "_" + startPoseStr + "__" + goalLocation + "_" + goalPoseStr;
     }
     else
     {
-        return goalLocation + "__" + startLocation;
+        return goalLocation + "_" + goalPoseStr + "__" + startLocation + "_" + startPoseStr;
     }
 }
 
@@ -289,32 +293,27 @@ double pathCost(const ParameterList & parameterList,
     }
     ROS_ASSERT(parameterList.size() == 2);
 
-    // first lookup in the cache if we answered the query already
-    double cost = INFINITE_COST;
-    string cacheKey = computePathCacheKey(parameterList[0].value, parameterList[1].value);
-    if (g_PathCostCache.get(cacheKey, cost))
-    {
-        return cost;
-    }
-
-//    map<pair<string, string>, double>::iterator it = g_PathCostCache.find(make_pair(parameterList[0].value, parameterList[1].value));
-//    if (it != g_PathCostCache.end())
-//    {
-//        return it->second;
-//    }
-
     nav_msgs::GetPlan srv;
     if (!fillPathRequest(parameterList, numericalFluentCallback, srv.request))
     {
         return INFINITE_COST;
     }
+
+    // first lookup in the cache if we answered the query already
+    double cost = INFINITE_COST;
+    string cacheKey = computePathCacheKey(parameterList[0].value, parameterList[1].value, srv.request.start.pose, srv.request.goal.pose);
+    if (g_PathCostCache.get(cacheKey, cost))
+    {
+        return cost;
+    }
+
     bool callSuccessful;
     cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callSuccessful);
     if(callSuccessful) {      // only cache real computed paths (including INFINITE_COST)
-        bool isRobotLocation =
-            (parameterList[0].value == "robot_location" || parameterList[1].value == "robot_location");
-        g_PathCostCache.set(cacheKey, cost, !isRobotLocation);  // do no param cache robot_location calls
-//        g_PathCostCache[make_pair(parameterList[0].value, parameterList[1].value)] = cost;
+        //bool isRobotLocation =
+        //    (parameterList[0].value == "robot_location" || parameterList[1].value == "robot_location");
+        //g_PathCostCache.set(cacheKey, cost, !isRobotLocation);  // do no param cache robot_location calls
+        g_PathCostCache.set(cacheKey, cost, true);  // do param cache robot_location calls - they contain the location pose now (safe)
     }
     return cost;
 }

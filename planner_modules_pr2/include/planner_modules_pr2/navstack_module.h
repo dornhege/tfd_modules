@@ -36,7 +36,8 @@ extern double g_RotSpeed;   // rad/s
 // Better: Can we assume symmetric path costs?
 //extern std::map< std::pair<std::string, std::string>, double> g_PathCostCache;
 extern ModuleParamCacheDouble g_PathCostCache;
-string computePathCacheKey(const string& startLocation, const string& goalLocation);
+string computePathCacheKey(const string& startLocation, const string& goalLocation,
+        const geometry_msgs::Pose & startPose, const geometry_msgs::Pose & goalPose);
 
 bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
         nav_msgs::GetPlan::Request& request);

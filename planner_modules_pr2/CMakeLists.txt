@@ -23,6 +23,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(planner_modules_pr2
+    src/module_param_cache.cpp
     src/navstack_module.cpp
     src/navstack_planning_scene_module.cpp
     src/navstack_module_full_body.cpp

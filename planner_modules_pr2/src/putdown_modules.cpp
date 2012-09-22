@@ -174,27 +174,8 @@ string createCacheKey(const string& putdownObject,
             const geometry_msgs::Pose& pose = movableObjects.find(objectIt->first)->second;
             // the actual values don't matter as long as they are unique for this object
             // cannot use doubles here, as param keys are not allowed to contain '.'
-            if(pose.position.x < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.position.x));
-            if(pose.position.y < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.position.y));
-            if(pose.position.z < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.position.z));
-            if(pose.orientation.x < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.orientation.x));
-            if(pose.orientation.y < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.orientation.y));
-            if(pose.orientation.z < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.orientation.z));
-            if(pose.orientation.w < 0)
-                stream << "N";
-            stream << abs(static_cast<int>(10000.0 * pose.orientation.w));
+            std::string poseParamString = createPoseParamString(pose);
+            stream << poseParamString;
         }
     }
     return stream.str();
