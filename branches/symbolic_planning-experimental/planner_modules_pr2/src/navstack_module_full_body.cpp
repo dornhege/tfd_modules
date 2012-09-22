@@ -104,9 +104,15 @@ void fullbody_navstack_init(int argc, char** argv)
 double fullbody_pathCost(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
+    nav_msgs::GetPlan srv;
+    if (!fillPathRequest(parameterList, numericalFluentCallback, srv.request))
+    {
+        return INFINITE_COST;
+    }
+
     // first lookup in the cache if we answered the query already
     double cost = 0;
-    if (g_PathCostCache.get(computePathCacheKey(parameterList[0].value, parameterList[1].value), cost))
+    if (g_PathCostCache.get(computePathCacheKey(parameterList[0].value, parameterList[1].value, srv.request.start.pose, srv.request.goal.pose), cost))
     {
         return cost;
     }

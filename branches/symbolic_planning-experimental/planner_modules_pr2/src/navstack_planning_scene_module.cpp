@@ -153,12 +153,20 @@ void planning_scene_navstack_init(int argc, char** argv)
 double planning_scene_pathCost(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed)
 {
+    // need this for computing cache key
+    nav_msgs::GetPlan srv;
+    if (!fillPathRequest(parameterList, numericalFluentCallback, srv.request))
+    {
+        return INFINITE_COST;
+    }
+
     // first lookup in the cache if we answered the query already
     double cost = 0;
-    if (g_PathCostCache.get(computePathCacheKey(parameterList[0].value, parameterList[1].value), cost))
+    if (g_PathCostCache.get(computePathCacheKey(parameterList[0].value, parameterList[1].value, srv.request.start.pose, srv.request.goal.pose), cost))
     {
         return cost;
     }
+
     // read state
     string robotLocation = parameterList[0].value;
     geometry_msgs::Pose robotPose;

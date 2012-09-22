@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
 
 /// Module cache that allows to cache entries locally (for one run) or additionally
 /// on the param server between multiple runs. ValueType needs to be able to be written
@@ -60,6 +61,9 @@ private:
 
     std::map<std::string, ValueType> _localCache;  ///< local cache only for this planner run
 };
+
+/// Create a string from a Pose that is unique and can be stored in the param daemon.
+std::string createPoseParamString(const geometry_msgs::Pose & ps);
 
 #include "module_param_cache.hpp"
 
