@@ -11,7 +11,7 @@ namespace tidyup_actions
     void ActionExecutorDetectObjects::initialize(const std::deque<std::string> & arguments)
     {
         ActionExecutorService<tidyup_msgs::DetectGraspableObjects>::initialize(arguments);
-        requestGraspability = true;
+        requestGraspability = false;
         string graspabilityServiceName = "/learned_grasping/request_objects_graspability";
         tidyLocationName = "table1";
 
@@ -42,6 +42,8 @@ namespace tidyup_actions
     bool ActionExecutorDetectObjects::fillGoal(tidyup_msgs::DetectGraspableObjects::Request & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
+        ROS_ASSERT(a.parameters.size() == 1);
+        goal.static_object = a.parameters[0];
         return true;
     }
 
