@@ -140,7 +140,7 @@ namespace tidyup_actions
                 current.setBooleanPredicate("tidy-location", object.name + " " + tidyLocationName, true);
 
                 // add graspable predicates from current location
-                if(requestGraspability)
+                if(requestGraspability || true)
                 {
                     current.setBooleanPredicate("graspable-from", object.name + " " + location + " left_arm",
                            object.reachable_left_arm);
