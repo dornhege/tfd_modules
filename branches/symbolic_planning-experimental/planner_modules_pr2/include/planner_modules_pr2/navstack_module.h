@@ -9,8 +9,6 @@
 #include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 
-using namespace modules;
-
 /**
  * Simple module implementation for ROS navigation stack.
  *
@@ -39,7 +37,7 @@ extern ModuleParamCacheDouble g_PathCostCache;
 string computePathCacheKey(const string& startLocation, const string& goalLocation,
         const geometry_msgs::Pose & startPose, const geometry_msgs::Pose & goalPose);
 
-bool fillPathRequest(const ParameterList & parameterList, numericalFluentCallbackType numericalFluentCallback,
+bool fillPathRequest(const modules::ParameterList & parameterList, modules::numericalFluentCallbackType numericalFluentCallback,
         nav_msgs::GetPlan::Request& request);
 
 /// Return the cost of the plan.
@@ -58,8 +56,8 @@ extern "C" {
 
 void navstack_init(int argc, char** argv);
 
-double pathCost(const ParameterList & parameterList, predicateCallbackType predicateCallback, 
-        numericalFluentCallbackType numericalFluentCallback, int relaxed);
+double pathCost(const modules::ParameterList & parameterList, modules::predicateCallbackType predicateCallback, 
+        modules::numericalFluentCallbackType numericalFluentCallback, int relaxed);
 
 #ifdef __cplusplus
 }

@@ -33,6 +33,12 @@ rosbuild_add_library(putdown_modules
     src/putdown_modules.cpp
     src/tidyup_planning_scene_updater.cpp)
 
+rosbuild_find_ros_package(continual_planning_executive)
+rosbuild_add_executable(precache_navigation
+    src/precache_navigation.cpp
+    ${continual_planning_executive_PACKAGE_PATH}/src/symbolicState.cpp)
+target_link_libraries(precache_navigation planner_modules_pr2)
+
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)

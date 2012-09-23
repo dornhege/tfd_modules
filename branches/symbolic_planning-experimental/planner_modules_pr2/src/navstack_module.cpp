@@ -17,6 +17,9 @@ using std::pair; using std::make_pair;
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
+using namespace modules;
+
+
 VERIFY_CONDITIONCHECKER_DEF(pathCost);
 
 ros::NodeHandle* g_NodeHandle = NULL;
