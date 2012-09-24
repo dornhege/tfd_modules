@@ -6,6 +6,7 @@
 #include <pluginlib/class_loader.h>
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
+#include <signal.h>
 
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
 continual_planning_executive::StateCreator* s_StateCreatorRobotLocation = NULL;
@@ -14,7 +15,13 @@ continual_planning_executive::StateCreator* s_StateCreatorRobotLocationInRoom = 
 static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
 continual_planning_executive::GoalCreator* s_GoalCreator = NULL;
 
+bool keepRunning = true;
+
 //ModuleParamCacheDouble g_PathCostCache;
+void signal_handler(int )
+{
+    keepRunning = false;
+}
 
 bool loadStateCreator()
 {
@@ -160,13 +167,19 @@ bool fillPoseStamped(const std::string & name, const SymbolicState & state, geom
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "precache_navigation");
+    ros::init(argc, argv, "precache_navigation", ros::init_options::NoSigintHandler);
     ros::NodeHandle nh;
     tf::TransformListener tfl;
 
-    if(argc != 2) {
-        ROS_FATAL("Usage: %s <poses_file>", argv[0]);
+    if(argc != 2 && argc != 4) {
+        ROS_FATAL("Usage: %s <poses_file> [<start_location_name> <goal_location_name>]", argv[0]);
         return 1;
+    }
+    std::string startLocationName;
+    std::string goalLocationName;
+    if(argc == 4) {
+        startLocationName = argv[2];
+        goalLocationName = argv[3];
     }
 
     ROS_INFO("Loading poses from %s", argv[1]);
@@ -175,12 +188,9 @@ int main(int argc, char** argv)
     //    ROS_FATAL("Failed to load poses.");
     //    return 1;
     //}
-
     ros::NodeHandle nhPriv("~");
     // for the goal creator
     nhPriv.setParam("locations", argv[1]);
-
-    // TODO sigint
 
     if(!loadStateCreator()) {
         ROS_FATAL("Failed to load state creator.");
@@ -240,68 +250,89 @@ int main(int argc, char** argv)
     }
 
     const multimap<string, string> & typedObjects = currentState.getTypedObjects();
-    for(multimap<string, string>::const_iterator it1 = typedObjects.begin(); it1 != typedObjects.end(); it1++) {
-        //printf("At1 %s %s\n", it1->first.c_str(), it1->second.c_str());
-        if(it1->first != "manipulation_location"
-                && it1->first != "door_in_location"
-                && it1->first != "door_out_location")
-            continue;
-        Predicate inRoom1;
-        inRoom1.name = "location-in-room";
-        inRoom1.parameters.push_back(it1->second);
-        std::string room1;
-        if(!currentState.hasObjectFluent(inRoom1, &room1))
-            continue;
-        geometry_msgs::PoseStamped pose1;
-        if(!fillPoseStamped(it1->second, currentState, pose1)) {
-            ROS_ERROR("Could not find pose for %s.", it1->second.c_str());
-            continue;
-        }
+    if(startLocationName.empty() || goalLocationName.empty()) {
+        ::signal(SIGINT, signal_handler);
 
-        for(multimap<string, string>::const_iterator it2 = typedObjects.begin(); it2 != typedObjects.end(); it2++){
-            //printf("At2 %s %s\n", it2->first.c_str(), it2->second.c_str());
-            if(it2->first != "manipulation_location"
-                    && it2->first != "door_in_location"
-                    && it2->first != "door_out_location")
+        for(multimap<string, string>::const_iterator it1 = typedObjects.begin(); it1 != typedObjects.end(); it1++) {
+            //printf("At1 %s %s\n", it1->first.c_str(), it1->second.c_str());
+            if(it1->first != "manipulation_location"
+                    && it1->first != "door_in_location"
+                    && it1->first != "door_out_location")
                 continue;
-            if(it1->second == it2->second)
+            Predicate inRoom1;
+            inRoom1.name = "location-in-room";
+            inRoom1.parameters.push_back(it1->second);
+            std::string room1;
+            if(!currentState.hasObjectFluent(inRoom1, &room1))
                 continue;
-
-            Predicate inRoom2;
-            inRoom2.name = "location-in-room";
-            inRoom2.parameters.push_back(it2->second);
-            std::string room2;
-            if(!currentState.hasObjectFluent(inRoom2, &room2))
-                continue;
-
-            if(room1 != room2)
-                continue;
-            if(it2->first == "door_out_location")
-                continue;
-
-            geometry_msgs::PoseStamped pose2;
-            if(!fillPoseStamped(it2->second, currentState, pose2)) {
-                ROS_ERROR("Could not find pose for %s.", it2->second.c_str());
+            geometry_msgs::PoseStamped pose1;
+            if(!fillPoseStamped(it1->second, currentState, pose1)) {
+                ROS_ERROR("Could not find pose for %s.", it1->second.c_str());
                 continue;
             }
 
-            ROS_INFO("Precaching: %s - %s", it1->second.c_str(), it2->second.c_str());
-            precacheEntry(it1->second, it2->second, pose1, pose2);
+            for(multimap<string, string>::const_iterator it2 = typedObjects.begin(); it2 != typedObjects.end(); it2++){
+                //printf("At2 %s %s\n", it2->first.c_str(), it2->second.c_str());
+                if(it2->first != "manipulation_location"
+                        && it2->first != "door_in_location"
+                        && it2->first != "door_out_location")
+                    continue;
+                if(it1->second == it2->second)
+                    continue;
+
+                Predicate inRoom2;
+                inRoom2.name = "location-in-room";
+                inRoom2.parameters.push_back(it2->second);
+                std::string room2;
+                if(!currentState.hasObjectFluent(inRoom2, &room2))
+                    continue;
+
+                if(room1 != room2)
+                    continue;
+                if(it2->first == "door_out_location")
+                    continue;
+
+                geometry_msgs::PoseStamped pose2;
+                if(!fillPoseStamped(it2->second, currentState, pose2)) {
+                    ROS_ERROR("Could not find pose for %s.", it2->second.c_str());
+                    continue;
+                }
+
+                ROS_INFO("Precaching: %s - %s", it1->second.c_str(), it2->second.c_str());
+                precacheEntry(it1->second, it2->second, pose1, pose2);
+            }
+
+            // Also add paths for robot_location
+            if(room1 != roomRobotLocation)
+                continue;
+            if(it1->first == "door_out_location")
+                continue;
+
+            ROS_INFO("Precaching: %s - %s", "robot_location", it1->second.c_str());
+            precacheEntry("robot_location", it1->second, robotLocation, pose1);
+
+            if(!keepRunning) {
+                ROS_WARN("Canceled precached due to SIGINT.");
+                break;
+            }
+        }
+    } else {    // use startLocationName, goalLocationName
+        // FIXME: don't need to handle robot_location explicitly as it's named this in the currentState.
+        geometry_msgs::PoseStamped pose1;
+        if(!fillPoseStamped(startLocationName, currentState, pose1)) {
+            ROS_ERROR("Could not find pose for %s.", startLocationName.c_str());
+            return 1;
         }
 
-        // Also add paths for robot_location
-        if(room1 != roomRobotLocation)
-            continue;
-        if(it1->first == "door_out_location")
-            continue;
+        geometry_msgs::PoseStamped pose2;
+        if(!fillPoseStamped(goalLocationName, currentState, pose2)) {
+            ROS_ERROR("Could not find pose for %s.", goalLocationName.c_str());
+            return 1;
+        }
 
-        ROS_INFO("Precaching: %s - %s", "robot_location", it1->second.c_str());
-        precacheEntry("robot_location", it1->second, robotLocation, pose1);
+        ROS_INFO("Precaching: %s - %s", startLocationName.c_str(), goalLocationName.c_str());
+        precacheEntry(startLocationName, goalLocationName, pose1, pose2);
     }
-
-    // through door?
-    // robot location in room? for init robot_location caches
-    // TODO test precache run quick!
 
     /*
     // location pairs
@@ -322,13 +353,7 @@ int main(int argc, char** argv)
         precacheEntry("robot_location", it1->first, robotLocation, it1->second);
     }
     */
-    // TODO only same room
-    // TODO weird stuff happening
-    // door in/out
     // door needs to be open in planning scene
-    // please try only 1 goal pose
-    // table1 pose looks off
-
 
     ROS_INFO("Precaching done.\n\n\n");
 
