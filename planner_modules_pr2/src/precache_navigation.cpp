@@ -9,7 +9,7 @@
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
 continual_planning_executive::StateCreator* s_StateCreatorRobotLocation = NULL;
 
-ModuleParamCacheDouble g_PathCostCache;
+//ModuleParamCacheDouble g_PathCostCache;
 
 bool loadStateCreator()
 {
