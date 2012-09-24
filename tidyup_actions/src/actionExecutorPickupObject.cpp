@@ -30,6 +30,7 @@ namespace tidyup_actions
         string object = a.parameters[1];
         string static_object = a.parameters[2];
         string arm = a.parameters[3];
+// TODO: set grasp in symbolic state?       result.grasp;
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("PickupObject succeeded.");
             current.setBooleanPredicate("searched", location, false);
