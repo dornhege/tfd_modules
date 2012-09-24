@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include "planner_modules_pr2/module_param_cache.h"
-#include "hardcoded_facts/geometryPoses.h"
+//#include "hardcoded_facts/geometryPoses.h"
 #include "planner_modules_pr2/navstack_module.h"
 #include <pluginlib/class_loader.h>
 #include "continual_planning_executive/stateCreator.h"
@@ -170,11 +170,11 @@ int main(int argc, char** argv)
     }
 
     ROS_INFO("Loading poses from %s", argv[1]);
-    GeometryPoses posesLoader;
-    if(!posesLoader.load(argv[1])) {
-        ROS_FATAL("Failed to load poses.");
-        return 1;
-    }
+    //GeometryPoses posesLoader;
+    //if(!posesLoader.load(argv[1])) {
+    //    ROS_FATAL("Failed to load poses.");
+    //    return 1;
+    //}
 
     ros::NodeHandle nhPriv("~");
     // for the goal creator
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
 
     delete[] navstack_argv;
 
-    const std::map<std::string, geometry_msgs::PoseStamped> & poses = posesLoader.getPoses();
+    //const std::map<std::string, geometry_msgs::PoseStamped> & poses = posesLoader.getPoses();
 
     SymbolicState currentState;
     SymbolicState goalState;
