@@ -30,6 +30,7 @@ rosbuild_add_library(planner_modules_pr2
     src/tidyup_planning_scene_updater.cpp)
 
 rosbuild_add_library(putdown_modules
+    src/module_param_cache.cpp
     src/putdown_modules.cpp
     src/tidyup_planning_scene_updater.cpp)
 
