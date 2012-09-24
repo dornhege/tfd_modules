@@ -1,5 +1,6 @@
 #include "tidyup_actions/actionExecutorArmToSide.h"
 #include <pluginlib/class_list_macros.h>
+#include "tidyup_utils/planning_scene_interface.h"
 
 PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_arm_to_side,
         tidyup_actions::ActionExecutorArmToSide,
@@ -26,7 +27,10 @@ namespace tidyup_actions
 
     bool ActionExecutorArmToSide::fillGoal(tidyup_msgs::ArmToSideGoal & goal,
                         const DurativeAction & a, const SymbolicState & current)
-    {
+     {
+        if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
+            ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
+
         ROS_ASSERT(a.parameters.size() == 1);
         if(a.parameters[0] == "left_arm") {
             goal.left_arm = true;
