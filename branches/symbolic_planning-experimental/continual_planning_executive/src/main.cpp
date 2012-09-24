@@ -387,7 +387,7 @@ int main(int argc, char** argv)
 
     // clear module param cache
     if(!executeDebug)
-        nh.deleteParam("tfd_modules/module_cache");
+        nh.deleteParam("tfd_modules/module_cache/putdown");
 
     s_ContinualPlanning = new ContinualPlanning();
 
