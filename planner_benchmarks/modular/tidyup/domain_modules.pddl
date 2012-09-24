@@ -168,6 +168,7 @@
         :duration (= ?duration 5.0)
         :condition
         (and
+            (at start (= ?a left_arm))
             (at start (at-base ?l))
             (at start (= (belongs-to-door ?l) ?d))
             (at start (door-state-known ?d))
