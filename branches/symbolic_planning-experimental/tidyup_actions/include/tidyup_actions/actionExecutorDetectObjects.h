@@ -24,7 +24,7 @@ namespace tidyup_actions
             bool requestGraspability;
             string tidyLocationName;
 
-            std::string findStaticObjectForLocation(const std::string& location, SymbolicState & current) const;
+            std::string findStaticObjectForLocation(const std::string& location, const SymbolicState & current) const;
     };
 
 };

@@ -137,7 +137,7 @@ namespace tidyup_actions
         }
     }
 
-    std::string ActionExecutorDetectObjects::findStaticObjectForLocation(const std::string& location, SymbolicState & current) const
+    std::string ActionExecutorDetectObjects::findStaticObjectForLocation(const std::string& location, const SymbolicState & current) const
     {
         Predicate p;
         string static_object;
