@@ -14,6 +14,7 @@
   <depend package="hardcoded_facts"/>
   <depend package="tf"/>
   <depend package="continual_planning_executive"/>
+  <depend package="tidyup_utils"/>
 
   <export>
       <continual_planning_executive plugin="${prefix}/planner_navigation_actions_plugins.xml" />
