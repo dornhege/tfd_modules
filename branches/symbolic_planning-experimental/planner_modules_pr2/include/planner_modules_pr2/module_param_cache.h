@@ -63,7 +63,7 @@ private:
 };
 
 /// Create a string from a Pose that is unique and can be stored in the param daemon.
-std::string createPoseParamString(const geometry_msgs::Pose & ps);
+std::string createPoseParamString(const geometry_msgs::Pose & ps, double precPose = 0.0001, double precQuat = 0.0001);
 
 #include "module_param_cache.hpp"
 
