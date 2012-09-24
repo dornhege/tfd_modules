@@ -1,4 +1,4 @@
 <launch>
-    <node pkg="actionlib" type="axserver.py" args="/tidyup/open_door tidyup_msgs/OpenDoorAction" respawn="false" name="open_door" output="screen" />
+    <node pkg="fr_tools" type="sxserver.py" args="/tidyup/open_door std_srvs/Empty" respawn="false" name="open_door" output="screen" />
     <node pkg="fr_tools" type="sxserver.py" args="/tidyup/detect_door_state tidyup_msgs/DetectDoorState" respawn="false" name="detect_door_state" output="screen" />
 </launch>

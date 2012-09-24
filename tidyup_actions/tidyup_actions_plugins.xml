@@ -19,6 +19,10 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for opening doors</description>
     </class>
+    <class name="tidyup_actions/action_executor_open_door_service" type="tidyup_actions::ActionExecutorOpenDoorService"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for opening doors using service</description>
+    </class>
     <class name="tidyup_actions/action_executor_drive_through_door" type="tidyup_actions::ActionExecutorDriveThroughDoor"
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for driving from one to another door location</description>
@@ -32,7 +36,7 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>An action executor that moves an arm to a carry position.</description>
     </class>
-    
+
     <class name="tidyup_actions/goal_creator_tidyup_objects" type="tidyup_actions::GoalCreatorTidyupObjects" base_class_type="continual_planning_executive::GoalCreator">
         <description>Loads manipulation locations from a config file for static objects and doors and assigns them to their respective rooms.</description>
     </class>
