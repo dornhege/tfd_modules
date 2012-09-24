@@ -23,6 +23,8 @@ namespace tidyup_actions
             ros::ServiceClient serviceClientGraspability;
             bool requestGraspability;
             string tidyLocationName;
+
+            std::string findStaticObjectForLocation(const std::string& location, SymbolicState & current) const;
     };
 
 };
