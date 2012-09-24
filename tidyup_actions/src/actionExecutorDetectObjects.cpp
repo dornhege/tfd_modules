@@ -64,7 +64,7 @@ namespace tidyup_actions
             current.setBooleanPredicate("recent-detected-objects", location, true);
 
             std::vector<tidyup_msgs::GraspableObject>& objects = response.objects;
-            if(requestGraspability) {
+            if(requestGraspability && false) {
                 ROS_INFO("Requesting graspability.");
                 tidyup_msgs::RequestObjectsGraspability request;
                 request.request.objects = objects;
@@ -81,8 +81,8 @@ namespace tidyup_actions
 
             // remove objects form state, which were previously detected from this location
             Predicate p;
-            p.name = "detected-from";
-            p.parameters.pop_back();
+            p.name = "object-detected-from";
+            p.parameters.push_back("object");
             pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectRange =
                     current.getTypedObjects().equal_range("movable_object");
             for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
