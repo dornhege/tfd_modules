@@ -1,5 +1,6 @@
 #include "tidyup_actions/actionExecutorDetectDoorState.h"
 #include <pluginlib/class_list_macros.h>
+#include "tidyup_utils/planning_scene_interface.h"
 
 PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_detect_door_state,
         tidyup_actions::ActionExecutorDetectDoorState,
@@ -16,6 +17,9 @@ namespace tidyup_actions
     bool ActionExecutorDetectDoorState::fillGoal(tidyup_msgs::DetectDoorState::Request & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
+        if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
+            ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
+
         return true;
     }
 
@@ -24,7 +28,7 @@ namespace tidyup_actions
     {
         ROS_INFO("DetectDoorState returned result");
         if(success) {
-            ROS_INFO("DetectDoorState succeeded.");
+            ROS_INFO("DetectDoorState succeeded, door_open is: %d.", response.door_open);
             ROS_ASSERT(a.parameters.size() == 2);
             string location = a.parameters[0];
             string door = a.parameters[1];

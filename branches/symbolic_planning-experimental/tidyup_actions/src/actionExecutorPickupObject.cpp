@@ -1,5 +1,6 @@
 #include "tidyup_actions/actionExecutorPickupObject.h"
 #include <pluginlib/class_list_macros.h>
+#include "tidyup_utils/planning_scene_interface.h"
 
 PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_pickup_object,
         tidyup_actions::ActionExecutorPickupObject,
@@ -11,6 +12,9 @@ namespace tidyup_actions
     bool ActionExecutorPickupObject::fillGoal(tidyup_msgs::GraspObjectGoal & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
+        if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
+            ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
+
         ROS_ASSERT(a.parameters.size() == 4);
         string location = a.parameters[0];
         goal.pickup_object = a.parameters[1];
