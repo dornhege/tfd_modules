@@ -42,6 +42,7 @@ namespace tidyup_actions
             current.setBooleanPredicate("on", object + " " + static_object, false);
             current.setBooleanPredicate("graspable-from", object + " " + location + " left_arm", false);
             current.setBooleanPredicate("graspable-from", object + " " + location + " right_arm", false);
+            current.setObjectFluent("object-detected-from", object, "robot_location"); // FIXME hack, unset this
             // TODO: set false for other locations as well?
         }
         current.setObjectFluent("arm-state", arm, "arm_unknown");
