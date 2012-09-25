@@ -138,6 +138,9 @@ namespace tidyup_actions
                     current.setBooleanPredicate("graspable-from", object.name + " " + location + " right_arm", true);
                 }
             }
+
+            if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
+              ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
         }
     }
 
