@@ -23,6 +23,7 @@ rosbuild_add_library(tidyup_actions
     src/actionExecutorArmToCarry.cpp
     src/actionExecutorDriveThroughDoor.cpp
     src/actionExecutorOpenDoor.cpp
+    src/actionExecutorOpenDoorService.cpp
     src/actionExecutorPickupObject.cpp
     src/actionExecutorPutdownObject.cpp
     src/actionExecutorDetectObjects.cpp
