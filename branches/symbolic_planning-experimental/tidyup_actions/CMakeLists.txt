@@ -28,6 +28,7 @@ rosbuild_add_library(tidyup_actions
     src/actionExecutorPutdownObject.cpp
     src/actionExecutorDetectObjects.cpp
     src/actionExecutorDetectDoorState.cpp
+    src/actionExecutorDetectDoorStateAngle.cpp
     src/goalCreatorTidyupObjects.cpp
     src/robotPoseVisualization.cpp)
 
