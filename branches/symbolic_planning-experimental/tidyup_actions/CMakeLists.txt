@@ -26,6 +26,9 @@ rosbuild_add_library(tidyup_actions
     src/actionExecutorOpenDoorService.cpp
     src/actionExecutorPickupObject.cpp
     src/actionExecutorPutdownObject.cpp
+    src/actionExecutorPickupSponge.cpp
+    src/actionExecutorPutdownSponge.cpp
+    src/actionExecutorWipe.cpp
     src/actionExecutorDetectObjects.cpp
     src/actionExecutorDetectDoorState.cpp
     src/actionExecutorDetectDoorStateAngle.cpp

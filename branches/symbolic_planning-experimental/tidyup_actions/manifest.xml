@@ -23,6 +23,7 @@
   <depend package="tf"/>
   <depend package="visualization_msgs"/>
   <depend package="state_transformer"/>     <!-- from sushi -->
+  <depend package="coverage_srvs"/>
 
   <export>
       <continual_planning_executive plugin="${prefix}/tidyup_actions_plugins.xml" />

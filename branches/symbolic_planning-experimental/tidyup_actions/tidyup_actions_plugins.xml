@@ -7,6 +7,18 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for putting down objects</description>
     </class>
+    <class name="tidyup_actions/action_executor_pickup_sponge" type="tidyup_actions::ActionExecutorPickupSponge"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for picking up sponges</description>
+    </class>
+    <class name="tidyup_actions/action_executor_putdown_sponge" type="tidyup_actions::ActionExecutorPutdownSponge"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for putting down sponges</description>
+    </class>
+    <class name="tidyup_actions/action_executor_wipe" type="tidyup_actions::ActionExecutorWipe"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for wiping spot.</description>
+    </class>
     <class name="tidyup_actions/action_executor_detect_door_state" type="tidyup_actions::ActionExecutorDetectDoorState"
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for detecting the state of a door</description>
