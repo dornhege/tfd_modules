@@ -15,6 +15,7 @@
         static_object                   ; something static like a table
         door                            ; a door
         movable_object - pose           ; an object with pose that can be grasped
+        wipe_point - pose
 
         arm                             ; use left or right arm, see constants
         arm_state                    ; specific arm positions, see constants
@@ -41,11 +42,16 @@
 
         (can-grasp ?a - arm)                           ; is this arm allowed to grasp objects?
         (grasped ?o - movable_object ?a - arm)        ; grasped ?o with arm ?a
+        (grasped-sponge ?a - arm)
 
         (tidy-location ?o - movable_object ?s - static_object) ; if ?o is on ?s it is considered tidied
         (door-open ?d - door)
         (door-state-known ?d - door)
         ;(door-connects-rooms ?d - door ?r1 ?r2 - room) ; between which two room is the door?
+
+        ; wipe 
+        (wipe-point-on ?w - wipe_point ?o - static_object)
+        (wiped ?w - wipe_point)
     )
 
     (:functions
@@ -116,6 +122,58 @@
         )
     )
 
+    (:durative-action wipe 
+        :parameters (?l - manipulation_location w? - wipe_point ?s - static_object ?a - arm)
+        :duration (= ?duration 25.0)
+        :condition
+        (and
+            (at start (at-base ?l))
+            (at start (grasped-sponge ?a))
+            (at start (recent-detected-objects ?l))
+            (at start (arms-drive-pose))
+            (at start (static-object-at-location ?s ?l))
+            (at start (not (wiped ?w)))
+            (at start (wipe-spot-on ?w ?s))
+        )
+        :effect
+        (and
+            (at start (assign (arm-state ?a) arm_unknown))
+            (at end (wiped ?w))
+        )
+    )
+
+    (:durative-action pickup-sponge
+        :parameters (?a - arm)
+        :duration (= ?duration 5.0)
+        :condition
+        (and
+            (at start (= ?a right_arm))
+            (at start (can-grasp ?a))
+            (at start (hand-free ?a))
+            (at start (arms-drive-pose))
+        )
+        :effect
+        (and
+            (at end (grasped-sponge ?a))
+            (at start (assign (arm-state ?a) arm_unknown))
+        )
+    )
+    
+    (:durative-action putdown-sponge
+        :parameters (?a - arm)
+        :duration (= ?duration 5.0)
+        :condition
+        (and
+            (at start (grasped-sponge ?a))
+            (at start (arms-drive-pose))
+        )
+        :effect
+        (and
+            (at end (not (grasped-sponge ?a)))
+            (at start (assign (arm-state ?a) arm_unknown))
+        )
+    )
+
     (:durative-action detect-objects
         :parameters (?l - manipulation_location)
         :duration (= ?duration 1.0)
@@ -158,6 +216,7 @@
         :duration (= ?duration 5.0)
         :condition
         (and
+            (at start (= ?a left_arm))
             (at start (at-base ?l))
             (at start (= (belongs-to-door ?l) ?d))
             (at start (door-state-known ?d))
@@ -247,8 +306,11 @@
     (:derived
         (hand-free ?a - arm)
         (not
-            (exists (?_o - movable_object)
-                (grasped ?_o ?a)
+            (or
+                (exists (?_o - movable_object)
+                    (grasped ?_o ?a)
+                )
+                (grasped-sponge ?a)
             )
         )
     )
