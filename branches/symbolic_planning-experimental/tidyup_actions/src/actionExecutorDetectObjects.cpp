@@ -81,8 +81,9 @@ namespace tidyup_actions
 
             // remove objects form state, which were previously detected from this location
             Predicate p;
-            p.name = "object-detected-from";
+            p.name = "on";
             p.parameters.push_back("object");
+            p.parameters.push_back(static_object);
             pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> objectRange =
                     current.getTypedObjects().equal_range("movable_object");
             for (SymbolicState::TypedObjectConstIterator objectIterator = objectRange.first;
@@ -120,7 +121,7 @@ namespace tidyup_actions
                 current.setNumericalFluent("qw", object.name, object.pose.pose.orientation.w);
                 current.setNumericalFluent("timestamp", object.name, object.pose.header.stamp.toSec());
                 current.setBooleanPredicate("on", object.name + " " + static_object, true);
-                current.setObjectFluent("object-detected-from", object.name, location);
+                //current.setObjectFluent("object-detected-from", object.name, location);
                 // tidy-location: (tidy-location ?o ?s)
                 current.setBooleanPredicate("tidy-location", object.name + " " + tidyLocationName, true);
 

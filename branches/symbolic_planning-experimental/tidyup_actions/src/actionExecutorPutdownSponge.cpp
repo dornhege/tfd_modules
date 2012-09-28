@@ -27,10 +27,10 @@ namespace tidyup_actions
         string arm = a.parameters[0];
 
         if(success) {
-            ROS_INFO("PutdownSponge succeeded.");
+            ROS_INFO("putting down sponge with %s succeeded.", arm.c_str());
             current.setBooleanPredicate("grasped-sponge", arm, false);
         } else {
-            ROS_ERROR("PutdownSponge failed.");
+            ROS_ERROR("putting down sponge with %s FAILED.", arm.c_str());
         }
 
         current.setObjectFluent("arm-state", arm, "arm_unknown");
