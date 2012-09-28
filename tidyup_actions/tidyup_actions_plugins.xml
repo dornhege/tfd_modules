@@ -11,6 +11,10 @@
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for detecting the state of a door</description>
     </class>
+    <class name="tidyup_actions/action_executor_detect_door_state_angle" type="tidyup_actions::ActionExecutorDetectDoorStateAngle"
+        base_class_type="continual_planning_executive::ActionExecutorInterface">
+        <description>Action executor for detecting the state of a door by checking the opening angle.</description>
+    </class>
     <class name="tidyup_actions/action_executor_detect_objects" type="tidyup_actions::ActionExecutorDetectObjects"
         base_class_type="continual_planning_executive::ActionExecutorInterface">
         <description>Action executor for detecting objects on a table</description>

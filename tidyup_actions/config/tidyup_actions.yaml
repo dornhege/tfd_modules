@@ -7,7 +7,7 @@ action_executors:
     - tidyup_actions/action_executor_pickup_object pickup-object /tidyup/grasping_action
     - tidyup_actions/action_executor_putdown_object putdown-object /tidyup/placing_action
     - tidyup_actions/action_executor_detect_objects detect-objects /tidyup/detect_objects /tidyup/request_graspability table2_loc4
-    - tidyup_actions/action_executor_detect_door_state detect-door-state /tidyup/detect_door_state
+    - tidyup_actions/action_executor_detect_door_state_angle detect-door-state /door_manipulation/detect_door_state
     - tidyup_actions/action_executor_open_door_service open-door /door_manipulation/start_door_opening_sequence
     - planner_navigation_actions/action_executor_ros_navigation drive-base move_base start recent-detected-objects false
     - tidyup_actions/action_executor_drive_through_door drive-through-door move_base
