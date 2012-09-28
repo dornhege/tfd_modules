@@ -44,8 +44,8 @@ namespace tidyup_actions
                     open = false;
                     ROS_INFO("Angle was %f < %f - Door is closed.", response.angle, response.DOOR_CLOSED_ANGLE);
                 } else {
-                    ROS_ERROR("Angle was %f - Unidentified door state - assuming it is open!", response.angle);
-                    open = true;
+                    ROS_ERROR("Angle was %f - Unidentified door state - assuming it is closed!", response.angle);
+                    open = false;
                 }
             }
             current.setBooleanPredicate("door-state-known", door, true);
