@@ -68,7 +68,7 @@
         (arm-state ?a - arm) - arm_state
         (belongs-to-door ?l - door_location) - door
         (location-in-room ?l - location) - room
-        (object-detected-from ?o - movable_object) - manipulation_location
+        ;(object-detected-from ?o - movable_object) - manipulation_location
     )
 
     ; while at ?l grasp ?o from ?s using ?a
@@ -83,7 +83,7 @@
             (at start (hand-free ?a))
             (at start (graspable-from ?o ?l ?a))
             (at start (recent-detected-objects ?l))
-            (at start (= (object-detected-from ?o) ?l))
+            ;(at start (= (object-detected-from ?o) ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
         )
@@ -123,17 +123,18 @@
     )
 
     (:durative-action wipe 
-        :parameters (?l - manipulation_location w? - wipe_point ?s - static_object ?a - arm)
+        :parameters (?l - manipulation_location ?w - wipe_point ?s - static_object ?a - arm)
         :duration (= ?duration 25.0)
         :condition
         (and
             (at start (at-base ?l))
+            (at start (static-object-clear ?s))
             (at start (grasped-sponge ?a))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
             (at start (not (wiped ?w)))
-            (at start (wipe-spot-on ?w ?s))
+            (at start (wipe-point-on ?w ?s))
         )
         :effect
         (and
@@ -352,6 +353,11 @@
     (:derived
         (is-door-out-location ?l - door_location)
         (exists (?l2 - door_out_location) (= ?l ?l2))
+    )
+
+    (:derived
+        (static-object-clear ?s - static_object)
+        (not (exists (?_o - movable_object) (on ?_o ?s)))
     )
 
     ;;; The following derived predicates define when an object is considered tidy, i.e.
