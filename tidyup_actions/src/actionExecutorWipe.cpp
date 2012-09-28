@@ -61,10 +61,10 @@ namespace tidyup_actions
         string arm = a.parameters[3];
 
         if(success) {
-            ROS_INFO("Wipe succeeded.");
+            ROS_INFO("wiping %s on %s with %s succeeded.", wipe_point.c_str(), static_object.c_str(), arm.c_str());
             current.setBooleanPredicate("wiped", wipe_point, true);
         } else {
-            ROS_ERROR("Wiping failed.");
+            ROS_ERROR("wiping %s on %s with %s FAILED.", wipe_point.c_str(), static_object.c_str(), arm.c_str());
         }
         current.setObjectFluent("arm-state", arm, "arm_unknown");
     }

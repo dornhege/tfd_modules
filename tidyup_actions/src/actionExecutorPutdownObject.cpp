@@ -50,7 +50,7 @@ namespace tidyup_actions
             current.setNumericalFluent("qw", object, result.putdown_pose.pose.orientation.w);
             current.setNumericalFluent("timestamp", object, result.putdown_pose.header.stamp.sec);
             current.setObjectFluent("frame-id", object, result.putdown_pose.header.frame_id);
-            current.setObjectFluent("object-detected-from", object, location); // FIXME hack, reset this
+            //current.setObjectFluent("object-detected-from", object, location); // FIXME hack, reset this
         }
         current.setObjectFluent("arm-state", arm, "arm_unknown");
         current.setBooleanPredicate("recent-detected-objects", location, false);
