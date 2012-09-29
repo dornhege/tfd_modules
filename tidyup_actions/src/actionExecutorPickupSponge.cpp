@@ -29,6 +29,16 @@ namespace tidyup_actions
         if(success) {
             ROS_INFO("picking up sponge with %s succeeded.", arm.c_str());
             current.setBooleanPredicate("grasped-sponge", arm, true);
+
+            // tell world that we picked up the sponge
+            const char* ATTACH_SERVICE = "/tidyup/attach_sponge";
+            if(!ros::service::exists(ATTACH_SERVICE, true)) {
+                ROS_ERROR("%s: Service %s does not exist.", __func__, ATTACH_SERVICE);
+            }
+            std_srvs::Empty srv;
+            if(!ros::service::call(ATTACH_SERVICE, srv)) {
+                ROS_ERROR("%s: Service call to %s failed.", __func__, ATTACH_SERVICE);
+            }
         } else {
             ROS_ERROR("picking up sponge with %s FAILED.", arm.c_str());
         }
