@@ -142,6 +142,7 @@ namespace tidyup_actions
         goal.setForEachGoalStatement("manipulation_location", "searched", true);
         goal.setForEachGoalStatement("movable_object", "tidy", true);
         goal.setForEachGoalStatement("arm", "hand-free", true);
+        goal.setForEachGoalStatement("wipe_point", "wiped", true);
 
         currentState.setBooleanPredicate("can-grasp", "right_arm", true);
         currentState.setBooleanPredicate("can-grasp", "left_arm", true);
