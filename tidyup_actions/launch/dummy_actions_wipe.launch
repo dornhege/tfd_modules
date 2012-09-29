@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="fr_tools" type="sxserver.py" args="/tidyup/clean_spot coverage_srvs/CleanSpot" respawn="false" name="wipe" output="screen" />
+</launch>
