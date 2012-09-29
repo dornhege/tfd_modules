@@ -140,6 +140,66 @@ namespace tidyup_actions
                 }
             }
 
+            std::set<std::string> wipeGoalNames;
+            for(std::vector<tidyup_msgs::WipeGoal>::iterator it = response.wipe_goals.begin(); it != response.wipe_goals.end(); it++) {
+                tidyup_msgs::WipeGoal & wg = *it;
+                wipeGoalNames.insert(wg.name);
+
+                // add/update this wipe goal
+                current.addObject(wg.name, "wipe_point");   // this should never hurt, even if it's in there
+                if(wg.spot.header.frame_id.empty()) {
+                    ROS_ERROR("DetectGraspableObjects returned empty frame_id for wipe goal: %s", wg.name.c_str());
+                    wg.spot.header.frame_id = "INVALID_FRAME_ID";
+                }
+                current.addObject(wg.spot.header.frame_id, "frameid");
+                current.setObjectFluent("frame-id", wg.name, wg.spot.header.frame_id);
+                current.setNumericalFluent("x", wg.name, wg.spot.point.x);
+                current.setNumericalFluent("y", wg.name, wg.spot.point.y);
+                current.setNumericalFluent("z", wg.name, wg.spot.point.z);
+                current.setNumericalFluent("timestamp", wg.name, wg.spot.header.stamp.toSec());
+                // if not known, set initially false
+                Predicate wipedPred;
+                wipedPred.name = "wiped";
+                wipedPred.parameters.push_back(wg.name);
+                bool wiped;
+                if(!current.hasBooleanPredicate(wipedPred, &wiped)) {   // only set if unknown
+                    current.setBooleanPredicate("wiped", wg.name, false);
+                }
+                current.setBooleanPredicate("wipe-point-on", wg.name + " " + static_object, true);
+            }
+
+            // remove all the wipe goals at this static object that were not send in this detection
+            // (i.e. that are not in wipeGoalNames)
+            pair<SymbolicState::TypedObjectConstIterator, SymbolicState::TypedObjectConstIterator> wipePointRange =
+                current.getTypedObjects().equal_range("wipe_point");
+            std::set<std::string> nonMatchedWipePoints;
+            for(SymbolicState::TypedObjectConstIterator objectIterator = wipePointRange.first;
+                    objectIterator != wipePointRange.second; objectIterator++) {
+                // first check if this object is a wipe-point-on static_object
+                Predicate p;
+                p.name = "wipe-point-on";
+                string object = objectIterator->second;
+                p.parameters.push_back(object);
+                p.parameters.push_back(static_object);
+
+                bool wpOn = false;
+                if(!current.hasBooleanPredicate(p, &wpOn))
+                    continue;
+                if(!wpOn)
+                    continue;
+
+                // it is on static_object, next check if it was contained in this detection
+                if(wipeGoalNames.find(object) == wipeGoalNames.end()) {
+                    nonMatchedWipePoints.insert(object);
+                }
+            }
+            for(std::set<std::string>::iterator it = nonMatchedWipePoints.begin(); it != nonMatchedWipePoints.end(); it++) {
+                ROS_WARN("Removing non matched wipe point: %s.", it->c_str());
+                current.removeObject(*it, false);    // FIXME: do not remove the predicates
+                // this will remember that we wiped a spot, when we for some reason manage
+                // to find it again
+            }
+
             if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
               ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
         }
