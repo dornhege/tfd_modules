@@ -311,6 +311,13 @@ double pathCost(const ParameterList & parameterList,
         return cost;
     }
 
+    if(relaxed || true) {
+        std::vector<geometry_msgs::PoseStamped> directPath;
+        directPath.push_back(srv.request.start);
+        directPath.push_back(srv.request.goal);
+        return getPlanCost(directPath); 
+    }
+
     bool callSuccessful;
     cost = callPlanningService(srv, parameterList[0].value, parameterList[1].value, callSuccessful);
     if(callSuccessful) {      // only cache real computed paths (including INFINITE_COST)
