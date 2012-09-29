@@ -91,11 +91,10 @@ namespace tidyup_actions
             {
                 string object = objectIterator->second;
                 p.parameters[0] = object;
-                string detection_location;
-                if (current.hasObjectFluent(p, &detection_location))
+                bool onStatic = false;
+                if(current.hasBooleanPredicate(p, &onStatic))
                 {
-                    if (location == detection_location)
-                    {
+                    if(onStatic) {
                         current.removeObject(object, true);
                     }
                 }
