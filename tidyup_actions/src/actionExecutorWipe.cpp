@@ -20,7 +20,7 @@ namespace tidyup_actions
         if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
             ROS_ERROR("%s: PlanningScene reset failed.", __PRETTY_FUNCTION__);
 
-        goal.box_size = 0.3;
+        goal.box_size = 0.2;
 
         // get spot from state
         ROS_ASSERT(a.parameters.size() == 4);
