@@ -167,6 +167,13 @@ double planning_scene_pathCost(const ParameterList & parameterList,
         return cost;
     }
 
+    if(relaxed || true) {
+        std::vector<geometry_msgs::PoseStamped> directPath;
+        directPath.push_back(srv.request.start);
+        directPath.push_back(srv.request.goal);
+        return getPlanCost(directPath); 
+    }
+
     // read state
     string robotLocation = parameterList[0].value;
     geometry_msgs::Pose robotPose;
