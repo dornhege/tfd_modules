@@ -245,6 +245,9 @@ bool findPutdownPose(const ParameterList & parameterList,
         return false;
     }
 
+    // set planning scene in server call
+    srv.request.planning_scene = PlanningSceneInterface::instance()->getCurrentScene();
+
     // call putdown service
     ROS_INFO("%s call putdown service", logName.c_str());
     if (! callFindPutdownPoseService(srv))
