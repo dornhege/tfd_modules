@@ -11,10 +11,10 @@ namespace tidyup_actions
 
     void ActionExecutorDetectDoorStateAngle::initialize(const std::deque<std::string> & arguments)
     {
-        ActionExecutorService<tidyup_msgs::DoorState>::initialize(arguments);
+        ActionExecutorService<door_msgs::DoorStateSrv>::initialize(arguments);
     }
 
-    bool ActionExecutorDetectDoorStateAngle::fillGoal(tidyup_msgs::DoorState::Request & goal,
+    bool ActionExecutorDetectDoorStateAngle::fillGoal(door_msgs::DoorStateSrv::Request & goal,
             const DurativeAction & a, const SymbolicState & current)
     {
         if(!PlanningSceneInterface::instance()->resetPlanningScene())   // FIXME try anyways?
@@ -23,28 +23,28 @@ namespace tidyup_actions
         return true;
     }
 
-    void ActionExecutorDetectDoorStateAngle::updateState(bool success, tidyup_msgs::DoorState::Response & response,
+    void ActionExecutorDetectDoorStateAngle::updateState(bool success, door_msgs::DoorStateSrv::Response & response,
             const DurativeAction & a, SymbolicState & current)
     {
         ROS_INFO("DetectDoorStateAngle returned result");
         if(success) {
-            ROS_INFO("DetectDoorStateAngle succeeded, door_found is: %d, angle is: %f.", response.door_found, response.angle);
+            ROS_INFO("DetectDoorStateAngle succeeded, door_found is: %d, angle is: %f.", response.state.door_found, response.state.angle);
             ROS_ASSERT(a.parameters.size() == 2);
             string location = a.parameters[0];
             string door = a.parameters[1];
             bool open = false;
-            if(!response.door_found) {
+            if(!response.state.door_found) {
                 open = true;
                 ROS_INFO("No door found - assuming it is open.");
             } else {
-                if(response.angle >= response.DOOR_OPEN_ANGLE) {
+                if(response.state.angle >= response.state.DOOR_OPEN_ANGLE) {
                     open = true;
-                    ROS_INFO("Angle was %f > %f - Door is open.", response.angle, response.DOOR_OPEN_ANGLE);
-                } else if(response.angle <= response.DOOR_CLOSED_ANGLE) {
+                    ROS_INFO("Angle was %f > %f - Door is open.", response.state.angle, response.state.DOOR_OPEN_ANGLE);
+                } else if(response.state.angle <= response.state.DOOR_CLOSED_ANGLE) {
                     open = false;
-                    ROS_INFO("Angle was %f < %f - Door is closed.", response.angle, response.DOOR_CLOSED_ANGLE);
+                    ROS_INFO("Angle was %f < %f - Door is closed.", response.state.angle, response.state.DOOR_CLOSED_ANGLE);
                 } else {
-                    ROS_ERROR("Angle was %f - Unidentified door state - assuming it is closed!", response.angle);
+                    ROS_ERROR("Angle was %f - Unidentified door state - assuming it is closed!", response.state.angle);
                     open = false;
                 }
             }
