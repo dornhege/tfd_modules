@@ -1,6 +1,6 @@
 # DOORS: door_NAME_open and door_NAME_closed
 # kitchen door
-door_kitchen_open 0 0 /map 0.1089 -2.1063 1.0 0.0 0.0 0.9999 0.0016
-door_kitchen_closed 0 0 /map 0.63 -1.38 1.0 0.0 0.0 -0.5277 0.8493
+#door_kitchen_open 0 0 /map 0.1089 -2.1063 1.0 0.0 0.0 0.9999 0.0016
+#door_kitchen_closed 0 0 /map 0.63 -1.38 1.0 0.0 0.0 -0.5277 0.8493
 
 

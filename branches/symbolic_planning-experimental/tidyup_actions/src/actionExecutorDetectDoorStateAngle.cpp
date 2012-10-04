@@ -6,6 +6,8 @@ PLUGINLIB_DECLARE_CLASS(tidyup_actions, action_executor_detect_door_state_angle,
         tidyup_actions::ActionExecutorDetectDoorStateAngle,
         continual_planning_executive::ActionExecutorInterface)
 
+double ANGLE_EPSILON = 10 / 180.0 * 3.1415;
+
 namespace tidyup_actions
 {
 
@@ -40,9 +42,9 @@ namespace tidyup_actions
                 if(response.state.angle >= response.state.DOOR_OPEN_ANGLE) {
                     open = true;
                     ROS_INFO("Angle was %f > %f - Door is open.", response.state.angle, response.state.DOOR_OPEN_ANGLE);
-                } else if(response.state.angle <= response.state.DOOR_CLOSED_ANGLE) {
+                } else if(response.state.angle <= response.state.DOOR_CLOSED_ANGLE + ANGLE_EPSILON) {
                     open = false;
-                    ROS_INFO("Angle was %f < %f - Door is closed.", response.state.angle, response.state.DOOR_CLOSED_ANGLE);
+                    ROS_INFO("Angle was %f < %f - Door is closed.", response.state.angle, response.state.DOOR_CLOSED_ANGLE+ANGLE_EPSILON);
                 } else {
                     ROS_ERROR("Angle was %f - Unidentified door state - assuming it is closed!", response.state.angle);
                     open = false;
