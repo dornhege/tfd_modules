@@ -37,7 +37,6 @@ namespace tidyup_actions
 // TODO: set grasp in symbolic state?       result.grasp;
         if(actionReturnState == actionlib::SimpleClientGoalState::SUCCEEDED) {
             ROS_INFO("PickupObject succeeded.");
-            current.setBooleanPredicate("searched", location, false);
             current.setBooleanPredicate("grasped", object + " " + arm, true);
             current.setBooleanPredicate("on", object + " " + static_object, false);
             current.setBooleanPredicate("graspable-from", object + " " + location + " left_arm", false);
@@ -46,6 +45,7 @@ namespace tidyup_actions
             // TODO: set false for other locations as well?
         }
         current.setObjectFluent("arm-state", arm, "arm_unknown");
+        current.setBooleanPredicate("searched", location, false);
     }
 
 };
