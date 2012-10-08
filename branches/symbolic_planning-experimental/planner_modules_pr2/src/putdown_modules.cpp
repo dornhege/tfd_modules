@@ -282,6 +282,11 @@ double canPutdown(const ParameterList & parameterList,
         numericalFluentCallbackType numericalFluentCallback,
         int relaxed)
 {
+    if (relaxed != 0)
+    {
+        // skip computation for heuristic
+        return 0;
+    }
     if (g_Debug)
     { // prevent spamming ROS_DEBUG calls unless we really want debug
         // debugging raw planner calls

@@ -77,6 +77,8 @@ bool TidyupPlanningSceneUpdater::readState_(
             continue;
         if (StringUtil::startsWith(objectName, "door"))
             continue;
+        if (StringUtil::startsWith(objectName, "sponge"))
+            continue;
         if (! fillPoseFromState(pose, objectName, numericalFluentCallback))
         {
             psi->removeObject(objectName);
