@@ -1,4 +1,0 @@
-<launch>
-    <node pkg="fr_tools" type="sxserver.py" args="/door_manipulation/open_door std_srvs/Empty" respawn="false" name="open_door" output="screen" />
-    <node pkg="fr_tools" type="sxserver.py" args="/door_manipulation/detect_door_state tidyup_msgs/DoorState" respawn="false" name="detect_door_state" output="screen" />
-</launch>

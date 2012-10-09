@@ -1,3 +1,0 @@
-<launch>
-<include file="$(find pr2_build_map_gazebo_demo)/launch/pr2_build_map_gazebo_demo.launch" />
-</launch>

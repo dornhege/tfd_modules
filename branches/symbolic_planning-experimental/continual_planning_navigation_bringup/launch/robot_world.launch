@@ -1,8 +1,0 @@
-<launch>
-  <!-- start up world -->
-  <include file="$(find gazebo_worlds)/launch/office_world.launch"/>
-
-  <!-- start up robot -->
-  <include file="$(find pr2_gazebo)/pr2.launch"/>
-
-</launch>

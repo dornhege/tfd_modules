@@ -1,6 +1,0 @@
-<launch>
-  <node pkg="tfd_modules" type="tfd_plan" name="tfdplan" output="screen" args="$(find planner_benchmarks)/modular/crewplanning-modules/domain-modules.pddl $(find planner_benchmarks)/modular/crewplanning-modules/p01.pddl" required="true">
-    <rosparam command="load" file="$(find tfd_modules)/config/tfd_modules_params_no_anytime.yaml" />
-    <env name="LD_LIBRARY_PATH" value="$(find simple_modules)/lib:$(env LD_LIBRARY_PATH)" />
-  </node>
-</launch>
