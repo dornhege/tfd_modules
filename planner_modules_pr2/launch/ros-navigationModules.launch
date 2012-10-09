@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="tfd_modules" type="tfd_plan" name="tfdplan" output="screen" 
-     args="$(find planner_benchmarks)/modular/ros-navigation/domain_modules.pddl $(find planner_benchmarks)/modular/ros-navigation/p01.pddl" required="true">
-    <rosparam command="load" file="$(find tfd_modules)/config/tfd_modules_params_timeout_5min.yaml" />
-    <env name="LD_LIBRARY_PATH" value="$(find planner_modules_pr2)/lib:$(env LD_LIBRARY_PATH)" />
-  </node>
-</launch>

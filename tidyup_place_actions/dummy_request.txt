@@ -1,2 +1,0 @@
-objects:
-- {name: "bottle", pose: {header: {frame_id: "bottle_id"}, pose: {position: {x: 42}}}, reachable_right_arm: true, reachable_left_arm: true}
