@@ -1,6 +1,6 @@
 <stack>
   <description brief="symbolic_planning">The symbolic_planning stack contains symbolic planners (currently TFD/M), 
-    domain descriptions and additional packages for integration into ROS.</description>
+    domain descriptions and an executive for continual planning.</description>
   <author>Maintained by Christian Dornhege</author>
   <license>GPL,BSD</license>
   <review status="unreviewed" notes=""/>
