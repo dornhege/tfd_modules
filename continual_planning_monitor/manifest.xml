@@ -1,10 +1,9 @@
 <package>
   <description brief="continual_planning_monitor">
-
-     continual_planning_monitor
-
+      continual_planning_monitor contain a GUI to monitor and control the progress
+      of the continual_planning_executive.
   </description>
-  <author>dornhege</author>
+  <author>Christian Dornhege</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/continual_planning_monitor</url>
