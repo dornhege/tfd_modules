@@ -22,11 +22,11 @@
     )
 
     (:modules
-        (costDrive ?start ?goal - location cost planning_scene_pathCost@libplanner_modules_pr2.so)
-        (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libputdown_modules.so)
-        (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
-            (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
-            effect updatePutdownPose@libputdown_modules.so)
+;        (costDrive ?start ?goal - location cost planning_scene_pathCost@libplanner_modules_pr2.so)
+;        (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libputdown_modules.so)
+;        (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
+;            (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
+;            effect updatePutdownPose@libputdown_modules.so)
     )
 
     (:constants
@@ -101,6 +101,7 @@
             (at start (assign (arm-state ?a) arm_unknown))
             ; force re-detect objects after grasp
             (at end (not (searched ?l)))
+            (at end (not (recent-detected-objects ?l)))
             ; the object has been removed, therefore not graspable from any location or with any arm
             (at end (not (on ?o ?s)))
             (forall (?_a - arm) (forall (?_l - manipulation_location) (at end (not (graspable-from ?o ?_l ?_a))))) 
@@ -115,7 +116,7 @@
         (and
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
-            (at start ([canPutdown ?o ?a ?s ?l]))
+;            (at start ([canPutdown ?o ?a ?s ?l]))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
@@ -124,7 +125,7 @@
         (and
             (at end (not (grasped ?o ?a)))
             (at end (on ?o ?s))
-            (at end ([updatePutdownPose ?o ?a ?s ?l]))
+;            (at end ([updatePutdownPose ?o ?a ?s ?l]))
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (not (searched ?l)))
             (at end (not (recent-detected-objects ?l)))
@@ -245,7 +246,8 @@
 
     (:durative-action drive-base
         :parameters (?s - location ?g - location)
-        :duration (= ?duration [costDrive ?s ?g])
+;        :duration (= ?duration [costDrive ?s ?g])
+        :duration (= ?duration 1000)
         :condition
         (and
             (at start (at-base ?s))
