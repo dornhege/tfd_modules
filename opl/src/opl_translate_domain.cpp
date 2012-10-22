@@ -17,6 +17,8 @@
 #include "parsing/Parser.h"
 #include "InterfaceGenerator.h"
 #include "OPLSemantic.h"
+#include <ros/ros.h>
+#include <ros/package.h>
 
 using namespace std;
 
@@ -29,20 +31,11 @@ int main (int argc, char* argv[])
         printf("\naborting\n");
         return -1;
     }
+    ros::init(argc, argv, "opl_translate_domain");
     QString domainFileName = argv[1];
     int nameStartIndex = domainFileName.lastIndexOf("/") + 1;
     int nameEndIndex = domainFileName.lastIndexOf(".");
     QString domainName = domainFileName.mid(nameStartIndex, nameEndIndex - nameStartIndex);
-
-    QString destinationDirectory = "/tmp/";
-    if (argc == 3)
-    {
-        destinationDirectory = argv[2];
-        if (! destinationDirectory.endsWith("/"))
-        {
-            destinationDirectory.append("/");
-        }
-    }
 
     cout << "Parsing domain file: " << qPrintable(domainFileName) << endl;
     opl::Translator translator;
@@ -60,12 +53,37 @@ int main (int argc, char* argv[])
 
     domain->evaluate();
 
+    QString destinationDirectory("/tmp/");
+    if (argc == 3)
+    {
+        destinationDirectory = argv[2];
+        if (! destinationDirectory.endsWith("/"))
+        {
+            destinationDirectory.append("/");
+        }
+    }
     QDir directory(destinationDirectory);
     if (! directory.exists())
     {
         directory.mkpath(".");
     }
-    QString pddlDomainFileName = destinationDirectory + domainName + ".pddl";
+
+    // setup directories
+    QString projectName = "opl_"+domain->getName().toLower()+"_modules";
+    QDir projectDirectory(directory);
+    projectDirectory.mkpath(projectName);
+    projectDirectory.cd(projectName);
+    QDir domainDirectory(projectDirectory);
+    domainDirectory.mkpath("domain");
+    domainDirectory.cd("domain");
+
+    // copy opl domain file
+    QString oplDomainFileName = domainDirectory.absolutePath() +"/"+ domainName + ".opl";
+    QFile oplDomain(domainFileName);
+    oplDomain.copy(oplDomainFileName);
+
+    // write pddl domain file
+    QString pddlDomainFileName = domainDirectory.absolutePath() +"/"+ domainName + ".pddl";
     cout << "Writing domain: " << qPrintable(pddlDomainFileName) << endl;
     QFile domainFile(pddlDomainFileName);
     if (domainFile.exists())
@@ -78,11 +96,13 @@ int main (int argc, char* argv[])
     domainFile.close();
 
     // generate C++ module interface
-    QString basePath = getenv("TFD_HOME");
-    basePath += "/downward/opl/";
-    cout << "Reading templates from: " << qPrintable(basePath) << "templates" << endl;
-    cout << "Generating module interface to: " << qPrintable(basePath) << "generated" << endl;
-    opl::InterfaceGenerator generator(basePath+"templates", basePath+"generated");
+    QString basePath(ros::package::getPath("opl").c_str());
+    QDir templateDirectory(basePath);
+    templateDirectory.cd("templates");
+    ROS_ASSERT(templateDirectory.exists());
+    cout << "Reading templates from: " << qPrintable(templateDirectory.absolutePath()) << endl;
+    cout << "Generating module interface to: " << qPrintable(projectDirectory.absolutePath()) << endl;
+    opl::InterfaceGenerator generator(templateDirectory, projectDirectory, projectName);
     generator.createInterface(domain);
     cout << "Done "<< endl;
 

@@ -9,10 +9,7 @@ extern "C" {
 double <[Type]><[Name]>_plannerCall(const modules::ParameterList & parameterList,
         modules::predicateCallbackType predicateCallback,
         modules::numericalFluentCallbackType numericalFluentCallback,
-        int relaxed,
-        modules::plannerContextPtr context,
-        modules::plannerContextCompareType contextComp,
-        bool & tookContext);
+        int relaxed);
 
 #ifdef __cplusplus
 }

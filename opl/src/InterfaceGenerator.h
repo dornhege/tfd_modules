@@ -19,14 +19,15 @@ namespace opl
 
 class InterfaceGenerator
 {
-    QDir baseOutputDirectory;
-    QDir outputDirectory;
+    QDir projectDirectory;
+    QDir srcDirectory;
     QDir templateDirectory;
+    QString projectName;
     QHash<QString, QString> templates;
     QSet<QString> generatedSourceFiles;
 
 public:
-    InterfaceGenerator(const QString& templatePath, const QString& outputPath);
+    InterfaceGenerator(const QDir& templatePath, const QDir& outputPath, const QString& projectName);
     virtual ~InterfaceGenerator();
 
     void createInterface(const Element* domain);
@@ -42,7 +43,7 @@ private:
             QString& initialization,
             QSet<QString>& includeTypes);
     QString generateObjectTablePlacement(const Type*);
-    void writeToFile(const QString& content, const QString& filename, bool replaceExisting = true);
+    void writeToFile(const QString& content, QDir& directory, const QString& filename, bool replaceExisting = true);
 };
 
 }

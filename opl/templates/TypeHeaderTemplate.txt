@@ -2,7 +2,7 @@
 #ifndef <[Namespace]>_<[ObjectType]>_H_
 #define <[Namespace]>_<[ObjectType]>_H_
 
-#include "plannerInterface/oplObject.h"
+#include "tfd_modules/opl/oplObject.h"
 <[Include]>
 namespace opl
 {

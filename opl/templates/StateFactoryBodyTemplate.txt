@@ -1,13 +1,13 @@
 
 #include <assert.h>
 #include <iostream>
-#include "stringutil.h"
+#include "tfd_modules/opl/stringutil.h"
 #include "StateFactory.h"
 
 opl::interface::OplCallbackInterface* initCallbackInterface(
-        const ObjectStringList& objects,
-        const PredicateMapping& predicateMapping,
-        const FunctionMapping& functionMapping,
+        const modules::ObjectTypeMap& objects,
+        const modules::PredicateMapping& predicateMapping,
+        const modules::FunctionMapping& functionMapping,
         const modules::PredicateList& predicateConstants,
         const modules::NumericalFluentList& numericConstants)
 {
@@ -29,12 +29,12 @@ StateFactory::~StateFactory()
 {
 }
 
-opl::interface::AbstractState* StateFactory::instantiateState(const ObjectStringList& objects)
+opl::interface::AbstractState* StateFactory::instantiateState(const modules::ObjectTypeMap& objects)
 {
     State* state = new State();
 
     // create objects
-    for (ObjectStringList::const_iterator objectIterator = objects.begin(); objectIterator != objects.end(); objectIterator++)
+    for (modules::ObjectTypeMap::const_iterator objectIterator = objects.begin(); objectIterator != objects.end(); objectIterator++)
     {
         createObject(state, *objectIterator);
     }

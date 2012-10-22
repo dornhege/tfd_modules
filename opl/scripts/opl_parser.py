@@ -6,6 +6,7 @@ import sys
 
 from simpleparse.common import numbers, strings, comments
 from simpleparse.parser import Parser
+from simpleparse.dispatchprocessor import DispatchProcessor
 
 SCOPE_OPERATOR = '.'
 OBJECT_NAME = 'Object'

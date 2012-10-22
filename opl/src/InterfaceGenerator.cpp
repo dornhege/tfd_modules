@@ -9,12 +9,13 @@
 #include <QSet>
 #include <QTextStream>
 #include "InterfaceGenerator.h"
+#include <ros/ros.h>
 
 namespace opl
 {
 
-InterfaceGenerator::InterfaceGenerator(const QString& templatePath, const QString& outputPath)
-: baseOutputDirectory(outputPath), templateDirectory(templatePath)
+InterfaceGenerator::InterfaceGenerator(const QDir& templateDirectory, const QDir& projectDirectory, const QString& projectName)
+: projectDirectory(projectDirectory), templateDirectory(templateDirectory), projectName(projectName)
 {
     // load template files
     assert(templateDirectory.exists());
@@ -38,7 +39,13 @@ InterfaceGenerator::InterfaceGenerator(const QString& templatePath, const QStrin
     templates.insert(templateName, readTemplateFile(templateName));
     templateName = "ModuleBody";
     templates.insert(templateName, readTemplateFile(templateName));
-    templateName = "moduleQmake";
+//    templateName = "moduleQmake";
+//    templates.insert(templateName, readTemplateFile(templateName));
+    templateName = "manifest";
+    templates.insert(templateName, readTemplateFile(templateName));
+    templateName = "Makefile";
+    templates.insert(templateName, readTemplateFile(templateName));
+    templateName = "CMakeLists";
     templates.insert(templateName, readTemplateFile(templateName));
 
     QString templateSnippets = readTemplateFile("Snippets");
@@ -48,11 +55,6 @@ InterfaceGenerator::InterfaceGenerator(const QString& templatePath, const QStrin
         QStringList keyValue = it.next().split(":>");
         templates.insert(keyValue.first().trimmed(), keyValue.last());
     }
-    if (! baseOutputDirectory.exists())
-    {
-        baseOutputDirectory.mkpath(outputPath);
-    }
-
     generatedSourceFiles.clear();
 }
 
@@ -73,9 +75,9 @@ QString InterfaceGenerator::readTemplateFile(const QString& templateName)
 
 void InterfaceGenerator::createInterface(const Element* domain)
 {
-    baseOutputDirectory.mkpath(domain->getName());
-    outputDirectory = QDir(baseOutputDirectory);
-    outputDirectory.cd(domain->getName());
+    srcDirectory = QDir(projectDirectory);
+    srcDirectory.mkpath("src");
+    srcDirectory.cd("src");
 
     QSet<QString> includeTypes;
     QList<const Element*> globalFluents;
@@ -136,20 +138,20 @@ void InterfaceGenerator::createInterface(const Element* domain)
     header.replace("<[TypeListGetters]>", typeListGetters);
     header.replace("<[Namespace]>", domain->getName());
     generatedSourceFiles.insert("State");
-    writeToFile(header, "State.h");
+    writeToFile(header, srcDirectory, "State.h");
     QString body = templates.value("StateBody");
     body.replace("<[Initialization]>", initialization);
     body.replace("<[FluentImplementation]>", fluentImplementation);
     body.replace("<[ObjectType]>", "State");
     body.replace("<[ObjectTypePrefix]>", "");
     body.replace("<[Namespace]>", domain->getName());
-    writeToFile(body, "State.cpp");
+    writeToFile(body, srcDirectory, "State.cpp");
 
     // generate StateFactory
     generatedSourceFiles.insert("StateFactory");
     QString factoryHeader = templates.value("StateFactoryHeader");
     factoryHeader.replace("<[Namespace]>", domain->getName());
-    writeToFile(factoryHeader, "StateFactory.h");
+    writeToFile(factoryHeader, srcDirectory, "StateFactory.h");
     QString factoryBody = templates.value("StateFactoryBody");
     typeIterator.toFront();
     QString objectFactories;
@@ -165,9 +167,9 @@ void InterfaceGenerator::createInterface(const Element* domain)
     }
     factoryBody.replace("<[ObjectFactories]>",objectFactories);
     factoryBody.replace("<[Namespace]>", domain->getName());
-    writeToFile(factoryBody, "StateFactory.cpp");
+    writeToFile(factoryBody, srcDirectory, "StateFactory.cpp");
 
-    // generate qmake file
+    // generate project files
     QSetIterator<QString> sourceIterator(generatedSourceFiles);
     while (sourceIterator.hasNext())
     {
@@ -179,13 +181,22 @@ void InterfaceGenerator::createInterface(const Element* domain)
         snippet.replace("<[FileName]>", name);
         sourceFiles.append(snippet);
     }
-    QString qmake = templates.value("moduleQmake");
-    qmake.replace("<[HeaderFiles]>", headerFiles);
-    qmake.replace("<[SourceFiles]>", sourceFiles);
-    qmake.replace("<[Namespace]>", domain->getName());
-    QString qmakeFileName = domain->getName();
-    qmakeFileName.append(".pro");
-    writeToFile(qmake, qmakeFileName);
+//    QString qmake = templates.value("moduleQmake");
+//    qmake.replace("<[HeaderFiles]>", headerFiles);
+//    qmake.replace("<[SourceFiles]>", sourceFiles);
+//    qmake.replace("<[Namespace]>", domain->getName());
+//    QString qmakeFileName = domain->getName();
+//    qmakeFileName.append(".pro");
+//    writeToFile(qmake, qmakeFileName);
+    QString cmakelist = templates.value("CMakeLists");
+    cmakelist.replace("<[SourceFiles]>", sourceFiles);
+    cmakelist.replace("<[Namespace]>", projectName);
+    writeToFile(cmakelist, projectDirectory, "CMakeLists.txt");
+    QString manifest = templates.value("manifest");
+    manifest.replace("<[Namespace]>", projectName);
+    writeToFile(manifest, projectDirectory, "manifest.xml");
+    QString makefile = templates.value("Makefile");
+    writeToFile(makefile, projectDirectory, "Makefile");
 }
 
 void InterfaceGenerator::generateTypeFiles(const Type* type, const QString& domainName)
@@ -232,7 +243,7 @@ void InterfaceGenerator::generateTypeFiles(const Type* type, const QString& doma
     QString headerFileName = type->getName();
     generatedSourceFiles.insert(headerFileName);
     headerFileName.append(".h");
-    writeToFile(header, headerFileName);
+    writeToFile(header, srcDirectory, headerFileName);
 
     // cpp file
     QString body = templates.value("TypeBody");
@@ -244,7 +255,7 @@ void InterfaceGenerator::generateTypeFiles(const Type* type, const QString& doma
     body.replace("<[Namespace]>", domainName);
     QString bodyFileName = type->getName();
     bodyFileName.append(".cpp");
-    writeToFile(body, bodyFileName);
+    writeToFile(body, srcDirectory, bodyFileName);
 }
 
 QString InterfaceGenerator::generateIncludes(const QSet<QString> types)
@@ -337,7 +348,7 @@ void InterfaceGenerator::generateModule(const Element* module, const QString& do
     moduleAdaptorHeader.replace("<[Namespace]>", domainName);
     moduleAdaptorHeader.replace("<[Type]>", scopePrefix);
     moduleAdaptorHeader.replace("<[Name]>", module->getName());
-    writeToFile(moduleAdaptorHeader, baseFileName + "_plannerCall.h");
+    writeToFile(moduleAdaptorHeader, srcDirectory, baseFileName + "_plannerCall.h");
 
     // Module Adaptor Body
     moduleAdaptorBody.replace("<[ArgumentCount]>", QString::number(index));
@@ -346,21 +357,21 @@ void InterfaceGenerator::generateModule(const Element* module, const QString& do
     moduleAdaptorBody.replace("<[Namespace]>", domainName);
     moduleAdaptorBody.replace("<[Type]>", scopePrefix);
     moduleAdaptorBody.replace("<[Name]>", module->getName());
-    writeToFile(moduleAdaptorBody, baseFileName + "_plannerCall.cpp");
+    writeToFile(moduleAdaptorBody, srcDirectory, baseFileName + "_plannerCall.cpp");
 
     // Module Header
     moduleHeader.replace("<[Arguments]>", argumentSignatures);
     moduleHeader.replace("<[Namespace]>", domainName);
     moduleHeader.replace("<[Type]>", scopePrefix);
     moduleHeader.replace("<[Name]>", module->getName());
-    writeToFile(moduleHeader, baseFileName + ".h");
+    writeToFile(moduleHeader, srcDirectory, baseFileName + ".h");
 
     // Module Body
     moduleBody.replace("<[Arguments]>", argumentSignatures);
     moduleBody.replace("<[Namespace]>", domainName);
     moduleBody.replace("<[Type]>", scopePrefix);
     moduleBody.replace("<[Name]>", module->getName());
-    writeToFile(moduleBody, baseFileName + ".cpp", false);
+    writeToFile(moduleBody, srcDirectory, baseFileName + ".cpp", false);
 }
 
 void InterfaceGenerator::generateFluent(const Element* fluent,
@@ -471,10 +482,10 @@ QString InterfaceGenerator::generateObjectTablePlacement(const Type* type)
     return placement;
 }
 
-void InterfaceGenerator::writeToFile(const QString& content, const QString& filename, bool replaceExisting)
+void InterfaceGenerator::writeToFile(const QString& content, QDir& directory, const QString& filename, bool replaceExisting)
 {
     QFile generatedFile;
-    generatedFile.setFileName(outputDirectory.filePath(filename));
+    generatedFile.setFileName(directory.filePath(filename));
     if (replaceExisting)
     {
         if (generatedFile.exists())
