@@ -16,20 +16,20 @@ namespace interface
 {
 
 opl::interface::AbstractState* AbstractStateFactory::createState(
-        const ObjectTypeMap& objects,
-        const PredicateMapping& predicateMapping,
-        const FunctionMapping& functionMapping,
+        const modules::ObjectTypeMap& objects,
+        const modules::PredicateMapping& predicateMapping,
+        const modules::FunctionMapping& functionMapping,
         const modules::PredicateList& predicateConstants,
         const modules::NumericalFluentList& numericConstants)
 {
     AbstractState* state = instantiateState(objects);
 
     // create fluents mappings
-    for (PredicateMapping::const_iterator fluentIterator = predicateMapping.begin(); fluentIterator != predicateMapping.end(); fluentIterator++)
+    for (modules::PredicateMapping::const_iterator fluentIterator = predicateMapping.begin(); fluentIterator != predicateMapping.end(); fluentIterator++)
     {
         createFluentMapping(state, *fluentIterator);
     }
-    for (FunctionMapping::const_iterator fluentIterator = functionMapping.begin(); fluentIterator != functionMapping.end(); fluentIterator++)
+    for (modules::FunctionMapping::const_iterator fluentIterator = functionMapping.begin(); fluentIterator != functionMapping.end(); fluentIterator++)
     {
         createFluentMapping(state, *fluentIterator);
     }
@@ -49,7 +49,7 @@ opl::interface::AbstractState* AbstractStateFactory::createState(
     return state;
 }
 
-void AbstractStateFactory::createFluentMapping(AbstractState* state, const std::pair<const std::string, ::VarVal>& mapping)
+void AbstractStateFactory::createFluentMapping(AbstractState* state, const std::pair<const std::string, modules::VarVal>& mapping)
 {
     vector<string> arguments = StringUtil::split(mapping.first, " ");
     std::string fluentName = arguments.front();
