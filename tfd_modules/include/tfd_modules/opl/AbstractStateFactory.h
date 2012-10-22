@@ -21,16 +21,17 @@ class AbstractStateFactory
 {
 public:
     opl::interface::AbstractState* createState(
-            const ObjectTypeMap& objects,
-            const PredicateMapping& predicateMapping,
-            const FunctionMapping& functionMapping,
+            const modules::ObjectTypeMap& objects,
+            const modules::PredicateMapping& predicateMapping,
+            const modules::FunctionMapping& functionMapping,
             const modules::PredicateList& predicateConstants,
             const modules::NumericalFluentList& numericConstants);
+    virtual ~AbstractStateFactory();
 
 protected:
-    virtual AbstractState* instantiateState(const ObjectTypeMap& objects) = 0;
+    virtual AbstractState* instantiateState(const modules::ObjectTypeMap& objects) = 0;
     /// predicate / object fluent mappings
-    void createFluentMapping(AbstractState* state, const std::pair<const std::string, ::VarVal>& mapping);
+    void createFluentMapping(AbstractState* state, const std::pair<const std::string, modules::VarVal>& mapping);
     /// numeric fluent mappings
     void createFluentMapping(AbstractState* state, const std::pair<const std::string, int>& mapping);
     /// constant predicate / object mappings

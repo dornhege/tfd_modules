@@ -3,6 +3,7 @@
 #define OPL_OBJECT_H_
 
 #include <string>
+#include "tfd_modules/module_api/pddlModuleTypes.h"
 #include "tfd_modules/opl/ObjectLookupTable.h"
 
 namespace opl

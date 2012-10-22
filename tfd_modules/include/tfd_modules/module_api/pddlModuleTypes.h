@@ -22,6 +22,8 @@ using std::string;
 using std::vector;
 using std::map;
 
+namespace modules
+{
 // callback interface typedefs
 typedef std::pair<int, int> VarVal;
 typedef std::tr1::unordered_map<string, VarVal> PredicateMapping;
@@ -29,8 +31,6 @@ typedef std::tr1::unordered_map<string, int> FunctionMapping;
 //typedef std::vector<std::pair<std::string, std::string> > ObjectStringList;
 typedef std::map<std::string, std::string> ObjectTypeMap;
 
-namespace modules
-{
 
 const double INFINITE_COST = HUGE_VAL;
 

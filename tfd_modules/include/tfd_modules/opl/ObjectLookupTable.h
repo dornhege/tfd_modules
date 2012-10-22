@@ -30,6 +30,7 @@ public:
     virtual bool getPredicateValue(const FluentMapping* variable) const = 0;
     virtual double getNumericValue(const FluentMapping* variable) const = 0;
     virtual const Object* getObject(const FluentMapping* variable) const = 0;
+    virtual ~ObjectLookupTable();
 };
 
 }
