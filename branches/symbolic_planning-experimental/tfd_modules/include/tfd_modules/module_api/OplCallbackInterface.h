@@ -21,7 +21,7 @@ namespace interface
 class OplCallbackInterface
 {
 public:
-    virtual ~OplCallbackInterface();
+    virtual ~OplCallbackInterface() {}
     virtual void setCurrentState(const TimeStampedState* currentState) = 0;
 
     virtual void dump() const = 0;
