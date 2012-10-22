@@ -30,7 +30,7 @@ public:
     const QStringList& getArgumentConfigurationKeywords() const {return argumentConfigurationKeywords;}
     const QStringList& getBodyConfigurationKeywords() const {return bodyConfigurationKeywords;}
     const QStringList& getScopedAccessConfigurationKeywords() const {return scopedAccessConfigurationKeywords;}
-    virtual ~ElementStructure();
+    virtual ~ElementStructure(){;}
 };
 
 }
