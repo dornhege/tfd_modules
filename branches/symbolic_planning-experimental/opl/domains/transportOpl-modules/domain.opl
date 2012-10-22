@@ -1,6 +1,6 @@
 // OPL conversion of Transport-modules domain
 
-Domain TransportModules
+Domain Transport
 {
     Type Target;
     Type Location

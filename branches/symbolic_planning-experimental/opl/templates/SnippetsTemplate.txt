@@ -8,7 +8,7 @@ FluentImplementation:><[Type]> <[ObjectType]>::<[FluentName]>(<[Arguments]>) con
 }
 
 <:
-FluentVariable:>    const opl::interface::VarVal* <[FluentName]>Variable;
+FluentVariable:>    const opl::interface::FluentMapping* <[FluentName]>Variable;
 <:
 FluentLookup:>    std::vector<std::string> <[FluentName]>Arguments;
     <[FluentName]>Arguments.push_back(getObjectID());
@@ -25,10 +25,10 @@ TypeList:>
 TypeListGetter:>
     const std::map<std::string, <[Type]>*>& get<[Type]>s() const {return <[Name]>;}<:
 HeaderFile:>
-    <[FileName]>.h \<:
+    src/<[FileName]>.h<:
 SourceFile:>
-    <[FileName]>.cpp \<:
-DirectAccessVariable:>    const opl::interface::VarVal* <[FluentName]>Pointer;
+    src/<[FileName]>.cpp<:
+DirectAccessVariable:>    const opl::interface::FluentMapping* <[FluentName]>Pointer;
 <:
 Argument:><[Type]> <[Name]>, <:
 KeyFragment:>    <[FluentName]>Arguments.push_back(<[ArgumentName]>->getObjectID());

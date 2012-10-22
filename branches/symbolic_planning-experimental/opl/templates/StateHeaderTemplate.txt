@@ -2,7 +2,7 @@
 #ifndef <[Namespace]>_STATE_H_
 #define <[Namespace]>_STATE_H_
 
-#include "plannerInterface/AbstractState.h"
+#include "tfd_modules/opl/AbstractState.h"
 <[Include]>
 
 namespace opl

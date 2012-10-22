@@ -16,11 +16,17 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+find_package(Qt4 REQUIRED)
+#set( QT_USE_QTGUI TRUE )
+#set( QT_USE_QTOPENGL TRUE )
+#set( QT_USE_QTXML TRUE )
+include(${QT_USE_FILE})
+
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
-
+include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/parsing)
 set(opl_SOURCES
    src/Domain.cpp
    src/DurativeAction.cpp
@@ -68,9 +74,9 @@ set(opl_SOURCES
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-#rosbuild_add_library(opl ${opl_SOURCES})
-#rosbuild_add_executable(opl_translate_domain src/opl_translate_domain.cpp)
-#target_link_libraries(opl_translate_domain opl dl)
-#rosbuild_add_executable(opl_translate_problem src/opl_translate_problem.cpp)
-#target_link_libraries(opl_translate_problem opl dl)
+rosbuild_add_library(opl ${opl_SOURCES})
+rosbuild_add_executable(opl_translate_domain src/opl_translate_domain.cpp)
+target_link_libraries(opl_translate_domain opl dl ${QT_LIBRARIES})
+rosbuild_add_executable(opl_translate_problem src/opl_translate_problem.cpp)
+target_link_libraries(opl_translate_problem opl dl ${QT_LIBRARIES})
 

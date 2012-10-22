@@ -1,0 +1,14 @@
+<package>
+  <description brief="OPL <[Namespace]> Modules">
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/opl_<[Namespace]>_modules</url>
+
+  <depend package="roscpp" />
+  <depend package="tfd_modules" />
+
+</package>
+
+

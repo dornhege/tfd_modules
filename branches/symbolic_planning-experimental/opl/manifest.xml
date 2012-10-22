@@ -4,15 +4,15 @@
      opl
 
   </description>
-  <author>andreas</author>
+  <author>Andreas Hertle</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/opl</url>
 
   <depend package="roscpp" />
-  <depend package="rospy" />
-  <!--depend package="tfd_modules" /-->
-  <!--rosdep name="qt4" /-->
+  <!-- depend package="rospy" /-->
+  <!--rosdep name="simpleparse" /-->
+  <depend package="tfd_modules" />
 
 </package>
 

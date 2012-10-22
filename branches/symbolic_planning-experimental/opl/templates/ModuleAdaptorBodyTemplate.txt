@@ -7,17 +7,14 @@
 double <[Type]><[Name]>_plannerCall(const modules::ParameterList & parameterList,
         modules::predicateCallbackType predicateCallback,
         modules::numericalFluentCallbackType numericalFluentCallback,
-        int relaxed,
-        modules::plannerContextPtr context,
-        modules::plannerContextCompareType contextComp,
-        bool & tookContext)
+        int relaxed)
 {
     assert(parameterList.size() == <[ArgumentCount]>);
     // look up parameters in state
     opl::<[Namespace]>::State* state = opl::<[Namespace]>::State::stateInstance;
 <[ArgumentLookups]>
     // call lib interface
-    <[ReturnType]> value = opl::<[Namespace]>::<[Type]><[Name]>(state, <[ArgumentNames]>relaxed, context, contextComp, tookContext);
+    <[ReturnType]> value = opl::<[Namespace]>::<[Type]><[Name]>(state, <[ArgumentNames]>relaxed);
 <[ReturnValueConversion]>
 }
 
