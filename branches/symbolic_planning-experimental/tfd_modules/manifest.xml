@@ -12,7 +12,7 @@
 
   <depend package="continual_planning_executive" />
 
-  <rosdep name="qt4" />
+  <rosdep name="libqt4-dev" />
 
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/downward/opl/interface" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl -ltfd_opl_interface" />

@@ -10,6 +10,8 @@
   <depend package="roscpp"/>
   <depend package="continual_planning_executive"/>
 
+  <rosdep name="libqt4-dev" />
+
 </package>
 
 

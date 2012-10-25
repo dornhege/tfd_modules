@@ -235,7 +235,7 @@
 
     (:durative-action drive-base
         :parameters (?s - location ?g - location)
-        :duration (= ?duration 10.0)
+        :duration (= ?duration 1000.0)
         :condition
         (and
             (at start (at-base ?s))
