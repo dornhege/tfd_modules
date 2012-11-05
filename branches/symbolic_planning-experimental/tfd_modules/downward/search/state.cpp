@@ -37,9 +37,10 @@ void TimeStampedState::apply_module_effect(string internal_name)
     EffectModule *module = g_effect_modules[index];
     vector<double> new_values = vector<double> (module->writtenVars.size());
     ParameterList &params = module->params;
-    module->applyEffect(params, pct, nct, new_values);
-    for(int i = 0; i < new_values.size(); ++i) {
-        state[module->writtenVars[i]] = new_values[i];
+    if(module->applyEffect(params, pct, nct, new_values)) {
+        for(int i = 0; i < new_values.size(); ++i) {
+            state[module->writtenVars[i]] = new_values[i];
+        }
     }
 }
 

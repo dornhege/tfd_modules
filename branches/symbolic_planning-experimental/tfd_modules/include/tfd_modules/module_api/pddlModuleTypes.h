@@ -124,7 +124,7 @@ typedef double (*conditionCheckerType)(const ParameterList & parameterList,
 /// Semantic attachment adding numerical effects.
 /**
  * \param [in, out] writtenVars the variable to be written in the order of the module spec in the domain. The vector is already filled to size.
- * \return ??? fragen wir das ab?
+ * \return If the module returns a value != 0, the writtenVars are applied to the state, otherwise the state is not changed.
  */
 typedef int (*applyEffectType)(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
