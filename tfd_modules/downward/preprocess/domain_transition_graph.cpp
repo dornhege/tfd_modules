@@ -26,6 +26,8 @@ void build_DTGs(const vector<Variable *> &var_order,
             DomainTransitionGraphFunc *dtg = new DomainTransitionGraphFunc(v);
             transition_graphs.push_back(dtg);
         } else if(v.is_module()) {
+            cout << endl;   // without this endl, there are cases where this dumps
+            // in 64-bit, Release mode, definitely a bug and this is NOT a proper fix!
             DomainTransitionGraphModule *dtg = new DomainTransitionGraphModule();
             transition_graphs.push_back(dtg);
         } else {
