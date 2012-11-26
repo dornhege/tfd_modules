@@ -19,14 +19,15 @@ void build_DTGs(const vector<Variable *> &var_order,
 
     for(int i = 0; i < var_order.size(); i++) {
         Variable v = *var_order[i];
-        if(v.is_module()) {
-            DomainTransitionGraphModule *dtg = new DomainTransitionGraphModule();
-            transition_graphs.push_back(dtg);
-        } else if(v.is_subterm() || v.is_comparison()) {
+        if(v.is_subterm() || v.is_comparison()) {
             DomainTransitionGraphSubterm *dtg = new DomainTransitionGraphSubterm(v);
             transition_graphs.push_back(dtg);
         } else if(v.is_functional()) {
             DomainTransitionGraphFunc *dtg = new DomainTransitionGraphFunc(v);
+            transition_graphs.push_back(dtg);
+        } else if(v.is_module()) {
+            cout << "module variable!" << endl;
+            DomainTransitionGraphModule *dtg = new DomainTransitionGraphModule();
             transition_graphs.push_back(dtg);
         } else {
             DomainTransitionGraphSymb *dtg = new DomainTransitionGraphSymb(v);
