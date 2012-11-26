@@ -26,7 +26,6 @@ void build_DTGs(const vector<Variable *> &var_order,
             DomainTransitionGraphFunc *dtg = new DomainTransitionGraphFunc(v);
             transition_graphs.push_back(dtg);
         } else if(v.is_module()) {
-            cout << "module variable!" << endl;
             DomainTransitionGraphModule *dtg = new DomainTransitionGraphModule();
             transition_graphs.push_back(dtg);
         } else {
