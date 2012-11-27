@@ -214,8 +214,9 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
 
     if(g_parameters.use_cost_modules_for_applicability || (g_variable_types[duration_var] != costmodule)) {
         double duration = get_duration(&state, allowRelaxed);
-        if(duration < 0 || duration >= INFINITE_COST)
+        if(duration < 0 || duration >= INFINITE_COST) {
             return false;
+        }
     }
 
     for(int i = 0; i < prevail_start.size(); i++)
@@ -233,7 +234,8 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
         if(state.operators[i].get_name() == get_name())
             return false;
 
-    return TimeStampedState(state, *this).is_consistent_when_progressed(timedSymbolicStates);
+    return TimeStampedState(state, *this, allowRelaxed).
+        is_consistent_when_progressed(allowRelaxed, timedSymbolicStates);
 }
 
 bool Operator::isDisabledBy(const Operator* other) const

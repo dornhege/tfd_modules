@@ -27,7 +27,7 @@ struct Prevail
     {
     }
 
-    bool is_applicable(const TimeStampedState & state, bool allowRelaxed = false) const;
+    bool is_applicable(const TimeStampedState & state, bool allowRelaxed) const;
 
     void dump() const;
 
@@ -67,9 +67,9 @@ struct PrePost
 
     bool is_applicable(const TimeStampedState &state) const;
 
-    bool does_fire(const TimeStampedState &state) const {
+    bool does_fire(const TimeStampedState &state, bool relaxed) const {
         for(unsigned int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state))
+            if(!cond_start[i].is_applicable(state, relaxed))
                 return false;
         return true;
     }
@@ -92,10 +92,10 @@ struct ModuleEffect
     {
     }
 
-    bool does_fire(const TimeStampedState &state) const
+    bool does_fire(const TimeStampedState &state, bool relaxed) const
     {
         for(unsigned int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state))
+            if(!cond_start[i].is_applicable(state, relaxed))
                 return false;
         return true;
     }
@@ -289,15 +289,15 @@ class TimeStampedState
     friend struct TssCompareIgnoreTimestamp;
 
     private:
-        bool satisfies(const Prevail& cond) const
+        bool satisfies(const Prevail& cond, bool relaxed) const
         {
-            return cond.is_applicable(*this);
+            return cond.is_applicable(*this, relaxed);
         }
 
-        bool satisfies(const vector<Prevail>& conds) const
+        bool satisfies(const vector<Prevail>& conds, bool relaxed) const
         {
             for(unsigned int i = 0; i < conds.size(); i++)
-                if(!satisfies(conds[i]))
+                if(!satisfies(conds[i], relaxed))
                     return false;
             return true;
         }
@@ -336,7 +336,7 @@ class TimeStampedState
             state[var] = post;
         }
 
-        void apply_module_effect(string internal_name);
+        void apply_module_effect(string internal_name, bool relaxed);
 
         void apply_effect(int lhs, assignment_op op, int rhs, double post)
         {
@@ -367,13 +367,14 @@ class TimeStampedState
 
         TimeStampedState(istream &in);
         // apply an operator
-        TimeStampedState(const TimeStampedState &predecessor, const Operator &op);
+        TimeStampedState(const TimeStampedState &predecessor, const Operator &op, bool relaxed);
         // let time pass without applying an operator
         TimeStampedState let_time_pass(
-            bool go_to_intermediate_between_now_and_next_happening = false,
-            bool skip_eps_steps = false) const;
+            bool go_to_intermediate_between_now_and_next_happening,     // usually false
+            bool skip_eps_steps,            // usually false
+            bool relaxed) const;            // usually false
 
-        TimeStampedState increase_time_stamp_by(double increment) const;
+        // unused TimeStampedState increase_time_stamp_by(double increment) const;
 
         double &operator[](int index)
         {
@@ -389,8 +390,8 @@ class TimeStampedState
 
         double next_happening() const;
 
-        bool is_consistent_now() const;
-        bool is_consistent_when_progressed(TimedSymbolicStates* timedSymbolicStates) const;
+        bool is_consistent_now(bool relaxed) const;
+        bool is_consistent_when_progressed(bool relaxed, TimedSymbolicStates* timedSymbolicStates) const;
 
         const double &get_timestamp() const
         {

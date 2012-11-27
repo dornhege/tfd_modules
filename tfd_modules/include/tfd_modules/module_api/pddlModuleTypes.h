@@ -123,12 +123,13 @@ typedef double (*conditionCheckerType)(const ParameterList & parameterList,
 
 /// Semantic attachment adding numerical effects.
 /**
+ * \param [in] relaxed only produce relaxed solution, 0 - produce accurate result, 1 .. n produce an approximate result using method 1 .. n.
  * \param [in, out] writtenVars the variable to be written in the order of the module spec in the domain. The vector is already filled to size.
  * \return If the module returns a value != 0, the writtenVars are applied to the state, otherwise the state is not changed.
  */
 typedef int (*applyEffectType)(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-        vector<double> & writtenVars);
+        int relaxed, vector<double> & writtenVars);
 
 /**** Interface addition for extracting the plan from a module - irrelevant for the actual planning process  ****/
 

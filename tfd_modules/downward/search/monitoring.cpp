@@ -283,7 +283,7 @@ bool MonitorEngine::validatePlanOld(const std::vector< std::vector<PlanStep> >& 
                     <= current.timestamp) {
                 current.timestamp += EPS_TIME;
             } else {
-                current = current.let_time_pass();
+                current = current.let_time_pass(false, false, false);
             }
             if (double_equals(current.timestamp, curren_time)) {
                 current.timestamp += EPS_TIME;
@@ -293,17 +293,17 @@ bool MonitorEngine::validatePlanOld(const std::vector< std::vector<PlanStep> >& 
         cout << "Next op: " << plan[i].front().op->get_name() << " ";
         // replace with correct function
         // FIXME: at this point the front() stuff is wrong
-        if(!plan[i].front().op->is_applicable(current)) {
+        if(!plan[i].front().op->is_applicable(current, false)) {
             cout << "is not applicable!" << endl;
             return false;
         } else {
             cout << "is applicable!" << endl;
-            current = TimeStampedState(current,(*plan[i].front().op));
+            current = TimeStampedState(current,(*plan[i].front().op), false);
         }
     }
 
     while (!current.operators.empty())
-        current = current.let_time_pass();
+        current = current.let_time_pass(false, false, false);
 
     return current.satisfies(g_goal);
 }
@@ -331,7 +331,7 @@ FullPlanTrace FullPlanTrace::applyOperator(const Operator* op) const
     if(ret.plan.empty())
         return ret;
 
-    FullPlanStep fps(plan.back().state, op, TimeStampedState(plan.back().state, *op));
+    FullPlanStep fps(plan.back().state, op, TimeStampedState(plan.back().state, *op, false));
     ret.plan.push_back(fps);
     return ret;
 }
@@ -351,7 +351,7 @@ FullPlanTrace FullPlanTrace::letTimePass() const
     if(ret.plan.empty())
         return ret;
 
-    ret.plan.back().state = ret.plan.back().state.let_time_pass();
+    ret.plan.back().state = ret.plan.back().state.let_time_pass(false, false, false);
     return ret;
 }
 
@@ -385,7 +385,7 @@ void FullPlanTrace::outputPlan(ostream & os) const
         first = false;
         //printf("DV: %d\n", it->op->get_duration_var());
         os << it->predecessor.timestamp << ": (" << it->op->get_name() << ") [" 
-            << it->op->get_duration(&(it->predecessor)) << "]" << endl;
+            << it->op->get_duration(&(it->predecessor), false) << "]" << endl;
     }
 }
 

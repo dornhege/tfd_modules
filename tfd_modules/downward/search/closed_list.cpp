@@ -254,7 +254,7 @@ double ClosedList::getCostOfPath(const TimeStampedState &entry) const
                 && info.annotation->get_name().compare("wait")) {
             const Operator* op = info.annotation;
 
-            double duration = op->get_duration(pred);
+            double duration = op->get_duration(pred, false);
             ret += duration;
         }
         current_entry = *(info.predecessor);
@@ -298,7 +298,7 @@ double ClosedList::trace_path(const TimeStampedState &entry,
         if(info.annotation != g_let_time_pass
                 && info.annotation->get_name().compare("wait")) {
             const Operator* op = info.annotation;
-            double duration = op->get_duration(pred);
+            double duration = op->get_duration(pred, false);
             path.push_back(PlanStep(pred->get_timestamp(), duration, op, pred));
             ret += duration;
         }

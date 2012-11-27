@@ -40,10 +40,10 @@ class LogicAxiom : public Axiom
                 << new_value << endl;
         }
 
-        bool is_applicable(const TimeStampedState &state) const
+        bool is_applicable(const TimeStampedState &state, bool relaxed) const
         {
             for(int i = 0; i < prevail.size(); i++)
-                if(!prevail[i].is_applicable(state))
+                if(!prevail[i].is_applicable(state, relaxed))
                     return false;
             return true;
         }
