@@ -87,16 +87,16 @@ void BestFirstSearchEngine::dump_transition() const
 {
     cout << endl;
     if(current_predecessor != 0) {
-        cout << "DEBUG: In step(), current predecessor is: " << endl;
+        cout << "DEBUG: current predecessor is: " << endl;
         current_predecessor->dump(g_parameters.verbose);
     }
-    cout << "DEBUG: In step(), current operator is: ";
+    cout << "DEBUG: current operator is: ";
     if(current_operator != 0) {
         current_operator->dump();
     } else {
         cout << "No operator before initial state." << endl;
     }
-    cout << "DEBUG: In step(), current state is: " << endl;
+    cout << "DEBUG: current state is: " << endl;
     current_state.dump(g_parameters.verbose);
     cout << endl;
 }
@@ -152,7 +152,7 @@ SearchEngine::status BestFirstSearchEngine::step()
 
     // throw away any states resulting from zero cost actions (can't handle)
     if(current_predecessor && current_operator && current_operator != g_let_time_pass &&
-            current_operator->get_duration(current_predecessor) <= 0.0) {
+            current_operator->get_duration(current_predecessor, false) <= 0.0) {
         discard = true;
     }
 
@@ -413,6 +413,8 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
     }
     preferred_operators = preferred_applicable_operators;
 
+    bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
+
     for(int i = 0; i < open_lists.size(); i++) {
         Heuristic *heur = open_lists[i].heuristic;
 
@@ -436,8 +438,6 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         // push successors from applicable ops
         for(int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
-
-            bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
 
             // compute expected min makespan of this op
             double maxTimeIncrement = 0.0;
@@ -466,7 +466,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 // non lazy eval = compute priority by child
                 if(!g_parameters.lazy_evaluation) {
                     // need to compute the child to evaluate it
-                    TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j]);
+                    TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j], lazy_state_module_eval);
                     double childG = getG(&tss, parent_ptr, ops[j]);
                     double childH = heur->evaluate(tss);
                     if(heur->is_dead_end())
@@ -489,7 +489,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             // non lazy eval = compute priority by child
             if(!g_parameters.lazy_evaluation) {
                 // compute child
-                TimeStampedState tss = parent_ptr->let_time_pass(false, true);
+                TimeStampedState tss = parent_ptr->let_time_pass(false, true, lazy_state_module_eval);
                 double childG = getG(&tss, parent_ptr, NULL);
                 double childH = heur->evaluate(tss);
                 if(heur->is_dead_end()) {
@@ -549,10 +549,10 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     if(current_operator == g_let_time_pass) {
         // do not apply an operator but rather let some time pass until
         // next scheduled happening
-        current_state = current_predecessor->let_time_pass(false, true);
+        current_state = current_predecessor->let_time_pass(false, true, false);
     } else {
         assert(current_operator->get_name().compare("wait") != 0);
-        current_state = TimeStampedState(*current_predecessor, *current_operator);
+        current_state = TimeStampedState(*current_predecessor, *current_operator, false);
     }
     assert(&current_state != current_predecessor);
     return IN_PROGRESS;
@@ -593,7 +593,7 @@ double BestFirstSearchEngine::getGc(const TimeStampedState *state,
 {
     double opCost = 0.0;
     if (op && op != g_let_time_pass) {
-        opCost += op->get_duration(state);
+        opCost += op->get_duration(state, false);
     }
     return getGc(state) + opCost;
 }
@@ -605,7 +605,7 @@ double BestFirstSearchEngine::getGm(const TimeStampedState *state) const
         const ScheduledOperator* op = &state->operators[i];
         double duration = 0.0;
         if (op && op != g_let_time_pass) {
-            duration = op->get_duration(state);
+            duration = op->get_duration(state, false);
         }
         if (duration > longestActionDuration) {
             longestActionDuration = duration;

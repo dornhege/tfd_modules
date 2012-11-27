@@ -27,7 +27,7 @@ TimeStampedState::TimeStampedState(istream &in)
     initialize();
 }
 
-void TimeStampedState::apply_module_effect(string internal_name)
+void TimeStampedState::apply_module_effect(string internal_name, bool relaxed)
 {
     int index = atoi(internal_name.substr(3).c_str());
     g_setModuleCallbackState(this);
@@ -37,7 +37,7 @@ void TimeStampedState::apply_module_effect(string internal_name)
     EffectModule *module = g_effect_modules[index];
     vector<double> new_values = vector<double> (module->writtenVars.size());
     ParameterList &params = module->params;
-    if(module->applyEffect(params, pct, nct, new_values)) {
+    if(module->applyEffect(params, pct, nct, relaxed, new_values)) {
         for(int i = 0; i < new_values.size(); ++i) {
             state[module->writtenVars[i]] = new_values[i];
         }
@@ -45,7 +45,7 @@ void TimeStampedState::apply_module_effect(string internal_name)
 }
 
 TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
-    const Operator &op) :
+    const Operator &op, bool relaxed) :
         state(predecessor.state),
         scheduled_effects(predecessor.scheduled_effects),
         conds_over_all(predecessor.conds_over_all),
@@ -63,7 +63,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     timestamp = predecessor.timestamp + sep;
 
     // compute duration
-    double duration = op.get_duration(&predecessor);
+    double duration = op.get_duration(&predecessor, relaxed);
 
     // The scheduled effects of the new state are precisely the
     // scheduled effects of the predecessor state plus those at-end
@@ -71,7 +71,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_pre_post_end().size(); i++) {
         const PrePost &eff = op.get_pre_post_end()[i];
-        if(eff.does_fire(predecessor)) {
+        if(eff.does_fire(predecessor, relaxed)) {
             scheduled_effects.push_back(ScheduledEffect(duration, eff));
         }
     }
@@ -82,7 +82,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_mod_effs_end().size(); i++) {
         const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
-        if(mod_eff.does_fire(predecessor)) {
+        if(mod_eff.does_fire(predecessor, relaxed)) {
             scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
                         mod_eff));
         }
@@ -95,7 +95,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         // at-start effects may not have any at-end conditions
         assert(pre_post.cond_end.size() == 0);
 
-        if(pre_post.does_fire(predecessor)) {
+        if(pre_post.does_fire(predecessor, relaxed)) {
             apply_effect(pre_post.var, pre_post.fop, pre_post.var_post,
                     pre_post.post);
         }
@@ -105,8 +105,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
         const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
         assert(mod_eff.cond_end.size() == 0);
-        if(mod_eff.does_fire(predecessor)) {
-            apply_module_effect(mod_eff.module->internal_name);
+        if(mod_eff.does_fire(predecessor, relaxed)) {
+            apply_module_effect(mod_eff.module->internal_name, relaxed);
         }
     }
 
@@ -118,7 +118,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < scheduled_effects.size(); i++) {
         ScheduledEffect &eff = scheduled_effects[i];
         if((eff.time_increment + EPSILON < sep) &&
-                         satisfies(eff.cond_end)) {
+                         satisfies(eff.cond_end, relaxed)) {
             apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
         }
         if(eff.time_increment + EPSILON < sep) {
@@ -133,8 +133,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < scheduled_module_effects.size(); i++) {
         ScheduledModuleEffect &eff = scheduled_module_effects[i];
         if((eff.time_increment + EPSILON < sep) &&
-                         satisfies(eff.cond_end)) {
-            apply_module_effect(eff.module->internal_name);
+                         satisfies(eff.cond_end, relaxed)) {
+            apply_module_effect(eff.module->internal_name, relaxed);
         }
         if(eff.time_increment + EPSILON < sep) {
             scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
@@ -196,7 +196,7 @@ double TimeStampedState::eps_time(double offset) const {
 
 TimeStampedState TimeStampedState::let_time_pass(
     bool go_to_intermediate_between_now_and_next_happening,
-    bool skip_eps_steps) const {
+    bool skip_eps_steps, bool relaxed) const {
 
 	// FIXME: If we do not go to the intermediate between now and the 
     // next happening but epsilonize internally, the effects can 
@@ -239,7 +239,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = scheduled_effects[i];
             if((eff.time_increment < time_diff + EPSILON) &&
-                succ.satisfies(eff.cond_end)) {
+                succ.satisfies(eff.cond_end, relaxed)) {
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
@@ -248,8 +248,8 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
             if((mod_eff.time_increment < time_diff + EPSILON) &&
-                    succ.satisfies(mod_eff.cond_end)) {
-                succ.apply_module_effect(mod_eff.module->internal_name);
+                    succ.satisfies(mod_eff.cond_end, relaxed)) {
+                succ.apply_module_effect(mod_eff.module->internal_name, relaxed);
             }
         }
 
@@ -267,7 +267,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < succ.scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = succ.scheduled_effects[i];
             if((eff.time_increment < EPSILON) ||
-                !succ.satisfies(eff.cond_overall)) {
+                !succ.satisfies(eff.cond_overall, relaxed)) {
                 succ.scheduled_effects.erase(succ.scheduled_effects.begin() + i);
                 i--;
             }
@@ -285,7 +285,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < succ.scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = succ.scheduled_module_effects[i];
             if((mod_eff.time_increment < EPSILON) ||
-                !succ.satisfies(mod_eff.cond_overall)) {
+                !succ.satisfies(mod_eff.cond_overall, relaxed)) {
                 succ.scheduled_module_effects.erase(
                         succ.scheduled_module_effects.begin() + i);
                 i--;
@@ -346,6 +346,8 @@ TimeStampedState TimeStampedState::let_time_pass(
     return succ;
 }
 
+#if 0
+// Unused
 TimeStampedState TimeStampedState::increase_time_stamp_by(double increment) const
 {
     TimeStampedState result(*this);
@@ -361,6 +363,8 @@ TimeStampedState TimeStampedState::increase_time_stamp_by(double increment) cons
     assert(res->timestamp+EPSILON+EPS_TIME >= timestamp + increment);
     return *res;
 }
+#endif
+
 //    if(!(res->timestamp+EPSILON >= timestamp + increment)) {
 //	cout << "res->timestamp: " << res->timestamp << ", timestamp: " << timestamp << ", increment: " << increment << endl;
 //	cout << "running ops:" << endl;
@@ -460,25 +464,26 @@ void TimeStampedState::scheduleEffect(ScheduledEffect effect)
     sort(scheduled_effects.begin(), scheduled_effects.end());
 }
 
-bool TimeStampedState::is_consistent_now() const
+bool TimeStampedState::is_consistent_now(bool relaxed) const
 {
     // Persistent over-all conditions must be satisfied
     for(int i = 0; i < conds_over_all.size(); i++)
-        if(!satisfies(conds_over_all[i]))
+        if(!satisfies(conds_over_all[i], relaxed))
             return false;
 
     // Persistent at-end conditions must be satisfied
     // if their end time point is now
     for(int i = 0; i < conds_at_end.size(); i++)
         if(double_equals(conds_at_end[i].time_increment, 0) &&
-            !satisfies(conds_at_end[i]))
+            !satisfies(conds_at_end[i], relaxed))
             return false;
 
     // No further conditions (?)
     return true;
 }
 
-bool TimeStampedState::is_consistent_when_progressed(TimedSymbolicStates* timedSymbolicStates) const
+bool TimeStampedState::is_consistent_when_progressed(bool relaxed,
+        TimedSymbolicStates* timedSymbolicStates) const
 {
     double last_time = -1.0;
     double current_time = timestamp;
@@ -486,11 +491,11 @@ bool TimeStampedState::is_consistent_when_progressed(TimedSymbolicStates* timedS
 
     bool go_to_intermediate = true;
     while(!double_equals(current_time, last_time)) {
-        if(!current_progression.is_consistent_now()) {
+        if(!current_progression.is_consistent_now(relaxed)) {
             return false;
         }
 
-        current_progression = current_progression.let_time_pass(go_to_intermediate, false);
+        current_progression = current_progression.let_time_pass(go_to_intermediate, false, relaxed);
         go_to_intermediate = !go_to_intermediate;
         last_time = current_time;
         current_time = current_progression.timestamp;
