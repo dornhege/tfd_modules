@@ -70,7 +70,7 @@ void read_constants(istream &in, vector<string> & predConst,
     check_magic(in, "end_constant_facts");
 }
 
-void read_modules(istream &in, vector<string> & moduleInits,
+void read_modules(istream &in, vector<string> & moduleInits, vector<string> & moduleExits,
         vector<string> & subplanGenerators,
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
@@ -79,6 +79,7 @@ void read_modules(istream &in, vector<string> & moduleInits,
 {
     check_magic(in, "begin_modules");
     read_n_strings(in, moduleInits);
+    read_n_strings(in, moduleExits);
     read_n_strings(in, subplanGenerators);
     int count;
     in >> count;
@@ -191,7 +192,7 @@ void read_preprocessed_problem_description(istream &in,
         State &initial_state, vector<pair<Variable*, int> > &goals,
         vector<Operator> &operators, vector<Axiom_relational> &axioms_rel,
         vector<Axiom_functional> &axioms_func,
-        vector<string> &moduleInits,
+        vector<string> &moduleInits, vector<string> &moduleExits,
         vector<string> &subplanGenerators,
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
@@ -208,7 +209,7 @@ void read_preprocessed_problem_description(istream &in,
     read_translations(in, predicateTranslations, functionTranslations,
             variables);
     read_constants(in, pred_constants, num_constants);
-    read_modules(in, moduleInits, subplanGenerators, condModules,
+    read_modules(in, moduleInits, moduleExits, subplanGenerators, condModules,
             effectModules, costModules, variables);
     initial_state = State(in, variables);
     read_goal(in, variables, goals);
@@ -251,7 +252,7 @@ void dump_DTGs(const vector<Variable *> &ordering,
 
 void generate_cpp_input(bool solveable_in_poly_time,
         const vector<Variable *> & ordered_vars,
-        const vector<string> & moduleInits,
+        const vector<string> & moduleInits, const vector<string> & moduleExits,
         const vector<string> & subplanGenerators,
         const vector<ConditionModule> &cond_modules,
         const vector<EffectModule> &eff_modules,
@@ -325,6 +326,11 @@ void generate_cpp_input(bool solveable_in_poly_time,
     outfile << modInitCount << endl;
     for (int i = 0; i < modInitCount; i++) {
         outfile << moduleInits.at(i) << endl;
+    }
+    int modExitCount = moduleExits.size();
+    outfile << modExitCount << endl;
+    for (int i = 0; i < modExitCount; i++) {
+        outfile << moduleExits.at(i) << endl;
     }
     int spgCount = subplanGenerators.size();
     outfile << spgCount << endl;

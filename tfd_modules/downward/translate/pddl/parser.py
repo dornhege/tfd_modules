@@ -25,7 +25,7 @@ def tokenize(input):
     # added to tokenize module calls
     line = line.replace("[", " [ ").replace("]", " ] ")
     for token in line.split():
-      if token == ":moduleoptions":
+      if token == ":moduleoptions" or token == ":moduleexitoptions":
         inModOpts = True
         modOptsOpenParen = 1  # the one right before :moduleoptions
       if token == "(" and inModOpts:

@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "operator.h"
 #include "state.h"
+#include "ros_printouts.h"
 
 #include <deque>
 #include <iostream>
@@ -248,6 +249,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
             // cannot happen
             cout << "Error: Encountered a variable with an axiom layer exceeding " 
                 << "the maximal computed axiom layer." << endl;
+            ROS_ASSERT(false);
             exit(1);
         }
     }

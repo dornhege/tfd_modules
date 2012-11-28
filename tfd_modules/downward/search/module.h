@@ -86,6 +86,17 @@ class InitModule: public Module
         moduleInitType initModule;
 };
 
+class ExitModule: public Module
+{
+    public:
+        vector<string> parameters;
+
+        ExitModule(istream &in);
+        void execExit(const RawPlan & plan);
+
+        moduleExitType exitModule;
+};
+
 class OplInit: public Module
 {
 public:
@@ -108,6 +119,7 @@ extern map<int, ConditionModule*> g_condition_modules;
 extern vector<EffectModule *> g_effect_modules;
 extern map<int, CostModule*> g_cost_modules;
 extern vector<InitModule *> g_init_modules;
+extern vector<ExitModule *> g_exit_modules;
 extern OplInit* g_oplinit;
 extern opl::interface::OplCallbackInterface* g_OplModuleCallback;
 

@@ -39,6 +39,7 @@ int main(int argc, const char **argv) {
     vector<Axiom_functional> axioms_func;
     vector<DomainTransitionGraph*> transition_graphs;
     vector<string> moduleInits; // dont even bother to interpret these - we dont use them
+    vector<string> moduleExits; // dont even bother to interpret these - we dont use them
     vector<string> subplanGenerators;
     vector<ConditionModule> condModules;
     vector<EffectModule> effectModules;
@@ -57,7 +58,7 @@ int main(int argc, const char **argv) {
 
     read_preprocessed_problem_description(cin, internal_variables, variables,
             initial_state, goals, operators, axioms_rel, axioms_func,
-            moduleInits, subplanGenerators, condModules, effectModules,
+            moduleInits, moduleExits, subplanGenerators, condModules, effectModules,
             costModules, predicateTranslations, functionTranslations,
             predConstants, numConstants, objects, oplinits);
 
@@ -103,7 +104,7 @@ int main(int argc, const char **argv) {
     cout << "Writing output..." << endl;
     ostream out(old_cout);
     generate_cpp_input(solveable_in_poly_time, ordering,
-            moduleInits,
+            moduleInits, moduleExits,
             subplanGenerators, condModules, effectModules, costModules,
             predicateTranslations, functionTranslations, predConstants,
             numConstants,

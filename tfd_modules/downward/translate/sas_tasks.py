@@ -3,7 +3,7 @@ import pddl
 class SASTask:
   def __init__(self, variables, init, goal, operators, 
         temp_operators,axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, 
-        translation, module_inits, subplan_generators, init_constant_predicates, init_constant_numerics):
+        translation, module_inits, module_exits, subplan_generators, init_constant_predicates, init_constant_numerics):
     self.variables = variables
     self.init = init
     self.goal = goal
@@ -19,6 +19,7 @@ class SASTask:
     self.cost_modules = cost_modules
     self.translation = translation
     self.module_inits = module_inits
+    self.module_exits = module_exits
     self.subplan_generators = subplan_generators
     self.init_constant_predicates = init_constant_predicates
     self.init_constant_numerics = init_constant_numerics
@@ -49,6 +50,9 @@ class SASTask:
     print >> stream, "%d" % len(self.module_inits)
     for mod_init in self.module_inits:
       print >> stream, "%s %d %s" % (mod_init.init_function, len(mod_init.parameters), " ".join(mod_init.parameters))
+    print >> stream, "%d" % len(self.module_exits)
+    for mod_exit in self.module_exits:
+      print >> stream, "%s %d %s" % (mod_exit.exit_function, len(mod_exit.parameters), " ".join(mod_exit.parameters))
     print >> stream, "%d" % len(self.subplan_generators)
     for spg in self.subplan_generators:
       print >> stream, "%s %s %s" % (spg.genFn, spg.outputFn, spg.execFn)

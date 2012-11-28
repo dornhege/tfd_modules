@@ -54,6 +54,17 @@ modules::moduleInitType PDDLModuleLoader::getModuleInit(string fnString)
    //return (modules::moduleInitType)fn;
 }
 
+modules::moduleExitType PDDLModuleLoader::getModuleExit(string fnString)
+{
+   void* fn = getFunction(fnString);
+   if(fn == NULL)
+      return NULL;
+   modules::moduleExitType ret;
+   *(void **) (&ret) = fn;
+   return ret;
+   //return (modules::moduleExitType)fn;
+}
+
 modules::subplanGeneratorType PDDLModuleLoader::getSubplanGenerator(string fnString)
 {
    void* fn = getFunction(fnString);

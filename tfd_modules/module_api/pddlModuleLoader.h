@@ -17,6 +17,7 @@ class PDDLModuleLoader : virtual public ModuleLoader
       modules::conditionCheckerType getCostChecker(string fnString);
 
       modules::moduleInitType getModuleInit(string fnString);
+      modules::moduleExitType getModuleExit(string fnString);
       modules::subplanGeneratorType getSubplanGenerator(string fnString);
       modules::outputSubplanType getOutputSubplan(string fnString);
       modules::executeModulePlanType getExecuteModulePlan(string fnString);

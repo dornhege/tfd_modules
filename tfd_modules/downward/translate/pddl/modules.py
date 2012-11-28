@@ -119,6 +119,18 @@ class ModuleInit(object):
     print "%sFunction: %s Parameters: %s" % (indent, self.init_function, " ".join(self.parameters))
   parse = staticmethod(parse)
 
+class ModuleExit(object):
+  def __init__(self, exit_function, params):
+    self.exit_function = exit_function
+    self.parameters = params
+  def parse(alist):
+    exit_function = alist[0]
+    params = alist[1:]
+    return ModuleExit(exit_function, params)
+  def dump(self, indent="  "):
+    print "%sFunction: %s Parameters: %s" % (indent, self.exit_function, " ".join(self.parameters))
+  parse = staticmethod(parse)
+
 class OplInit(object):
   def __init__(self, init_function):
     self.init_function = init_function

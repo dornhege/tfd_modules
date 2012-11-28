@@ -16,7 +16,7 @@ class Task(object):
   CONSTANT_MAPPING = dict() # yes, this is a hack and should be removed
 
   def __init__(self, domain_name, task_name, requirements, oplinit,
-               types, objects, modules, predicates, init, goal, actions, durative_actions, axioms, function_symbols, subplan_generators, module_inits):
+               types, objects, modules, predicates, init, goal, actions, durative_actions, axioms, function_symbols, subplan_generators, module_inits, module_exits):
     self.domain_name = domain_name
     self.task_name = task_name
     self.requirements = requirements
@@ -35,6 +35,7 @@ class Task(object):
     self.function_administrator = DerivedFunctionAdministrator()
     self.subplan_generators = subplan_generators
     self.module_inits = module_inits
+    self.module_exits = module_exits
 
   def add_axiom(self, parameters, condition):
     name = "new-axiom@%d" % self.axiom_counter
@@ -47,14 +48,14 @@ class Task(object):
   def parse(domain_pddl, task_pddl):
     domain_name, requirements, oplinit, constants, predicates, types, functions, actions, durative_actions, axioms, modules, subplan_generators \
                  = parse_domain(domain_pddl)
-    task_name, task_domain_name, module_inits, objects, init, goal = parse_task(task_pddl)
+    task_name, task_domain_name, module_inits, module_exits, objects, init, goal = parse_task(task_pddl)
 
     assert domain_name == task_domain_name
     objects = constants + objects
     init += [conditions.Atom("=", (conditions.parse_term(obj.name), conditions.parse_term(obj.name))) 
              for obj in objects]
     return Task(domain_name, task_name, requirements, oplinit, types, objects, modules,
-                predicates, init, goal, actions, durative_actions, axioms, Task.FUNCTION_SYMBOLS, subplan_generators, module_inits)
+                predicates, init, goal, actions, durative_actions, axioms, Task.FUNCTION_SYMBOLS, subplan_generators, module_inits, module_exits)
   parse = staticmethod(parse)
 
   def dump(self):
@@ -75,6 +76,9 @@ class Task(object):
     print "Module Inits:"
     for mod_init in self.module_inits:
       mod_init.dump()
+    print "Module Exits:"
+    for mod_exit in self.module_exits:
+      mod_exit.dump()
     print "Subplan Generators:"
     for spg in self.subplan_generators:
       spg.dump()
@@ -301,11 +305,18 @@ def parse_task(task_pddl):
   module_opt = iterator.next()
   if module_opt[0] == ":moduleoptions":
     yield [modules.ModuleInit.parse(mi) for mi in module_opt[1:]]
+    module_exit_opt = iterator.next()
+  else:
+    yield []
+    module_exit_opt = module_opt
+
+  if module_exit_opt[0] == ":moduleexitoptions":
+    yield [modules.ModuleExit.parse(mi) for mi in module_exit_opt[1:]]
     objects_opt = iterator.next()
   else:
     yield []
-    objects_opt = module_opt
-  
+    objects_opt = module_exit_opt
+
   if objects_opt[0] == ":objects":
     yield pddl_types.parse_typed_list(objects_opt[1:])
     init = iterator.next()
