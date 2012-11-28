@@ -141,10 +141,10 @@ Operator::Operator(istream &in, const vector<Variable *> &variables) {
             }
         } else {
             if (eff_conds)
-                module_effs_start.push_back(ModuleEffect(effect, ecs_start,
+                module_effs_end.push_back(ModuleEffect(effect, ecs_start,
                         ecs_overall, ecs_end));
             else
-                module_effs_start.push_back(ModuleEffect(effect));
+                module_effs_end.push_back(ModuleEffect(effect));
         }
     }
     check_magic(in, "end_operator");
