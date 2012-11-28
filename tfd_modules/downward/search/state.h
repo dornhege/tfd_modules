@@ -8,6 +8,7 @@
 #include <set>
 #include "globals.h"
 #include "module.h"
+#include "ros_printouts.h"
 
 using namespace std;
 
@@ -90,6 +91,7 @@ struct ModuleEffect
         cond_start(_cond_start), cond_overall(_cond_overall), cond_end(
                 _cond_end), module(_module)
     {
+        ROS_ASSERT(module != NULL);
     }
 
     bool does_fire(const TimeStampedState &state, bool relaxed) const
@@ -99,6 +101,8 @@ struct ModuleEffect
                 return false;
         return true;
     }
+
+    void dump() const;
 };
 
 struct ScheduledEffect : public PrePost

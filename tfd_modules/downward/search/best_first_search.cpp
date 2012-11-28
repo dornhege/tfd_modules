@@ -7,11 +7,15 @@
 #include <time.h>
 #include <iomanip>
 #include "ros_printouts.h"
+#include <boost/foreach.hpp>
+#define forEach BOOST_FOREACH
 
 #include <cassert>
 #include <cmath>
 
 using namespace std;
+
+static const bool DEBUG_GENERATE_SUCCESSORS = false;
 
 OpenListInfo::OpenListInfo(Heuristic *heur, bool only_pref)
 {
@@ -384,6 +388,19 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
     g_successor_generator->generate_applicable_ops(*parent_ptr, all_operators);
     // Filter ops that cannot be applicable just from the preprocess data (doesn't guarantee full applicability)
 
+    if(DEBUG_GENERATE_SUCCESSORS) {
+        cout << endl << "GENERATE_SUCCESSORS" << endl;
+        if(all_operators.empty())
+            cout << "all_operators empty." << endl;
+        else {
+            cout << "all_operators:" << endl;
+            forEach(const Operator* op, all_operators) {
+                op->dump();
+            }
+        }
+        fflush(stdout);
+    }
+
     vector<const Operator *> preferred_operators;
     for(int i = 0; i < preferred_operator_heuristics.size(); i++) {
         Heuristic *heur = preferred_operator_heuristics[i];
@@ -416,6 +433,8 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
     bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
 
     for(int i = 0; i < open_lists.size(); i++) {
+        if(DEBUG_GENERATE_SUCCESSORS)
+            cout << "OPEN LIST: " << i << endl;
         Heuristic *heur = open_lists[i].heuristic;
 
         double priority = -1;   // invalid
@@ -438,13 +457,20 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         // push successors from applicable ops
         for(int j = 0; j < ops.size(); j++) {
             assert(ops[j]->get_name().compare("wait") != 0);
+            if(DEBUG_GENERATE_SUCCESSORS) {
+                cout << endl << "Testing op:" << endl;
+                ops[j]->dump();
+            }
 
             // compute expected min makespan of this op
             double maxTimeIncrement = 0.0;
             for(int k = 0; k < parent_ptr->operators.size(); ++k) {
                 maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
             }
+
+            if(DEBUG_GENERATE_SUCCESSORS) cout << "Getting Duration..." << endl;
             double duration = ops[j]->get_duration(parent_ptr, lazy_state_module_eval);
+            if(DEBUG_GENERATE_SUCCESSORS) cout << "Duration: " << duration << endl;
             maxTimeIncrement = max(maxTimeIncrement, duration);
             double makespan = maxTimeIncrement + parent_ptr->timestamp;
             bool betterMakespan = makespan < bestMakespan;
@@ -461,8 +487,11 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             TimedSymbolicStates* tssPtr = NULL;
             if(g_parameters.use_known_by_logical_state_only)
                 tssPtr = &timedSymbolicStates;
+
+            if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
             if(betterMakespan && ops[j]->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
                     (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
+                if(DEBUG_GENERATE_SUCCESSORS) cout << "Applicable" << endl;
                 // non lazy eval = compute priority by child
                 if(!g_parameters.lazy_evaluation) {
                     // need to compute the child to evaluate it
@@ -482,6 +511,8 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 search_statistics.countChild(i);
             }
         }
+
+        if(DEBUG_GENERATE_SUCCESSORS) cout << "Adding let time pass." << endl;
 
         // Inserted all children, now insert one more child by letting time pass
         // only allow let_time_pass if there are running operators (i.e. there is time to pass)
@@ -507,6 +538,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         }
     }
     search_statistics.finishExpansion();
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Generated successors." << endl;
 }
 
 enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
