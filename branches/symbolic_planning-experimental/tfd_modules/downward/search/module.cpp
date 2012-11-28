@@ -142,6 +142,44 @@ void InitModule::execInit()
     delete[] argv;
 }
 
+ExitModule::ExitModule(istream &in)
+{
+    string function_name, lib;
+    in >> function_name >> lib;
+    libCall = function_name;
+    libCall.append("@").append(lib);
+
+    int count;
+    in >> count;
+    string param;
+    for (int i = 0; i < count; ++i) {
+        in >> param;
+        parameters.push_back(param);
+    }
+
+    exitModule = g_module_loader->getModuleExit(libCall);
+    if (exitModule == NULL) {
+        printf("Failed to load ExitModule at \"%s\".\n", libCall.c_str());
+        assert(exitModule != NULL);
+    }
+}
+
+void ExitModule::execExit(const RawPlan & plan)
+{
+    int argc = parameters.size() + 1;
+    char** argv = new char*[argc];
+
+    argv[0] = strdup(libCall.c_str());
+    for (int i = 0; i < parameters.size(); i++) {
+        argv[i + 1] = strdup(parameters.at(i).c_str());
+    }
+    exitModule(plan, argc, argv, getPreds, getFuncs);
+    for (int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+    delete[] argv;
+}
+
 OplInit::OplInit(istream &in)
 {
     string function_name, lib;
@@ -178,6 +216,7 @@ map<int, ConditionModule *> g_condition_modules;
 vector<EffectModule *> g_effect_modules;
 map<int, CostModule*> g_cost_modules;
 vector<InitModule *> g_init_modules;
+vector<ExitModule *> g_exit_modules;
 vector<SubplanModuleSet> g_subplan_modules;
 OplInit* g_oplinit = NULL;
 
@@ -475,6 +514,11 @@ void read_modules(istream &in)
     for (int i = 0; i < count; ++i) {
         InitModule *init_module = new InitModule(in);
         g_init_modules.push_back(init_module);
+    }
+    in >> count;
+    for (int i = 0; i < count; ++i) {
+        ExitModule *exit_module = new ExitModule(in);
+        g_exit_modules.push_back(exit_module);
     }
     in >> count;
     for (int i = 0; i < count; ++i) {

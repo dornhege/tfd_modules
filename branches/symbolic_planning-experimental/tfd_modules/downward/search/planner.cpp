@@ -24,11 +24,15 @@
 #endif
 
 #include "pddlModuleLoaderLDL.h"
+#include "tfd_modules/opl/stringutil.h"
 
 using namespace std;
 
 #include <sys/times.h>
 #include <sys/time.h>
+
+modules::RawPlan best_raw_plan;
+const TimeStampedState* best_raw_plan_init = NULL;
 
 double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name);
 std::string getTimesName(const string & plan_name);    ///< returns the file name of the .times file for plan_name
@@ -196,6 +200,13 @@ int main(int argc, char **argv)
         fclose(timeDebugFile);
     }
 
+    // exit modules
+    g_setModuleCallbackState(best_raw_plan_init);
+    for (vector<ExitModule*>::iterator it = g_exit_modules.begin(); it
+            != g_exit_modules.end(); it++) {
+        (*it)->execExit(best_raw_plan);
+    }
+
     switch(search_result) {
         case SearchEngine::SOLVED_TIMEOUT:
         case SearchEngine::FAILED_TIMEOUT:
@@ -262,6 +273,36 @@ bool epsilonize_plan(const std::string & filename, bool keepOriginalPlan = true)
     return true;
 }
 
+void record_raw_plan(const Plan & plan)
+{
+    best_raw_plan.clear();
+    best_raw_plan_init = NULL;
+    if(plan.empty())
+        return;
+
+    // predecessor of the first op should be init
+    best_raw_plan_init = plan[0].pred;
+
+    // plan to best_raw_plan
+    for(Plan::const_iterator it = plan.begin(); it != plan.end(); it++) {
+        const PlanStep & step = *it;
+
+        std::string name = step.op->get_name();     // drive loc1 loc2
+        std::vector<string> parts = StringUtil::split(name, " ");
+        if(parts.empty()) {
+            ROS_ERROR("%s: Bad Operator Name: %s", __func__, name.c_str());
+            continue;
+        }
+        std::string op_name = parts[0];
+        modules::ParameterList parameters;
+        for(unsigned int i = 1; i < parts.size(); i++) {
+            parameters.push_back(modules::Parameter("", "", parts[i]));
+        }
+
+        best_raw_plan.push_back(RawAction(op_name, parameters, step.start_time, step.duration));
+    }
+}
+
 double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name)
 {
     const vector<PlanStep> &plan = engine.get_plan();
@@ -325,6 +366,8 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     }
     cout << "Solution with original makespan " << original_makespan
         << " found (ignoring no-moving-targets-rule)." << endl;
+
+    record_raw_plan(rescheduled_plan);
 
     // Determine filenames to write to
     FILE *file = 0;

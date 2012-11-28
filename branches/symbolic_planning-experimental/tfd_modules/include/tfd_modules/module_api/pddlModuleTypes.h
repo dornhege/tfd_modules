@@ -6,8 +6,8 @@
 #define _PDDL_MODULE_TYPES_H_
 
 #define PDDL_MODULE_VERSION_MAJOR 0
-#define PDDL_MODULE_VERSION_MINOR 3
-#define PDDL_MODULE_VERSION_STRING "0.3"
+#define PDDL_MODULE_VERSION_MINOR 4
+#define PDDL_MODULE_VERSION_STRING "0.4"
 
 #include <math.h>
 #include <stdio.h>
@@ -89,6 +89,20 @@ class NumericalFluent {
 
 typedef vector<NumericalFluent> NumericalFluentList;
 
+class RawAction {
+    public:
+        RawAction(string name, ParameterList pl, double start_time, double duration) :
+            name(name), parameters(pl), start_time(start_time), duration(duration) {
+            name = toLower(name);
+        }
+
+        string name;                ///< the name of the schematic operator
+        ParameterList parameters;   ///< the parameters of the grounded operator
+        double start_time;
+        double duration;
+};
+typedef vector<RawAction> RawPlan;
+
 /**
  * Callback method which can be used by the module to access the current planning
  * situation in the planner.
@@ -111,6 +125,15 @@ typedef bool (*numericalFluentCallbackType)(NumericalFluentList* & numericalFlue
 
 /// Function pointer to call for a module before any module calls are performed - parameters are passed on from the problem definition file.
 typedef void (*moduleInitType)(int argc, char** argv);
+
+/// Function pointer that is called when the planner exits - used for cleanup and writing out computed information to be stored/processed.
+/**
+ * \param [in] plan the best generated plan. Might be empty if no plan was created.
+ * \param [in] argc, argv the parameters as passed on from the problem definition file.
+ * \param [in] predicateCallback, numericalFluentCallback callback functions that allow to reconstruct the init state
+ */
+typedef void (*moduleExitType)(const RawPlan & plan, int argc, char** argv,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback);
  
 /// Semantic attachment for a condition (predicate).
 /**
@@ -167,6 +190,8 @@ std::ostream & operator<<(std::ostream & os, const NumericalFluentList & nl);
 
 } // namespace modules
 
+#define VERIFY_INIT_MODULE_DEF(name) moduleInitType name##_def_check = name
+#define VERIFY_EXIT_MODULE_DEF(name) moduleExitType name##_def_check = name
 #define VERIFY_CONDITIONCHECKER_DEF(name) conditionCheckerType name##_def_check = name
 #define VERIFY_APPLYEFFECT_DEF(name) applyEffectType name##_def_check = name
 #define VERIFY_SUBPLANGENERATOR_DEF(name) subplanGeneratorType name##_def_check = name
