@@ -16,6 +16,9 @@
 #include "continualPlanning.h"
 #include <pluginlib/class_loader.h>
 
+#include <QString>
+#include <ros/package.h>
+
 static ContinualPlanning* s_ContinualPlanning = NULL;
 
 static pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>* s_PlannerLoader = NULL;
@@ -257,6 +260,16 @@ bool loadPlanner(ros::NodeHandle & nh)
         ROS_ERROR("Could not get ~domain_file parameter.");
         return false;
     }
+    QString qDomainFile = QString::fromStdString(domainFile);
+    QString package_prefix("package://");
+    if (qDomainFile.startsWith(package_prefix))
+    {
+        int end_of_package = qDomainFile.indexOf('/', package_prefix.length());
+        QString package(qDomainFile.mid(package_prefix.length(), end_of_package - package_prefix.length()));
+        domainFile = ros::package::getPath(package.toStdString());
+        domainFile.append(qDomainFile.mid(end_of_package).toStdString());
+    }
+    ROS_INFO_STREAM("domain file: " << domainFile);
 
     // init planner
     s_ContinualPlanning->_planner->initialize(domainFile, plannerOptions);
