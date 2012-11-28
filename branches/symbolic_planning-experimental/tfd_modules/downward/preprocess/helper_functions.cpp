@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-
+#include <iomanip>
 #include <string>
 #include <vector>
 using namespace std;
@@ -272,6 +272,7 @@ void generate_cpp_input(bool solveable_in_poly_time,
 {
     //ostream outfile;
     //outfile.open("output", ios::out);
+    outfile << std::setprecision(10);
     outfile << solveable_in_poly_time << endl; // 1 if true, else 0
     int var_count = ordered_vars.size();
     outfile << "begin_variables" << endl;
