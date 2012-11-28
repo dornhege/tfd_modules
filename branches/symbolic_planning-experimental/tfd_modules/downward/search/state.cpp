@@ -522,3 +522,17 @@ TimeStampedState &buildTestState(TimeStampedState &state)
     state.scheduleEffect(ScheduledEffect(1.0, cas, coa, cae, 9, 0, assign));
     return state;
 }
+
+void ModuleEffect::dump() const
+{
+    module->dump();
+    cout << "prevail start:" << endl;
+    for(unsigned int i = 0; i < cond_start.size(); i++)
+        cond_start[i].dump();
+    cout << "prevail overall:" << endl;
+    for(unsigned int i = 0; i < cond_overall.size(); i++)
+        cond_overall[i].dump();
+    cout << "prevail end:" << endl;
+    for(unsigned int i = 0; i < cond_end.size(); i++)
+        cond_end[i].dump();
+}

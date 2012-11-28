@@ -3,6 +3,7 @@
 #include "module.h"
 #include "best_first_search.h"
 #include "plannerParameters.h"
+#include "ros_printouts.h"
 
 #include <iostream>
 using namespace std;
@@ -71,6 +72,7 @@ ModuleEffect::ModuleEffect(istream &in)
     in >> name;
     name = name.substr(3);
     module = g_effect_modules[atoi(name.c_str())];
+    ROS_ASSERT(module != NULL);
 }
 
 bool PrePost::is_applicable(const TimeStampedState &state) const
@@ -193,6 +195,14 @@ void Operator::dump() const
     cout << "Preposts end:" << endl;
     for(int i = 0; i < pre_post_end.size(); ++i) {
         pre_post_end[i].dump();
+    }
+    cout << "Mod Effs start:" << endl;
+    for(int i = 0; i < mod_effs_start.size(); ++i) {
+        mod_effs_start[i].dump();
+    }
+    cout << "Mod Effs end:" << endl;
+    for(int i = 0; i < mod_effs_end.size(); ++i) {
+        mod_effs_end[i].dump();
     }
     cout << endl;
 }
