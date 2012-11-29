@@ -12,9 +12,6 @@
 
 using namespace std;
 
-#define EPSILON 0.000001 // for comparing doubles
-#define EPS_TIME 0.001   // for separation of timepoints
-
 #include "causal_graph.h"
 
 class AxiomEvaluator;
@@ -46,10 +43,9 @@ struct PlanStep
 typedef std::vector<PlanStep> Plan;
 typedef std::vector<TimeStampedState*> PlanTrace;
 
-inline bool double_equals(double a, double b)
-{
-    return std::abs(a - b) < EPSILON;
-}
+bool state_equals(double a, double b);
+bool time_equals(double a, double b);
+bool double_equals(double a, double b);
 
 const double REALLYBIG = numeric_limits<double>::max();
 const double REALLYSMALL = -numeric_limits<double>::max();

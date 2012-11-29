@@ -23,6 +23,21 @@ void PlanStep::dump() const
         << endl;
 }
 
+bool state_equals(double a, double b)
+{
+    return std::abs(a - b) < g_parameters.epsStateValueComparison;
+}
+
+bool time_equals(double a, double b)
+{
+    return std::abs(a - b) < g_parameters.epsTimeComparison;
+}
+
+bool double_equals(double a, double b)
+{
+    return std::abs(a - b) < g_parameters.epsDoubleComparison;
+}
+
 void check_magic(istream &in, string magic)
 {
     string word;

@@ -137,7 +137,7 @@ void DomainTransitionGraphSymb::read_data(istream &in)
                 transition_index[arc] = nodes[origin].transitions.size();
                 nodes[origin].transitions.push_back(ValueTransition(&nodes[target]));
                 //if assertions fails, range is to small.
-                assert(double_equals(
+                assert(state_equals(
                             target,
                             nodes[origin].transitions[transition_index[arc]].target->value));
             }
@@ -279,7 +279,7 @@ void DomainTransitionGraphSymb::extend_cyclic_effect(const PrePost& pre_post, ve
         int ccg_parent = global_to_ccg_parent[var_no];
         assert(g_variable_types[var_no] == primitive_functional || g_variable_types[var_no] == logical);
         if(g_variable_types[var_no] == logical) {
-            if(!double_equals(pre, post)) {
+            if(!state_equals(pre, post)) {
                 // FIXME: condition_type is nonsense at this point (will not be needed later!)
                 cyclic_effect.push_back(LocalAssignment(
                     g_transition_graphs[var_no], ccg_parent,

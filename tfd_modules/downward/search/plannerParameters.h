@@ -17,6 +17,12 @@ class PlannerParameters
       void dump() const;
 
    public:
+      double epsStateValueComparison;   ///< Maximum epsilon for considering two state values equal
+      double epsTimeComparison;         ///< Maximum epsilon for considering two times equal
+      double epsDoubleComparison;       ///< Maximum epsilon to consider arbitrary double values equal
+
+      double epsSchedulingGapTime;      ///< Gap time added between operators in epsilonize_internally
+
       bool anytime_search;          ///< Perform anytime search (don't stop at first plan)
       bool disallow_concurrent_actions;     ///< Do NOT allow any concurrent actions, i.e. do NOT plan temporally
 

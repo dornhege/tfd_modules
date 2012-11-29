@@ -308,7 +308,7 @@ class TimeStampedState
 
         bool satisfies(const pair<int, double>& goal) const
         {
-            return double_equals(state[goal.first], goal.second);
+            return state_equals(state[goal.first], goal.second);
         }
 
         void apply_numeric_effect(int lhs, assignment_op op, int rhs)

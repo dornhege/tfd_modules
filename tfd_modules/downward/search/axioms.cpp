@@ -198,7 +198,7 @@ void AxiomEvaluator::evaluate_comparison_axioms(TimeStampedState &state)
                 state[var] = (state[lhs] <= state[rhs]) ? 0.0 : 1.0;
                 break;
             case eq:
-                state[var] = double_equals(state[lhs], state[rhs]) ? 0.0 : 1.0;
+                state[var] = state_equals(state[lhs], state[rhs]) ? 0.0 : 1.0;
                 break;
             case ge:
                 state[var] = (state[lhs] >= state[rhs]) ? 0.0 : 1.0;
@@ -207,7 +207,7 @@ void AxiomEvaluator::evaluate_comparison_axioms(TimeStampedState &state)
                 state[var] = (state[lhs] > state[rhs]) ? 0.0 : 1.0;
                 break;
             case ue:
-                state[var] = !double_equals(state[lhs], state[rhs]) ? 0.0 : 1.0;
+                state[var] = !state_equals(state[lhs], state[rhs]) ? 0.0 : 1.0;
                 break;
             default:
                 cout << "Error: ax->op is " << ax->op << "." << endl;
@@ -267,7 +267,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
             // some time.
             int var_no = rules[i].effect_var;
             int val = rules[i].effect_val;
-            if(!double_equals(state[var_no], val)) {
+            if(!state_equals(state[var_no], val)) {
                 // cout << "  -> deduced " << var_no << " = " << val << endl;
                 state[var_no] = val;
                 queue.push_back(rules[i].effect_literal);
@@ -287,7 +287,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
                     if(--(rule->unsatisfied_conditions) == 0) {
                         int var_no = rule->effect_var;
                         int val = rule->effect_val;
-                        if(!double_equals(state[var_no], val)) {
+                        if(!state_equals(state[var_no], val)) {
                             // cout << "  -> deduced " << var_no << " = " << val << endl;
                             state[var_no] = val;
                             queue.push_back(rule->effect_literal);
@@ -300,7 +300,7 @@ void AxiomEvaluator::evaluate_logic_axioms(TimeStampedState &state)
             const vector<NegationByFailureInfo> &nbf_info = nbf_info_by_layer[layer_no];
             for(int i = 0; i < nbf_info.size(); i++) {
                 int var_no = nbf_info[i].var_no;
-                if(double_equals(state[var_no], g_default_axiom_values[var_no]))
+                if(state_equals(state[var_no], g_default_axiom_values[var_no]))
                     queue.push_back(nbf_info[i].literal);
             }
         }

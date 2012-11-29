@@ -60,7 +60,7 @@ void PartialOrderLifter::sortPlan(Plan& plan)
     do {
         changePerformed = false;
         for (int i = 0; i < plan.size() - 1; ++i) {
-            if (plan[i].start_time - EPSILON > plan[i + 1].start_time) {
+            if (plan[i].start_time - g_parameters.epsTimeComparison > plan[i + 1].start_time) {
                 swap(plan[i], plan[i + 1]);
                 changePerformed = true;
             }
@@ -91,7 +91,7 @@ Plan PartialOrderLifter::createAndSolveSTN()
             // assert that two actions ending at the same time point in the original plan
             // also do so in the scheduled one
             if (instant_plan[i].actionFinishingImmeadatlyAfterThis != -1) {
-                //                stn.setSingletonInterval(i,instant_plan[i].actionFinishingImmeadatlyAfterThis,EPSILON);
+                //                stn.setSingletonInterval(i,instant_plan[i].actionFinishingImmeadatlyAfterThis,g_parameters.epsTimeComparison);
             }
         }
     }
@@ -99,7 +99,7 @@ Plan PartialOrderLifter::createAndSolveSTN()
     // assert that causal relationships are preserved
     for (set<Ordering>::iterator it = partial_order.begin(); it
             != partial_order.end(); ++it) {
-        stn.setUnboundedInterval(it->first, it->second, EPSILON);
+        stn.setUnboundedInterval(it->first, it->second, g_parameters.epsTimeComparison);    //FIXME this is a time right?
     }
 
     //    // assert that overall conditions are preserved
@@ -333,7 +333,7 @@ void PartialOrderLifter::findTriggeringEffects(
     effects.clear();
     assert(stateAfterHappening->state.size() == stateBeforeHappening->state.size());
     for (int i = 0; i < stateAfterHappening->state.size(); ++i) {
-        if (!(double_equals(stateBeforeHappening->state[i],
+        if (!(state_equals(stateBeforeHappening->state[i],
                         stateAfterHappening->state[i]))) {
             effects.push_back(PrePost(i, stateAfterHappening->state[i]));
         }
@@ -400,7 +400,7 @@ int PartialOrderLifter::getIndexOfPlanStep(const ScheduledOperator& op,
 {
     for (int i = 0; i < plan.size(); ++i) {
         if (plan[i].op->get_name().compare(op.get_name()) == 0
-                && double_equals(plan[i].start_time, timestamp)) {
+                && time_equals(plan[i].start_time, timestamp)) {
             return i;
         }
     }
@@ -437,7 +437,7 @@ void PartialOrderLifter::buildInstantPlan()
             // A new action starts at this happening!
             startPoints++;
             assert(stateBeforeHappening->operators.size() + 1 == stateAfterHappening->operators.size());
-            if (!(double_equals(stateBeforeHappening->timestamp,
+            if (!(time_equals(stateBeforeHappening->timestamp,
                             stateAfterHappening->timestamp))) {
                 cout << stateBeforeHappening->timestamp << ", "
                     << stateAfterHappening->timestamp << endl;
@@ -473,7 +473,7 @@ void PartialOrderLifter::buildInstantPlan()
             // At least on action ends at this happening!
             assert(i> 0);
             assert(stateBeforeHappening->operators.size() > stateAfterHappening->operators.size());
-            assert(stateBeforeHappening->timestamp < stateAfterHappening->timestamp + EPSILON);
+            assert(stateBeforeHappening->timestamp < stateAfterHappening->timestamp + g_parameters.epsTimeComparison);
             InstantPlanStep *lastEndingAction = NULL;
             double endTime = currentTimeStamp;
             //            endTime = (int)(endTime*1000000)/1000000.0;

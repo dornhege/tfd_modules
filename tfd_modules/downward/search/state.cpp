@@ -22,7 +22,7 @@ TimeStampedState::TimeStampedState(istream &in)
     check_magic(in, "end_state");
 
     g_default_axiom_values = state;
-    timestamp = 0.0; // + EPS_TIME;
+    timestamp = 0.0; // + g_parameters.epsSchedulingGapTime;
 
     initialize();
 }
@@ -58,7 +58,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // order (and also check effect conditions in the intermediate steps).
     // This is analogous to the problem in let_time_pass.
 
-    double sep = (g_parameters.epsilonize_internally ? EPS_TIME : 0.0);
+    double sep = (g_parameters.epsilonize_internally ? g_parameters.epsSchedulingGapTime : 0.0);
 
     timestamp = predecessor.timestamp + sep;
 
@@ -117,11 +117,11 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // stamp and subsequently applying axioms
     for(int i = 0; i < scheduled_effects.size(); i++) {
         ScheduledEffect &eff = scheduled_effects[i];
-        if((eff.time_increment + EPSILON < sep) &&
+        if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
                          satisfies(eff.cond_end, relaxed)) {
             apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
         }
-        if(eff.time_increment + EPSILON < sep) {
+        if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
             scheduled_effects.erase(scheduled_effects.begin() + i);
             i--;
         } else {
@@ -132,11 +132,11 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // same for module effects
     for(int i = 0; i < scheduled_module_effects.size(); i++) {
         ScheduledModuleEffect &eff = scheduled_module_effects[i];
-        if((eff.time_increment + EPSILON < sep) &&
+        if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
                          satisfies(eff.cond_end, relaxed)) {
             apply_module_effect(eff.module->internal_name, relaxed);
         }
-        if(eff.time_increment + EPSILON < sep) {
+        if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
             scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
             i--;
         } else {
@@ -167,9 +167,9 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // added operator
     operators.push_back(ScheduledOperator(duration, op));
 
-    // timestamp += EPS_TIME;
+    // timestamp += g_parameters.epsSchedulingGapTime;
     // FIXME: time increments aller Komponenten des Zustands anpassen
-    // assert(!double_equals(timestamp, next_happening()));
+    // assert(!time_equals(timestamp, next_happening()));
 
     initialize();
 }
@@ -178,13 +178,13 @@ double TimeStampedState::eps_time(double offset) const {
     // FIXME: this could be implemented much more efficiently if operators were
     // sorted by time_increment
     bool recheck = true;
-    double time = EPS_TIME + offset;
+    double time = g_parameters.epsSchedulingGapTime + offset;
     while(recheck) {
         recheck = false;
         for(unsigned int i = 0; i < operators.size(); ++i) {
             double increment = operators[i].time_increment;
-            if(double_equals(increment, time)) {
-                time += EPS_TIME;
+            if(time_equals(increment, time)) {
+                time += g_parameters.epsSchedulingGapTime;
                 recheck = true;
                 break;
             }
@@ -216,7 +216,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     // (this is needed to safely test all persistent over-all
     // conditions -- otherwise we might fail to ever test some of them).
     double nh = next_happening();
-    if(double_equals(nh, timestamp) ||
+    if(time_equals(nh, timestamp) ||
         !go_to_intermediate_between_now_and_next_happening) {
         succ.timestamp = nh;
     } else {
@@ -238,7 +238,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         // stamp and subsequently applying axioms
         for(int i = 0; i < scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = scheduled_effects[i];
-            if((eff.time_increment < time_diff + EPSILON) &&
+            if((eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
                 succ.satisfies(eff.cond_end, relaxed)) {
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
@@ -247,7 +247,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         // Apply module effects as well!
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
-            if((mod_eff.time_increment < time_diff + EPSILON) &&
+            if((mod_eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
                     succ.satisfies(mod_eff.cond_end, relaxed)) {
                 succ.apply_module_effect(mod_eff.module->internal_name, relaxed);
             }
@@ -266,7 +266,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = succ.scheduled_effects[i];
-            if((eff.time_increment < EPSILON) ||
+            if((eff.time_increment < g_parameters.epsTimeComparison) ||
                 !succ.satisfies(eff.cond_overall, relaxed)) {
                 succ.scheduled_effects.erase(succ.scheduled_effects.begin() + i);
                 i--;
@@ -284,7 +284,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = succ.scheduled_module_effects[i];
-            if((mod_eff.time_increment < EPSILON) ||
+            if((mod_eff.time_increment < g_parameters.epsTimeComparison) ||
                 !succ.satisfies(mod_eff.cond_overall, relaxed)) {
                 succ.scheduled_module_effects.erase(
                         succ.scheduled_module_effects.begin() + i);
@@ -302,7 +302,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.conds_over_all.size(); i++) {
             const ScheduledCondition &cond = succ.conds_over_all[i];
-            if((cond.time_increment < EPSILON)) {
+            if((cond.time_increment < g_parameters.epsTimeComparison)) {
                 succ.conds_over_all.erase(succ.conds_over_all.begin() + i);
                 i--;
             }
@@ -318,7 +318,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.conds_at_end.size(); i++) {
             const ScheduledCondition &cond = succ.conds_at_end[i];
-            if(cond.time_increment < EPSILON) {
+            if(cond.time_increment < g_parameters.epsTimeComparison) {
                 succ.conds_at_end.erase(succ.conds_at_end.begin() + i);
                 i--;
             }
@@ -334,7 +334,7 @@ TimeStampedState TimeStampedState::let_time_pass(
     if(!go_to_intermediate_between_now_and_next_happening) {
         for(int i = 0; i < succ.operators.size(); i++) {
             const ScheduledOperator &op = succ.operators[i];
-            if((op.time_increment < EPSILON) || op.time_increment <= 0) {
+            if((op.time_increment < g_parameters.epsTimeComparison) || op.time_increment <= 0) {
                 succ.operators.erase(succ.operators.begin() + i);
                 i--;
             }
@@ -357,15 +357,15 @@ TimeStampedState TimeStampedState::increase_time_stamp_by(double increment) cons
         result = res->let_time_pass(false, false);
         res = &result;
         double new_timestamp = res->timestamp;
-        if(double_equals(old_timestamp, new_timestamp))
+        if(time_equals(old_timestamp, new_timestamp))
             break;
     }
-    assert(res->timestamp+EPSILON+EPS_TIME >= timestamp + increment);
+    assert(res->timestamp+g_parameters.epsTimeComparison+g_parameters.epsSchedulingGapTime >= timestamp + increment);
     return *res;
 }
 #endif
 
-//    if(!(res->timestamp+EPSILON >= timestamp + increment)) {
+//    if(!(res->timestamp+g_parameters.epsTimeComparison >= timestamp + increment)) {
 //	cout << "res->timestamp: " << res->timestamp << ", timestamp: " << timestamp << ", increment: " << increment << endl;
 //	cout << "running ops:" << endl;
 //	for(int i = 0; i < res->operators.size(); ++i) {
@@ -474,7 +474,7 @@ bool TimeStampedState::is_consistent_now(bool relaxed) const
     // Persistent at-end conditions must be satisfied
     // if their end time point is now
     for(int i = 0; i < conds_at_end.size(); i++)
-        if(double_equals(conds_at_end[i].time_increment, 0) &&
+        if(time_equals(conds_at_end[i].time_increment, 0) &&
             !satisfies(conds_at_end[i], relaxed))
             return false;
 
@@ -490,7 +490,7 @@ bool TimeStampedState::is_consistent_when_progressed(bool relaxed,
     TimeStampedState current_progression(*this);
 
     bool go_to_intermediate = true;
-    while(!double_equals(current_time, last_time)) {
+    while(!time_equals(current_time, last_time)) {
         if(!current_progression.is_consistent_now(relaxed)) {
             return false;
         }

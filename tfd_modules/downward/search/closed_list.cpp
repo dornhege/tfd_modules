@@ -1,6 +1,6 @@
 #include "closed_list.h"
 
-// #include "state.h"
+#include "plannerParameters.h"
 
 #include <algorithm>
 #include <cassert>
@@ -47,33 +47,33 @@ bool prevailEquals(const Prevail &prev1, const Prevail &prev2)
 {
     if(prev1.var != prev2.var)
         return false;
-    if(!double_equals(prev1.prev, prev2.prev))
+    if(!state_equals(prev1.prev, prev2.prev))
         return false;
     return true;
 }
 
 bool scheduledConditionEquals(const ScheduledCondition &cond1, const ScheduledCondition &cond2)
 {
-    if(!double_equals(cond1.time_increment, cond2.time_increment))
+    if(!time_equals(cond1.time_increment, cond2.time_increment))
         return false;
     if(cond1.var != cond2.var)
         return false;
-    if(!double_equals(cond1.prev, cond2.prev))
+    if(!state_equals(cond1.prev, cond2.prev))
         return false;
     return true;
 }
 
 bool scheduledEffectEquals(const ScheduledEffect &eff1, const ScheduledEffect &eff2)
 {
-    if(!double_equals(eff1.time_increment, eff2.time_increment))
+    if(!time_equals(eff1.time_increment, eff2.time_increment))
         return false;
     if(eff1.var != eff2.var)
         return false;
-    if(!double_equals(eff1.pre, eff2.pre))
+    if(!state_equals(eff1.pre, eff2.pre))
         return false;
     if(eff1.var_post != eff2.var_post)
         return false;
-    if(!double_equals(eff1.post, eff2.post))
+    if(!state_equals(eff1.post, eff2.post))
         return false;
     if(eff1.fop != eff2.fop)
         return false;
@@ -120,7 +120,7 @@ bool TssEquals::operator()(const TimeStampedState &tss1, const TimeStampedState 
             continue;
         }
 
-        if (!double_equals(tss1.state[i], tss2.state[i]))
+        if (!state_equals(tss1.state[i], tss2.state[i]))
             return false;
     }
     return true;
@@ -196,7 +196,7 @@ bool ClosedList::contains(const TimeStampedState &entry) const
 {
     double min_so_far = get_min_ts_of_key(entry);
     double diff = entry.timestamp - min_so_far;
-    return (!(diff + EPSILON < 0));
+    return (!(diff + g_parameters.epsTimeComparison < 0));
 }
 
 const TimeStampedState& ClosedList::get(const TimeStampedState &state) const
@@ -206,7 +206,7 @@ const TimeStampedState& ClosedList::get(const TimeStampedState &state) const
     const TimeStampedState *ret = &(closed.find(state)->first);
     ClosedListMap::const_iterator it = entries.first;
     for (; it != entries.second; ++it) {
-        if (it->first.timestamp + EPSILON < ret->timestamp) {
+        if (it->first.timestamp + g_parameters.epsTimeComparison < ret->timestamp) {
             ret = &(it->first);
         }
     }
@@ -241,7 +241,7 @@ double ClosedList::getCostOfPath(const TimeStampedState &entry) const
         ClosedListMap::const_iterator it = entries.first;
         const PredecessorInfo* info_helper = NULL;
         for (; it != entries.second; ++it) {
-            if (it->first.timestamp + EPSILON < min_timestamp || !info_helper) {
+            if (it->first.timestamp + g_parameters.epsTimeComparison < min_timestamp || !info_helper) {
                 info_helper = &(it->second);
                 min_timestamp = it->first.timestamp;
             }
@@ -277,7 +277,7 @@ double ClosedList::trace_path(const TimeStampedState &entry,
         ClosedListMap::const_iterator it = entries.first;
         const PredecessorInfo* info_helper = NULL;
         for(; it != entries.second; ++it) {
-            if(it->first.timestamp + EPSILON < min_timestamp || !info_helper) {
+            if(it->first.timestamp + g_parameters.epsTimeComparison < min_timestamp || !info_helper) {
                 info_helper = &(it->second);
                 min_timestamp = it->first.timestamp;
             }
@@ -286,7 +286,7 @@ double ClosedList::trace_path(const TimeStampedState &entry,
         if(!info_helper || info_helper->predecessor == 0)
             break;
         const PredecessorInfo &info = *info_helper;
-        if(diff > EPSILON && states.size() > 1) {
+        if(diff > g_parameters.epsTimeComparison && states.size() > 1) {
             for(int i = 0; i < path.size(); i++) {
                 path[i].start_time -= diff;
             }
@@ -336,7 +336,7 @@ double getSumOfSubgoals(const PlanTrace &path)
         double actualIncrement = 0.0;
         for (int j = path.size() - 1; j >= 0; --j) {
             //            cout << "At timstamp " << path[j]->timestamp << " it is " << path[j]->state[g_goal[i].first] << endl;
-            if (double_equals(path[j]->state[g_goal[i].first], g_goal[i].second)) {
+            if (state_equals(path[j]->state[g_goal[i].first], g_goal[i].second)) {
                 actualIncrement = path[j]->timestamp;
             } else {
                 //                cout << "Goal " << i << " is satiesfied at timestamp " << actualIncrement << endl;

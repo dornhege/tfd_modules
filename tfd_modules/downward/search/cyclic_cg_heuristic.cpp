@@ -75,7 +75,7 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
             assert(g_variable_types[prev_var_no]==logical ||
                     g_variable_types[prev_var_no]==comparison);
             double current_val = source->children_state[local_var];
-            if(!double_equals(current_val, prevail[i].value)) {
+            if(!state_equals(current_val, prevail[i].value)) {
                 int current_val_int = static_cast<int>(current_val);
                 LocalProblem *child_problem = g_HACK()->get_local_problem(
                     prev_var_no, current_val_int);
@@ -91,7 +91,7 @@ void LocalTransitionDiscrete::on_source_expanded(const TimeStampedState &state)
                             || cond_node->cost == 0.0);  // If zero cost is on, this should be 0.0
                     assert(cond_node->cost < LocalProblem::QUITE_A_LOT);
                     g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(),
-                        cond_node->reached_by_wait_for - EPS_TIME));
+                        cond_node->reached_by_wait_for - g_parameters.epsSchedulingGapTime));
                 } else if(cond_node->expanded) {
                     target_cost = target_cost + cond_node->cost;
                     if(target->cost <= target_cost) {
@@ -197,7 +197,7 @@ bool LocalProblemNode::all_conds_satiesfied(const ValueTransitionLabel *label, c
     for(int i = 0; i < label->precond.size(); ++i) {
         int var = label->precond[i].prev_dtg->var;
         if(g_variable_types[var] != module &&
-            !double_equals(label->precond[i].value, state[var])) {
+            !state_equals(label->precond[i].value, state[var])) {
             return false;
         }
     }
@@ -230,7 +230,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                 duration = reached_by->get_source()->children_state[reached_by->duration_var_local];
             }
         }
-        if(double_equals(reached_by->target_cost, duration)) {
+        if(time_equals(reached_by->target_cost, duration)) {
             assert(reached_by->label);
             // if reached_by->label->op is NULL this means that the transition corresponds to
             // an axiom. Do not add this axiom (or rather a NULL pointer) to the set of
@@ -436,7 +436,7 @@ void LocalProblemDiscrete::initialize(double base_priority_, int start_value,
     }
     owner->add_to_queue(start);
     if(g_parameters.cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state) {
-        if(!(double_equals(state[var_no], start_value))) {
+        if(!(state_equals(state[var_no], start_value))) {
             return;
         }
     }
@@ -508,7 +508,7 @@ vector<TimedOp> LocalProblem::generate_causal_constraints(LocalProblemNode* goal
                 vector<TimedOp> newOps = vector<TimedOp> ();
                 double actual_value =
                     trans->get_source()->children_state[preconds[j].local_var];
-                if(!(double_equals(actual_value, preconds[j].value))) {
+                if(!(state_equals(actual_value, preconds[j].value))) {
                     int var = preconds[j].prev_dtg->var;
                     LocalProblem* sub_problem = owner->get_local_problem(var,
                             static_cast<int> (actual_value));
@@ -741,7 +741,7 @@ bool CyclicCGHeuristic::is_running(LocalTransition* trans, const TimeStampedStat
         return false;
     for(int i = 0; i < state.operators.size(); ++i) {
         if(!(state.operators[i].get_name().compare(trans->label->op->get_name()))) {
-            set_waiting_time(max(get_waiting_time(), state.operators[i].time_increment - EPS_TIME));
+            set_waiting_time(max(get_waiting_time(), state.operators[i].time_increment - g_parameters.epsSchedulingGapTime));
             return true;
         }
     }
@@ -760,7 +760,7 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
             continue;
         assert(!is_functional(global_var));
         double current_val = children_state[pre_cond.local_var];
-        if(double_equals(current_val, pre_cond.value)) {
+        if(state_equals(current_val, pre_cond.value)) {
             // to change nothing costs nothing
             assert(trans->conds_satiesfied[i] == false);
             trans->conds_satiesfied[i] = true;
@@ -777,7 +777,7 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
         LocalProblemNode *cond_node = child_problem->get_node(prev_value);
         if(!double_equals(cond_node->reached_by_wait_for, -1.0)) {
             g_HACK()->set_waiting_time(max(g_HACK()->get_waiting_time(),
-                cond_node->reached_by_wait_for - EPS_TIME));
+                cond_node->reached_by_wait_for - g_parameters.epsSchedulingGapTime));
             assert(trans->target_cost < LocalProblem::QUITE_A_LOT);
             assert(trans->conds_satiesfied[i] == false);
             trans->conds_satiesfied[i] = true;
@@ -798,7 +798,7 @@ bool LocalProblemNodeComp::is_satiesfied(int trans_index,
 bool LocalProblemNodeComp::is_directly_satiesfied(
         const LocalAssignment &pre_cond)
 {
-    if(double_equals(children_state[pre_cond.local_var], pre_cond.value))
+    if(state_equals(children_state[pre_cond.local_var], pre_cond.value))
         return true;
     return false;
 }
@@ -909,42 +909,42 @@ void LocalProblemNode::updateComparisonVariables(int var, binary_op op,
     double &target = temp_children_state[var];
     switch (op) {
         case lt:
-            if(left + EPSILON < right) {
+            if(left + g_parameters.epsStateValueComparison < right) {
                 target = 0;
             } else {
                 target = 1;
             }
             break;
         case le:
-            if(left + EPSILON < right || double_equals(left, right)) {
+            if(left + g_parameters.epsStateValueComparison < right || state_equals(left, right)) {
                 target = 0;
             } else {
                 target = 1;
             }
             break;
         case eq:
-            if(double_equals(left, right)) {
+            if(state_equals(left, right)) {
                 target = 0;
             } else {
                 target = 1;
             }
             break;
         case gt:
-            if(left + EPSILON > right) {
+            if(left + g_parameters.epsStateValueComparison > right) {
                 target = 0;
             } else {
                 target = 1;
             }
             break;
         case ge:
-            if(left + EPSILON > right || !double_equals(left, right)) {
+            if(left + g_parameters.epsStateValueComparison > right || !state_equals(left, right)) {
                 target = 0;
             } else {
                 target = 1;
             }
             break;
         case ue:
-            if(!double_equals(left, right)) {
+            if(!state_equals(left, right)) {
                 target = 0;
             } else {
                 target = 1;
@@ -974,7 +974,7 @@ void LocalProblemNode::updateSubtermNumericVariables(int var, binary_op op,
             target = left * right;
             break;
         case divis:
-            if(double_equals(right, 0.0)) {
+            if(state_equals(right, 0.0)) {
                 if(left < 0)
                     target = REALLYBIG;
                 else
@@ -1240,13 +1240,13 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
 
         assert(longestRunningAction <= scheduledPlanMakespan);
         scheduledPlanMakespan -= longestRunningAction;
-        if(!state.operators.empty() && (double_equals(scheduledPlanMakespan, 0.0))) {
+        if(!state.operators.empty() && (time_equals(scheduledPlanMakespan, 0.0))) {
             scheduledPlanMakespan = 0.9;
         }
         return scheduledPlanMakespan;
     } else if(mode == WEIGHTED) {
         assert(heuristic != DEAD_END);
-        if(get_waiting_time() - EPSILON > 0.0) {
+        if(get_waiting_time() - g_parameters.epsTimeComparison > 0.0) {
             heuristic += get_waiting_time();
         }
         double longestRunningAction = 0.0;
@@ -1265,7 +1265,7 @@ double CyclicCGHeuristic::compute_heuristic(const TimeStampedState &state)
     if(!state.operators.empty() && (heuristic == 0.0)) {
         heuristic += 0.9;
     }
-    if(get_waiting_time() - EPSILON > 0.0) {
+    if(get_waiting_time() - g_parameters.epsTimeComparison > 0.0) {
         heuristic += get_waiting_time();
     }
     return heuristic;
@@ -1319,7 +1319,7 @@ double CyclicCGHeuristic::computeScheduledPlanMakespan(const TimeStampedState & 
     for(set<CausalConstraint>::iterator it = constraints.begin(); it
             != constraints.end(); ++it) {
         stn.setUnboundedInterval(needed_ops.size() + it->first, it->second,
-                EPSILON);
+                g_parameters.epsTimeComparison);
     }
 
     stn.setCurrentDistancesAsDefault();
