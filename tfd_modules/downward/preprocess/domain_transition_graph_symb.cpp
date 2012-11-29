@@ -209,8 +209,9 @@ void DomainTransitionGraphSymb::finalize() {
                     assert(other_trans.target >= trans.target);
                     if(other_trans.target != trans.target)
                         break; // transition and all after it have different targets
-                    if(other_trans.duration.var->get_level()
-                            != trans.duration.var->get_level())
+                    if(other_trans.duration.var != NULL &&
+                       trans.duration.var != NULL &&
+                       other_trans.duration.var->get_level() != trans.duration.var->get_level())
                         break; // transition and all after it have different durations
                     else { //domination possible
                         if(other_trans.condition.size() < cond.size()) {

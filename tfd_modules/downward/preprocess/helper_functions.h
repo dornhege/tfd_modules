@@ -113,7 +113,7 @@ struct DurationCond {
     DurationCond(compoperator o, Variable *v) :
         op(o), var(v) {
         }
-    DurationCond() {}
+    DurationCond() : var(NULL) {}
 };
 
 template<typename T> vector<T> append(vector<T> &first, vector<T> &sec) {
