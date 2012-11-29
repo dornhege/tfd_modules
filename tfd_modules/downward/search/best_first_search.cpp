@@ -126,6 +126,9 @@ void BestFirstSearchEngine::dump_everything() const
             cout << "end OpenListEntry" << endl;
         }
     }
+    cout << "Closed List" << endl;
+    closed_list.dump();
+    cout << endl;
 }
 
 SearchEngine::status BestFirstSearchEngine::step()
