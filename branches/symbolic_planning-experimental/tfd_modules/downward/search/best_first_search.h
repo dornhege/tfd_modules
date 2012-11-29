@@ -69,9 +69,6 @@ class BestFirstSearchEngine : public SearchEngine
         void report_progress();
         void reward_progress();
         void generate_successors(const TimeStampedState *parent_ptr);
-        void dump_transition() const;
-        /// Dump the whole knowledge of search engine.
-        void dump_everything() const;
         OpenListInfo *select_open_queue();
 
         void dump_plan_prefix_for_current_state() const;
@@ -100,6 +97,11 @@ class BestFirstSearchEngine : public SearchEngine
         virtual void statistics(time_t & current_time);
         virtual void initialize();
         SearchEngine::status fetch_next_state();
+
+        void dump_transition() const;
+
+        /// Dump the whole knowledge of search engine.
+        void dump_everything() const;
 
     public:
         double bestMakespan;

@@ -310,6 +310,14 @@ double ClosedList::trace_path(const TimeStampedState &entry,
     return ret;
 }
 
+void ClosedList::dump() const
+{
+    for(ClosedListMap::const_iterator it = closed.begin(); it != closed.end(); it++) {
+        const TimeStampedState & s = it->first;
+        s.dump(true);
+    }
+}
+
 double getSumOfSubgoals(const vector<PlanStep> &plan)
 {
     double ret = 0.0;

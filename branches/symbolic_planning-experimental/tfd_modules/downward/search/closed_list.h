@@ -58,6 +58,8 @@ class ClosedList
         int size() const;
         double trace_path(const TimeStampedState &entry, std::vector<PlanStep> &path, PlanTrace &staes) const;
         double getCostOfPath(const TimeStampedState &entry) const;
+
+        void dump() const;
 };
 
 double getSumOfSubgoals(const vector<PlanStep> &plan);
