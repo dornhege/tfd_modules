@@ -61,34 +61,137 @@ There are some special domain sizes:
 OPL Inits
 ---------
 
+    begin_oplinits
+    Number of OPL Inits
+    (OplInit)*
+    end_oplinits
+
 Objects
 ---------
+
+    begin_objects
+    Number of Objects
+    (Object)*
+    end_objects
+
+where Object is `type object-id`, e.g. `movable beer008`.
 
 PDDL Translation
 ---------
 
+    begin_pddl_translation
+    Number of Predicate Translations
+    (PredicateTranslation)*
+    Number of Numerical Fluent Translations
+    (NumericalFluentTranslation)*
+    end_pddl_translation
+
+where a PredicateTranslation is:
+
+    Name NumParameters (ParameterName)* Var Val
+
+This declares that the ground predicate build by `Name` and the `ParameterName`s is true, iff `Var` is `Val`.
+
+A NumericalFluentTranslation is defined as:
+
+    Name NumParameters (ParameterName)* Var
+
+The grounded numerical fluent `Name` `ParameterName`* is represented by state variable `Var`.
+
 Constant Facts
 ---------
+
+    begin_constant_facts
+    Number of True Predicates
+    (ConstPredicate)*
+    Number of Numerical Constants
+    (NumericalConstant)*
+    end_constant_facts
+
+where a `ConstPredicate` is
+
+    Name NumParameters (ParameterName)*
+
+and states that this fact is always true and a `NumericalConstant`
+
+    Name NumParameters (ParameterName)* Value
+
+state that `Name` `ParameterName`s is always `Value`, where value in this case in an
+actual numerical value and not a state variable.
 
 Modules
 ---------
 
     Number of Init Modules
-    (Init Modules)*
+    (InitModule)*
     Number of Exit Modules
-    (Exit Modules)*
+    (ExitModule)*
     Number of Condition Checkers
-    (Condition Checkers)*
+    (ConditionChecker)*
     Number of Effect Applicators
-    (Effect Applicators)*
+    (EffectApplicator)*
     Number of Cost Modules
-    (Cost Modules)*
+    (CostModule)*
+    begin_pddl_translation
+
+An `InitModule` and `ExitModule` is given as:
+
+    LibraryCall NumParameters (ParameterName)*
+
+A `ConditionChecker` and `CostModule` are given as:
+
+    LibraryCall NumParameters (Parameter)* Var
+
+where a `Parameter` is `SchematicName Type Name`. SchematicName is the name in the schematic operator, e.g. `?x`.
+
+An `EffectApplicator` is:
+
+    LibraryCall NumParameters (Parameter)* EffectName EffectVar*
+
+The `EffectName` is an identifier for a module effect and to be used as an effect
+in operator declarations. `EffectVar` states the variables to be set.
+
 
 Initial State
 ---------
 
+    begin_state
+    Value*
+    end_state
+
+This just states the initial values in the state in the same order that
+the variables are defined in the Variables section.
+
+Example:
+
+    begin_state
+    1
+    1
+    0
+    1
+    0
+    ...
+    1.570796327
+    ....
+    end_state
+
 Goal
 ---------
+
+    begin_goal
+    Number Of Goal Conditions
+    (Var Val)*
+    end_goal
+
+This just states that `Var` should be `Val` for all entries in the goal.
+
+Example:
+
+    begin_goal
+    2
+    3 0
+    2 1
+    end_goal
 
 Operators
 ---------
@@ -100,7 +203,9 @@ Operator definitions differ, see program specific sections.
 
 Axioms
 ------
+
 Axiom definitions differ, see program specific sections.
+
 
 Translator Output (output.sas)
 ==============================
