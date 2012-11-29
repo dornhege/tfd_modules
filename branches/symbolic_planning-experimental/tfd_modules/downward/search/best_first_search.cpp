@@ -373,7 +373,7 @@ bool knownByLogicalStateOnly(LogicalStateClosedList& scl, const TimedSymbolicSta
     for (int i = 0; i < timedSymbolicStates.size(); ++i) {
         if (scl.count(timedSymbolicStates[i].first) > 0) {
             double currentBestMakespan = scl[timedSymbolicStates[i].first];
-            if (timedSymbolicStates[i].second + EPSILON < currentBestMakespan) {
+            if (timedSymbolicStates[i].second + g_parameters.epsTimeComparison < currentBestMakespan) {
                 ret = false;
                 scl[timedSymbolicStates[i].first] = timedSymbolicStates[i].second;
             }

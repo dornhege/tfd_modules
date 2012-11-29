@@ -4,6 +4,7 @@
 #include "state.h"
 #include "operator.h"
 #include "scheduler.h"
+#include "plannerParameters.h"
 #include <list>
 
 enum ActionType
@@ -141,7 +142,7 @@ class PartialOrderLifter
         {
                 bool operator()(const double& lhs, const double& rhs) const
                 {
-                    return lhs + EPSILON < rhs;
+                    return lhs + g_parameters.epsTimeComparison < rhs;
                 }
         };
     private:

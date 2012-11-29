@@ -25,7 +25,7 @@ bool Prevail::is_applicable(const TimeStampedState &state, bool allowRelaxed) co
                 g_condition_modules[var]->params, pct, nct, allowRelaxed);
         return cost < INFINITE_COST;
     } else {
-        return double_equals(state[var], prev);
+        return state_equals(state[var], prev);
     }
 }
 
@@ -79,7 +79,7 @@ bool PrePost::is_applicable(const TimeStampedState &state) const
 {
     assert(var >= 0 && var < g_variable_name.size());
     assert(pre == -1 || (pre >= 0 && pre < g_variable_domain[var]));
-    return pre == -1 || (double_equals(state[var], pre));
+    return pre == -1 || (state_equals(state[var], pre));
 }
 
 void Operator::sort_prevails(vector<Prevail> &prevails)
@@ -216,7 +216,7 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
     if(g_parameters.epsilonize_internally) {
         for(unsigned int i = 0; i < state.operators.size(); ++i) {
             double time_increment = state.operators[i].time_increment;
-            if(double_equals(time_increment, EPS_TIME)) {
+            if(time_equals(time_increment, g_parameters.epsSchedulingGapTime)) {
                 return false;
             }
         }
@@ -312,7 +312,7 @@ bool Operator::achievesPrecond(const vector<PrePost>& effects, const vector<
 {
     for(int i = 0; i < effects.size(); ++i) {
         for(int j = 0; j < conds.size(); ++j) {
-            if(effects[i].var == conds[j].var && double_equals(
+            if(effects[i].var == conds[j].var && state_equals(
                         effects[i].post, conds[j].prev)) {
                 return true;
             }
@@ -326,7 +326,7 @@ bool Operator::achievesPrecond(const vector<PrePost>& effs1, const vector<
 {
     for(int i = 0; i < effs1.size(); ++i) {
         for(int j = 0; j < effs2.size(); ++j) {
-            if(effs1[i].var == effs2[j].var && double_equals(effs1[i].post,
+            if(effs1[i].var == effs2[j].var && state_equals(effs1[i].post,
                         effs2[j].pre)) {
                 return true;
             }
@@ -341,7 +341,7 @@ bool Operator::deletesPrecond(const vector<Prevail>& conds, const vector<
 {
     for(int i = 0; i < conds.size(); ++i) {
         for(int j = 0; j < effects.size(); ++j) {
-            if(conds[i].var == effects[j].var && !double_equals(conds[i].prev,
+            if(conds[i].var == effects[j].var && !state_equals(conds[i].prev,
                         effects[j].post)) {
                 return true;
             }
@@ -355,11 +355,11 @@ bool Operator::deletesPrecond(const vector<PrePost>& effs1, const vector<
 {
     for(int i = 0; i < effs1.size(); ++i) {
         for(int j = 0; j < effs2.size(); ++j) {
-            if(effs1[i].var == effs2[j].var && !double_equals(effs1[i].pre,
+            if(effs1[i].var == effs2[j].var && !state_equals(effs1[i].pre,
                         effs2[j].post)) {
                 //	  if(effs1[i].var == effs2[j].var &&
-                //	     !double_equals(effs1[i].pre,effs2[j].post) &&
-                //	     !double_equals(effs1[i].pre,-1.0)) 
+                //	     !state_equals(effs1[i].pre,effs2[j].post) &&
+                //	     !state_equals(effs1[i].pre,-1.0)) 
                 return true;
             }
         }

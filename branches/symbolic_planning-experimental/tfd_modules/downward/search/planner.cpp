@@ -331,7 +331,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
         if(makespan > best_makespan)
             return best_makespan;
 
-        if(double_equals(makespan, best_makespan)) {
+        if(time_equals(makespan, best_makespan)) {
             double sumOfSubgoals = getSumOfSubgoals(rescheduled_plan);
             if(sumOfSubgoals < engine.bestSumOfGoals) {
                 cout

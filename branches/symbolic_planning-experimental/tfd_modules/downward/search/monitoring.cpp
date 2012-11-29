@@ -187,7 +187,7 @@ bool MonitorEngine::validatePlan(const std::vector< std::vector<PlanStep> > & pl
             if(g_parameters.monitoring_verify_timestamps) {
                 // this plan trace should now be at the start time of plan[i]
                 double dt = fabs(plan[i].front().start_time - curTrace.lastTimestamp());
-                if(dt > EPS_TIME) {     // timestamp doesn't match -> stop this trace
+                if(dt > g_parameters.epsSchedulingGapTime) {     // timestamp doesn't match -> stop this trace
                     continue;
                 }
             }
@@ -279,14 +279,14 @@ bool MonitorEngine::validatePlanOld(const std::vector< std::vector<PlanStep> >& 
     for (int i = 0; i < plan.size(); i++) {
         while (plan[i].front().start_time > current.timestamp) {
             double curren_time = current.timestamp;
-            if (plan[i].front().start_time - 2 * EPS_TIME - EPSILON
+            if (plan[i].front().start_time - 2 * g_parameters.epsSchedulingGapTime - g_parameters.epsTimeComparison
                     <= current.timestamp) {
-                current.timestamp += EPS_TIME;
+                current.timestamp += g_parameters.epsSchedulingGapTime;
             } else {
                 current = current.let_time_pass(false, false, false);
             }
-            if (double_equals(current.timestamp, curren_time)) {
-                current.timestamp += EPS_TIME;
+            if (time_equals(current.timestamp, curren_time)) {
+                current.timestamp += g_parameters.epsSchedulingGapTime;
             }
         }
         cout << "Current time_stamp: " << current.timestamp << endl;
