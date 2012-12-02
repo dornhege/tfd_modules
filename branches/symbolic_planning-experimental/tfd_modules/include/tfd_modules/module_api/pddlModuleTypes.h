@@ -134,6 +134,17 @@ typedef void (*moduleInitType)(int argc, char** argv);
  */
 typedef void (*moduleExitType)(const RawPlan & plan, int argc, char** argv,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback);
+
+/// Module for grounding partially grounded operators.
+/**
+ * FIXME Does relaxed make sense ???
+ *
+ * \returns a new ground object as an additional operator parameter that was not created
+ * by this module before or empty string if it is not possible to ground the operator (any more).
+ */
+typedef std::string (*groundingModuleType)(const ParameterList & parameterList,
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
+        int relaxed);
  
 /// Semantic attachment for a condition (predicate).
 /**
@@ -142,7 +153,8 @@ typedef void (*moduleExitType)(const RawPlan & plan, int argc, char** argv,
  *    (i.e. cost modules can be used as condition checkers)
  */
 typedef double (*conditionCheckerType)(const ParameterList & parameterList,
-        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback, int relaxed);
+        predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
+        int relaxed);
 
 /// Semantic attachment adding numerical effects.
 /**
@@ -192,6 +204,7 @@ std::ostream & operator<<(std::ostream & os, const NumericalFluentList & nl);
 
 #define VERIFY_INIT_MODULE_DEF(name) moduleInitType name##_def_check = name
 #define VERIFY_EXIT_MODULE_DEF(name) moduleExitType name##_def_check = name
+#define VERIFY_GROUNDINGMODULE_DEF(name) groundingModuleType name##_def_check = name
 #define VERIFY_CONDITIONCHECKER_DEF(name) conditionCheckerType name##_def_check = name
 #define VERIFY_APPLYEFFECT_DEF(name) applyEffectType name##_def_check = name
 #define VERIFY_SUBPLANGENERATOR_DEF(name) subplanGeneratorType name##_def_check = name
