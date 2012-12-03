@@ -102,10 +102,11 @@ class Action(object):
             return None
 
 class DurativeAction(object):
-    def __init__(self, name, parameters, duration, conditions, effects):
+    def __init__(self, name, parameters, grounding_call, duration, conditions, effects):
         self.name = name
         self.parameters = parameters
         self.orig_parameter_length = len(parameters)
+        self.grounding_call = grounding_call
         self.duration = duration
         self.condition = conditions
         assert len(effects)==2
@@ -120,10 +121,19 @@ class DurativeAction(object):
         if parameters_tag_opt == ":parameters":
             parameters = pddl_types.parse_typed_list(iterator.next(),
                                                      only_variables=True)
-            duration_tag = iterator.next()
+            grounding_tag = iterator.next()
         else:
             parameters = []
-            duration_tag = parameters_tag_opt
+            grounding_tag = parameters_tag_opt
+
+        if grounding_tag == ":grounding":
+            grounding_list = iterator.next()
+            grounding_call = conditions.parse_condition(grounding_list)
+            duration_tag = iterator.next()
+        else:
+            grounding_call = None
+            duration_tag = grounding_tag
+
         assert duration_tag == ":duration"
         duration_list = iterator.next()
         if duration_list[0] == "and":
@@ -167,7 +177,7 @@ class DurativeAction(object):
         effects.parse_durative_effects(effect_list, effect)
         for rest in iterator:
             assert False, rest
-        return DurativeAction(name, parameters, (duration_start,duration_end), condition, effect)
+        return DurativeAction(name, parameters, grounding_call, (duration_start,duration_end), condition, effect)
     parse = staticmethod(parse)
     def dump(self):
         if self.orig_parameter_length != len(self.parameters):
@@ -176,6 +186,11 @@ class DurativeAction(object):
                               ", ".join(map(str, self.parameters[self.orig_parameter_length:])))
         else:
             print "%s(%s)" % (self.name, ", ".join(map(str, self.parameters)))
+        if self.grounding_call is None:
+            print "grounding: grounded"
+        else:
+            print "grounding: "
+            self.grounding_call.dump()
         if len(self.duration[0]) > 0:
             print "duration (values from start):"
             for (op, val) in self.duration[0]:
@@ -220,6 +235,14 @@ class DurativeAction(object):
         arg_list = [var_mapping[conditions.Variable(par.name)].name for par in self.parameters]
         name = "(%s %s)" % (self.name, " ".join(arg_list[:self.orig_parameter_length]))
 
+        if self.grounding_call is not None:
+            result = []
+            self.grounding_call.instantiate(var_mapping, init_facts, fluent_facts, init_function_vals,
+                    fluent_functions, task, new_axiom, new_modules, result)
+            inst_grounding_call = result[0]
+        else:
+            inst_grounding_call = None
+
         try:
             inst_duration = [[],[]]
             for dura in (0, 1):
@@ -253,7 +276,7 @@ class DurativeAction(object):
                                 init_function_vals, fluent_functions, task, 
                                 new_axiom, new_modules, objects_by_type, effects[time])
         if effects:
-            return PropositionalDurativeAction(name, inst_duration, inst_conditions, effects)
+            return PropositionalDurativeAction(name, inst_grounding_call, inst_duration, inst_conditions, effects)
         else:
             return None
 #    def relaxed(self):
@@ -302,8 +325,9 @@ class PropositionalAction:
             print "ASS: %s -> %s" % (", ".join(map(str, cond)), fact)
 
 class PropositionalDurativeAction:
-    def __init__(self, name, duration, conditions, effects):
+    def __init__(self, name, grounding_call, duration, conditions, effects):
         self.name = name
+        self.grounding_call = grounding_call
         self.duration = duration
         self.conditions = conditions
         self.add_effects = [[],[]]
@@ -319,6 +343,11 @@ class PropositionalDurativeAction:
                     self.add_effects[time].append((condition, effect))
     def dump(self):
         print self.name
+        if self.grounding_call is None:
+            print "GROUNDED"
+        else:
+            print "GROUNDING: "
+            self.grounding_call.dump()
         for duration in self.duration[0]:
             print "START DUR: %s %s" % (duration[0],duration[1])
         for duration in self.duration[1]:

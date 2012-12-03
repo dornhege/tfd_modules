@@ -52,6 +52,15 @@ class EffectModule: public Module
         void generate_cpp_input(ostream &outfile) const;
 };
 
+class GroundingModule: public Module
+{
+    public:
+        string name;
+
+        GroundingModule(istream &in, const vector<Variable*> &variables);
+        void generate_cpp_input(ostream &outfile) const;
+};
+
 class Translate
 {
     public:

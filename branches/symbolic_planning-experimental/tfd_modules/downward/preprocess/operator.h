@@ -95,6 +95,7 @@ class Operator {
         vector<NumericalEffect> numerical_effs_end; // comp, first-op, sec-op
         vector<ModuleEffect> module_effs_start;
         vector<ModuleEffect> module_effs_end;
+        vector<string> groundingCalls;
 
         DurationCond duration_cond;
     public:
@@ -110,6 +111,7 @@ class Operator {
         void write_pre_posts(ostream &outfile, const vector<PrePost> &pre_posts) const;
         void write_num_effect(ostream &outfile, const vector<NumericalEffect> &num_effs) const;
         void write_module_effect(ostream &outfile, const vector<ModuleEffect> &mod_effs) const;
+        void write_grounding_calls(ostream &outfile, const vector<string> & grounding_calls) const;
         string get_name() const {
             return name;
         }

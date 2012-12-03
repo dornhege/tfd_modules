@@ -122,6 +122,7 @@ actual numerical value and not a state variable.
 Modules
 ---------
 
+    begin_modules
     Number of Init Modules
     (InitModule)*
     Number of Exit Modules
@@ -132,7 +133,9 @@ Modules
     (EffectApplicator)*
     Number of Cost Modules
     (CostModule)*
-    begin_pddl_translation
+    Number of Grounding Modules
+    (GroundingModule)*
+    end_modules
 
 An `InitModule` and `ExitModule` is given as:
 
@@ -151,6 +154,12 @@ An `EffectApplicator` is:
 The `EffectName` is an identifier for a module effect and to be used as an effect
 in operator declarations. `EffectVar` states the variables to be set.
 
+An `GroundingModule` is:
+
+    LibraryCall NumParameters (Parameter)* ModuleGrounding
+
+The `ModuleGrounding` is an identifier for a module grounding and will be used in
+in partially grounded operator declarations.
 
 Initial State
 ---------
@@ -215,6 +224,8 @@ Operator
 
     begin_operator
     name ground_param*
+    Number of grounding modules
+    (ModuleGrounding)*
     = DurationVar
     Number of at start conditions
     (Condition)*
@@ -227,6 +238,9 @@ Operator
     Number of at end effects
     (Effect)*
     end_operator
+
+Currently only 0 or 1 grounding modules are supported.
+A `ModuleGrounding` is an identifier `gm-ID` as declared in the modules section.
 
 A `Condition` is a pair definition that variable `Var` should have `Value`.
 
@@ -243,6 +257,7 @@ Example:
 
     begin_operator
     pick-up beer008 crate_008 side
+    0
     = 95
     3
     2 0
@@ -280,6 +295,8 @@ Operator
 --------
 
     begin_operator
+    Number of grounding modules
+    (ModuleGrounding)*
     name ground_param*
     = DurationVar
     Number of at start conditions
@@ -301,6 +318,9 @@ Operator
     Number of module at end effects
     (PreEffect)*
     end_operator
+
+Currently only 0 or 1 grounding modules are supported.
+A `ModuleGrounding` is an identifier `gm-ID` as declared in the modules section.
 
 A `Condition` is a pair definition that variable `Var` should have `Value`.
 
@@ -325,6 +345,7 @@ Example:
 
     begin_operator
     pick-up beer008 crate_008 side
+    0
     = 95
     3
     2 0

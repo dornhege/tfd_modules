@@ -44,6 +44,7 @@ int main(int argc, const char **argv) {
     vector<ConditionModule> condModules;
     vector<EffectModule> effectModules;
     vector<ConditionModule> costModules; //Hacky, reuse ConditionModule here
+    vector<GroundingModule> groundingModules;
     vector<TranslatePredicate> predicateTranslations;
     vector<TranslateFunction> functionTranslations;
     vector<string> predConstants;
@@ -59,7 +60,7 @@ int main(int argc, const char **argv) {
     read_preprocessed_problem_description(cin, internal_variables, variables,
             initial_state, goals, operators, axioms_rel, axioms_func,
             moduleInits, moduleExits, subplanGenerators, condModules, effectModules,
-            costModules, predicateTranslations, functionTranslations,
+            costModules, groundingModules, predicateTranslations, functionTranslations,
             predConstants, numConstants, objects, oplinits);
 
 
@@ -105,7 +106,7 @@ int main(int argc, const char **argv) {
     ostream out(old_cout);
     generate_cpp_input(solveable_in_poly_time, ordering,
             moduleInits, moduleExits,
-            subplanGenerators, condModules, effectModules, costModules,
+            subplanGenerators, condModules, effectModules, costModules, groundingModules,
             predicateTranslations, functionTranslations, predConstants,
             numConstants,
             initial_state, goals,

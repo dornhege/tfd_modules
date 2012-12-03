@@ -117,7 +117,7 @@ class Requirements(object):
         ":existential-preconditions", ":universal-preconditions",
         ":quantified-preconditions", ":conditional-effects",
         ":fluents", ":object-fluents", ":numeric-fluents", ":action-costs",
-        ":durative-actions", ":derived-predicates", ":duration-inequalities", ":modules"), req
+        ":durative-actions", ":derived-predicates", ":duration-inequalities", ":modules", ":grounding-modules"), req
   def __str__(self):
     return ", ".join(self.requirements)
 

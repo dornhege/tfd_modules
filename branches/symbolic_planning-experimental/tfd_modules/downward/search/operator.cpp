@@ -75,6 +75,20 @@ ModuleEffect::ModuleEffect(istream &in)
     ROS_ASSERT(module != NULL);
 }
 
+ModuleGrounding::ModuleGrounding(std::istream &in)
+{
+    string name;
+    in >> name;
+    name = name.substr(3);
+    module = g_grounding_modules[atoi(name.c_str())];
+    ROS_ASSERT(module != NULL);
+}
+
+void ModuleGrounding::dump() const
+{
+    module->dump();
+}
+
 bool PrePost::is_applicable(const TimeStampedState &state) const
 {
     assert(var >= 0 && var < g_variable_name.size());
@@ -99,6 +113,12 @@ Operator::Operator(istream &in)
     check_magic(in, "begin_operator");
     in >> ws;
     getline(in, name);
+    int groundingCount;
+    in >> groundingCount;
+    assert(groundingCount >= 0 && groundingCount < 2);  // exactly 0 or 1 grounding module
+    for(int i = 0; i < groundingCount; ++i) {
+        mod_groundings.push_back(ModuleGrounding(in));
+    }
     int count;
     binary_op bop;
     in >> bop >> duration_var;
@@ -176,6 +196,15 @@ void PrePost::dump() const
 void Operator::dump() const
 {
     cout << name << endl;
+    cout << "Grounding: ";
+    if(mod_groundings.empty()) {
+        cout << "Grounded." << endl;
+    } else {
+        cout << endl;
+        for(int i = 0; i < mod_groundings.size(); i++) {
+            mod_groundings[i].dump();
+        }
+    }
     cout << "Prevails start:" << endl;
     for(int i = 0; i < prevail_start.size(); ++i) {
         prevail_start[i].dump();

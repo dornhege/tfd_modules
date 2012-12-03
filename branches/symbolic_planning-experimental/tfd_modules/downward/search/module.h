@@ -71,9 +71,22 @@ class CostModule: public Module
         conditionCheckerType checkCost;
 
         CostModule(istream &in);
-        
+
         virtual void dump();
 };
+
+class GroundingModule: public Module
+{
+    public:
+        string internal_name;
+
+        groundingModuleType groundingModule;
+
+        GroundingModule(istream &in);
+
+        virtual void dump();
+};
+
 
 class InitModule: public Module
 {
@@ -118,6 +131,7 @@ extern const TimeStampedState* g_modulecallback_state;
 extern map<int, ConditionModule*> g_condition_modules;
 extern vector<EffectModule *> g_effect_modules;
 extern map<int, CostModule*> g_cost_modules;
+extern vector<GroundingModule*> g_grounding_modules;
 extern vector<InitModule *> g_init_modules;
 extern vector<ExitModule *> g_exit_modules;
 extern OplInit* g_oplinit;
