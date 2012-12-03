@@ -314,7 +314,19 @@ void ClosedList::dump() const
 {
     for(ClosedListMap::const_iterator it = closed.begin(); it != closed.end(); it++) {
         const TimeStampedState & s = it->first;
+        if(it->second.annotation && it->second.annotation->get_name() != "let_time_pass")
+            continue;
+
+        cout << endl;
         s.dump(true);
+        if(it->second.annotation)
+            cout << "from OP: " << it->second.annotation->get_name() << " Predec: " << endl;
+        else
+            cout << "from OP: NULL Predec: " << endl;
+        if(it->second.predecessor)
+            it->second.predecessor->dump(true);
+        else
+            cout << "NULL" << endl;
     }
 }
 

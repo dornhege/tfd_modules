@@ -31,6 +31,7 @@ USE_SAFE_INVARIANT_SYNTHESIS = True
 def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, modules):
     dictionary = {}
     mod_effects_dict = {}
+    mod_grounding_dict = {}
 
     # sort groups to get a deterministic output
     map(lambda g: g.sort(lambda x, y: cmp(str(x),str(y))),groups)
@@ -68,6 +69,7 @@ def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, mod
     module_list = list(modules)
     module_list.sort(lambda x,y: cmp(str(x), str(y)))
     mod_eff_no = 0
+    mod_ground_no = 0
     for module in module_list:
       moduleCall = module.toModuleCall()
       if module.type == "effect":
@@ -75,6 +77,10 @@ def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, mod
           mod_effects_dict.setdefault(moduleCall, []).append(mod_eff_no)
           # might be enough just to set that to mod_eff_no
           mod_eff_no += 1
+      elif module.type == "grounding":
+        if moduleCall not in mod_grounding_dict:
+          mod_grounding_dict.setdefault(moduleCall, []).append(mod_ground_no)
+          mod_ground_no += 1
       else:
         if moduleCall not in dictionary:
           # hm, if we use 1 here, we could even handle negated effects
@@ -88,7 +94,7 @@ def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, mod
           else:
             assert False, "Unknown module type in dictionary"
         
-    return ranges, dictionary, mod_effects_dict
+    return ranges, dictionary, mod_effects_dict, mod_grounding_dict
 
 def translate_strips_conditions(conditions, dictionary, ranges, comp_axioms, 
                                 temporal=False, true_atoms=(), false_atoms=()):
@@ -268,6 +274,10 @@ def translate_strips_conditions_aux(conditions, dictionary, ranges, comparison_a
 
     return multiply_out(condition)
 
+def translate_operator_grounding_call(grounding_call, dictionary):
+    if grounding_call is None:
+        return None
+    return dictionary[grounding_call][0]
 
 def translate_operator_duration(duration, dictionary):
     sas_durations = []
@@ -534,7 +544,7 @@ def cartesian_product_temporal_conditions(conds):
     return [list(cond) for cond in itertools.product(*conds)]
 
 
-def translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dict, ranges,
+def translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dict, mod_groundings_dict, ranges,
                                            comp_axioms, condition, true_atoms,
                                            false_atoms):
     # NOTE: This function does not really deal with the intricacies of properly
@@ -542,6 +552,7 @@ def translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dic
     # conditional effects. It should work ok but will bail out in more
     # complicated cases even though a conflict does not necessarily exist.
 
+    grounding_call = translate_operator_grounding_call(operator.grounding_call, mod_groundings_dict)
     duration = translate_operator_duration(operator.duration, dictionary)
 
     if condition is None:
@@ -620,10 +631,10 @@ def translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dic
                                                            eff_condition, True)
                     assign_effects[time].append(sas_effect)
 
-    return sas_tasks.SASTemporalOperator(operator.name, duration, 
+    return sas_tasks.SASTemporalOperator(operator.name, grounding_call, duration, 
                 prevail, pre_post, assign_effects, mod_effects)
 
-def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, ranges,
+def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, mod_groundings_dict, ranges,
                                        comp_axioms, true_atoms, false_atoms):
     condition = translate_strips_conditions(operator.conditions, dictionary,
                                             ranges, comp_axioms, True,
@@ -638,7 +649,7 @@ def translate_temporal_strips_operator(operator, dictionary, mod_effects_dict, r
     temp_conds = cartesian_product_temporal_conditions(condition)
     ops = []
     for temp_cond in temp_conds:
-        op = translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dict, 
+        op = translate_temporal_strips_operator_aux(operator, dictionary, mod_effects_dict, mod_groundings_dict,
                                                     ranges, comp_axioms,
                                                     temp_cond, true_atoms,
                                                     false_atoms)
@@ -681,12 +692,12 @@ def translate_strips_operators(actions, strips_to_sas, module_effects_to_sas, ra
             result.append(sas_op)
     return result
 
-def translate_temporal_strips_operators(actions, strips_to_sas, module_effects_to_sas, ranges, comp_axioms,
+def translate_temporal_strips_operators(actions, strips_to_sas, module_effects_to_sas, module_groundings_to_sas, ranges, comp_axioms,
         true_atoms, false_atoms):
     result = []
     actions.sort(lambda x,y: cmp(x.name,y.name))
     for action in actions:
-        sas_ops = translate_temporal_strips_operator(action, strips_to_sas, module_effects_to_sas,
+        sas_ops = translate_temporal_strips_operator(action, strips_to_sas, module_effects_to_sas, module_groundings_to_sas, 
                                                      ranges, comp_axioms, 
                                                      true_atoms, false_atoms)
         if sas_ops:
@@ -702,7 +713,7 @@ def translate_strips_axioms(axioms, strips_to_sas, ranges, comp_axioms):
             result.extend(sas_axioms)
     return result
 
-def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, actions, 
+def translate_task(strips_to_sas, module_effects_to_sas, module_groundings_to_sas, ranges, init, goals, actions, 
                    durative_actions, axioms, num_axioms, num_axioms_by_layer, 
                    max_num_layer, num_axiom_map, const_num_axioms, oplinit, objects,
                    modules, module_inits, module_exits, subplan_generators, init_constant_predicates, init_constant_numerics):
@@ -737,7 +748,7 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
     operators = translate_strips_operators(actions,
                                         strips_to_sas, module_effects_to_sas, ranges, comp_axioms)
     temp_operators = translate_temporal_strips_operators(durative_actions, 
-                                        strips_to_sas, module_effects_to_sas, ranges, comp_axioms,
+                                        strips_to_sas, module_effects_to_sas, module_groundings_to_sas, ranges, comp_axioms,
                                         true_atoms, false_atoms)
     
     axioms = translate_strips_axioms(axioms, strips_to_sas, ranges, comp_axioms)
@@ -794,12 +805,15 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
     strips_condition_modules = [module for module in modules if module.type == "conditionchecker"]
     strips_effect_modules = [module for module in modules if module.type == "effect"]
     strips_cost_modules = [module for module in modules if module.type == "cost"]
+    strips_grounding_modules = [module for module in modules if module.type == "grounding"]
     strips_condition_modules.sort(lambda x,y : cmp(str(x), str(y)))
     strips_effect_modules.sort(lambda x,y : cmp(str(x), str(y)))
     strips_cost_modules.sort(lambda x,y : cmp(str(x), str(y)))
+    strips_grounding_modules.sort(lambda x,y : cmp(str(x), str(y)))
     condition_modules = []
     effect_modules = []
     cost_modules = []
+    grounding_modules = []
 
     for mod in strips_condition_modules:
       assert mod.parent is not None
@@ -833,9 +847,16 @@ def translate_task(strips_to_sas, module_effects_to_sas, ranges, init, goals, ac
       assert len(strips_to_sas[mod.toModuleCall()][0]) == 2
       mod_var = strips_to_sas[mod.toModuleCall()][0][0]
       cost_modules.append(sas_tasks.SASConditionModule(mod.modulecall, sas_params, mod_var))
+    for mod in strips_grounding_modules:
+      assert mod.parent is not None
+      sas_params = []
+      for (ground_param, pddl_param) in zip(mod.parameters, mod.parent.parameters):
+        sas_params.append((pddl_param.name, ground_param.type, ground_param.name))
+      grounding_modules.append(sas_tasks.SASGroundingModule(mod.modulecall, sas_params, module_groundings_to_sas[mod.toModuleCall()][0]))
 
     return sas_tasks.SASTask(variables, init, goal, operators, 
-                             temp_operators, axioms, sas_num_axioms, comp_axioms[1], oplinit, objects, condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, module_exits, subplan_generators, 
+                             temp_operators, axioms, sas_num_axioms, comp_axioms[1], oplinit, objects, condition_modules, effect_modules, cost_modules, grounding_modules,
+                             sas_tasks.SASTranslation(strips_to_sas), module_inits, module_exits, subplan_generators, 
                              init_constant_predicates, init_constant_numerics)
 
 def unsolvable_sas_task(msg):
@@ -896,10 +917,10 @@ def pddl_to_sas(task):
         numeric_axiom_rules.handle_axioms(num_axioms)
 
     print "Building STRIPS to SAS dictionary..."
-    ranges, strips_to_sas, module_effects_to_sas = strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, modules)
+    ranges, strips_to_sas, module_effects_to_sas, module_groundings_to_sas = strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, modules)
     print "Translating task..."
     assert not actions, "There shouldn't be any actions - just temporal actions"
-    sas_task = translate_task(strips_to_sas, module_effects_to_sas, ranges, task.init, goal_list,
+    sas_task = translate_task(strips_to_sas, module_effects_to_sas, module_groundings_to_sas, ranges, task.init, goal_list,
                               actions, durative_actions, axioms, num_axioms,
                               num_axioms_by_layer, max_num_layer, num_axiom_map,
                               const_num_axioms, task.oplinit, task.objects, modules, task.module_inits, task.module_exits, task.subplan_generators, init_constant_predicates, init_constant_numerics)

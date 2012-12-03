@@ -20,6 +20,7 @@ class Operator
         vector<PrePost> pre_post_end; // var, old-val, new-val
         vector<ModuleEffect> mod_effs_start;
         vector<ModuleEffect> mod_effs_end;
+        vector<ModuleGrounding> mod_groundings;
         int duration_var;
         string name;
 

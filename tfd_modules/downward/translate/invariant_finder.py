@@ -33,6 +33,7 @@ class BalanceChecker(object):
                 if create_heavy_act:
                     heavy_act = pddl.DurativeAction(action.name, 
                                                     action.parameters,
+                                                    action.grounding_call,
                                                     action.duration, 
                                                     action.condition, 
                                                     too_heavy_effects)
@@ -72,6 +73,7 @@ class BalanceChecker(object):
                 cond = pddl.Conjunction(cond_parts)
                 new_cond[time] = cond
             return pddl.DurativeAction(action.name, action.parameters,
+                                       action.grounding_call,
                                        action.duration, new_cond,
                                        action.effects)
         else:

@@ -105,6 +105,15 @@ struct ModuleEffect
     void dump() const;
 };
 
+struct ModuleGrounding
+{
+    GroundingModule *module;
+    ModuleGrounding(std::istream &in);
+
+    void dump() const;
+};
+
+
 struct ScheduledEffect : public PrePost
 {
     double time_increment;

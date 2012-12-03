@@ -11,6 +11,14 @@ Operator::Operator(istream &in, const vector<Variable *> &variables) {
     check_magic(in, "begin_operator");
     in >> ws;
     getline(in, name);
+    int groundingCount;
+    in >> groundingCount;
+    for(int i = 0; i < groundingCount; i++) {
+        string groundingCall;
+        in >> groundingCall;
+        assert(groundingCall.at(0) == 'g');
+        groundingCalls.push_back(groundingCall);
+    }
     int varNo;
     compoperator cop;
     in >> cop >> varNo;
@@ -152,6 +160,9 @@ Operator::Operator(istream &in, const vector<Variable *> &variables) {
 
 void Operator::dump() const {
     cout << name << ":" << endl;
+    cout << "grounding: " << endl;
+    for(int i = 0; i < groundingCalls.size(); i++)
+        cout << groundingCalls[i] << endl;
     cout << "duration:" << duration_cond.op << " "
         << duration_cond.var->get_name();
     cout << endl;
@@ -386,10 +397,19 @@ void Operator::write_module_effect(ostream &outfile,
     }
 }
 
+void Operator::write_grounding_calls(ostream &outfile, const vector<string> & grounding_calls) const
+{
+    outfile << grounding_calls.size() << endl;
+    for (int i = 0; i < grounding_calls.size(); ++i) {
+        outfile << grounding_calls[i] << endl;
+    }
+}
+
 void Operator::generate_cpp_input(ostream &outfile) const {
     // beim Einlesen in search feststellen, ob leerer Operator
     outfile << "begin_operator" << endl;
     outfile << name << endl;
+    write_grounding_calls(outfile, groundingCalls);
     //duration
     outfile << duration_cond.op << " " << duration_cond.var->get_level()
         << endl;

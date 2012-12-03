@@ -43,6 +43,17 @@ modules::conditionCheckerType PDDLModuleLoader::getCostChecker(string fnString)
    //return (modules::conditionCheckerType)fn;
 }
 
+modules::groundingModuleType PDDLModuleLoader::getGroundingModule(string fnString)
+{
+   void* fn = getFunction(fnString);
+   if(fn == NULL)
+      return NULL;
+   modules::groundingModuleType ret;
+   *(void **) (&ret) = fn;
+   return ret;
+   //return (modules::groundingModuleType)fn;
+}
+
 modules::moduleInitType PDDLModuleLoader::getModuleInit(string fnString)
 {
    void* fn = getFunction(fnString);

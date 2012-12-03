@@ -15,6 +15,7 @@ class PDDLModuleLoader : virtual public ModuleLoader
       modules::conditionCheckerType getConditionChecker(string fnString);
       modules::applyEffectType getApplyEffect(string fnString);
       modules::conditionCheckerType getCostChecker(string fnString);
+      modules::groundingModuleType getGroundingModule(string fnString);
 
       modules::moduleInitType getModuleInit(string fnString);
       modules::moduleExitType getModuleExit(string fnString);

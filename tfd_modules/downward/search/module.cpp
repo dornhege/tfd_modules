@@ -55,6 +55,11 @@ EffectModule::EffectModule(istream &in) :
     Module(in)
 {
     in >> internal_name;
+ 
+    int mod_num = atoi(internal_name.substr(3).c_str());
+    // verify the order isn't messed up
+    assert(mod_num == g_effect_modules.size());
+
     int count;
     in >> count;
     writtenVars.reserve(count);
@@ -102,6 +107,28 @@ void CostModule::dump()
     std::cout << "Variable: " << var << std::endl;
 
     std::cout << "checkCost call is: " << (long)(checkCost) << std::endl;
+}
+
+GroundingModule::GroundingModule(istream &in) :
+    Module(in)
+{
+    in >> internal_name;
+    int mod_num = atoi(internal_name.substr(3).c_str());
+    // verify the order isn't messed up
+    assert(mod_num == g_grounding_modules.size());
+
+    groundingModule = g_module_loader->getGroundingModule(libCall);
+    if(groundingModule == NULL) {
+        printf("Failed to load GroundingModule at \"%s\".\n", libCall.c_str());
+        assert(groundingModule != NULL);
+    }
+}
+
+void GroundingModule::dump()
+{
+    std::cout << "GroundingModule" << std::endl;
+    Module::dump();
+    std::cout << "Internal name: " << internal_name << std::endl;
 }
 
 InitModule::InitModule(istream &in)
@@ -215,6 +242,7 @@ opl::interface::OplCallbackInterface* g_OplModuleCallback = NULL;
 map<int, ConditionModule *> g_condition_modules;
 vector<EffectModule *> g_effect_modules;
 map<int, CostModule*> g_cost_modules;
+vector<GroundingModule*> g_grounding_modules;
 vector<InitModule *> g_init_modules;
 vector<ExitModule *> g_exit_modules;
 vector<SubplanModuleSet> g_subplan_modules;
@@ -545,6 +573,11 @@ void read_modules(istream &in)
     for (int i = 0; i < count; i++) {
         CostModule *cost_module = new CostModule(in);
         g_cost_modules[cost_module->var] = cost_module;
+    }
+    in >> count;
+    for (int i = 0; i < count; i++) {
+        GroundingModule* grounding_module = new GroundingModule(in);
+        g_grounding_modules.push_back(grounding_module);
     }
 
     check_magic(in, "end_modules");

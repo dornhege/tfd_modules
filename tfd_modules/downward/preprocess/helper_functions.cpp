@@ -75,6 +75,7 @@ void read_modules(istream &in, vector<string> & moduleInits, vector<string> & mo
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
         vector<ConditionModule> & costModules,
+        vector<GroundingModule> & groundingModules,
         const vector<Variable*> variables)
 {
     check_magic(in, "begin_modules");
@@ -96,6 +97,11 @@ void read_modules(istream &in, vector<string> & moduleInits, vector<string> & mo
     costModules.reserve(count);
     for (int i = 0; i < count; i++) {
         costModules.push_back(ConditionModule(in, variables));
+    }
+    in >> count;
+    groundingModules.reserve(count);
+    for (int i = 0; i < count; i++) {
+        groundingModules.push_back(GroundingModule(in, variables));
     }
     check_magic(in, "end_modules");
 }
@@ -197,6 +203,7 @@ void read_preprocessed_problem_description(istream &in,
         vector<ConditionModule> &condModules,
         vector<EffectModule> &effectModules,
         vector<ConditionModule> & costModules,
+        vector<GroundingModule> & groundingModules,
         vector<TranslatePredicate> &predicateTranslations, vector<
                 TranslateFunction> &functionTranslations,
         vector<string> & pred_constants, vector<string> & num_constants,
@@ -210,7 +217,7 @@ void read_preprocessed_problem_description(istream &in,
             variables);
     read_constants(in, pred_constants, num_constants);
     read_modules(in, moduleInits, moduleExits, subplanGenerators, condModules,
-            effectModules, costModules, variables);
+            effectModules, costModules, groundingModules, variables);
     initial_state = State(in, variables);
     read_goal(in, variables, goals);
     read_operators(in, variables, operators);
@@ -256,9 +263,10 @@ void generate_cpp_input(bool solveable_in_poly_time,
         const vector<string> & subplanGenerators,
         const vector<ConditionModule> &cond_modules,
         const vector<EffectModule> &eff_modules,
-        const vector<ConditionModule> &cost_modules, const vector<
-                TranslatePredicate> &pred_translations, const vector<
-                TranslateFunction> &func_translations,
+        const vector<ConditionModule> &cost_modules,
+        const vector<GroundingModule> & grounding_modules,
+        const vector<TranslatePredicate> &pred_translations,
+        const vector<TranslateFunction> &func_translations,
         const vector<string> & predConstants,
         const vector<string> & numConstants,
         const State &initial_state,
@@ -351,6 +359,11 @@ void generate_cpp_input(bool solveable_in_poly_time,
     outfile << cost_mod_count << endl;
     for (int i = 0; i < cost_mod_count; ++i) {
         cost_modules[i].generate_cpp_input(outfile);
+    }
+    int ground_mod_count = grounding_modules.size();
+    outfile << ground_mod_count << endl;
+    for(int i = 0; i < ground_mod_count; i++) {
+        grounding_modules[i].generate_cpp_input(outfile);
     }
     outfile << "end_modules" << endl;
     outfile << "begin_state" << endl;

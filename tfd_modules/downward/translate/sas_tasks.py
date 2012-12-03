@@ -2,7 +2,7 @@ import pddl
 
 class SASTask:
   def __init__(self, variables, init, goal, operators, 
-        temp_operators,axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, 
+        temp_operators,axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, grounding_modules,
         translation, module_inits, module_exits, subplan_generators, init_constant_predicates, init_constant_numerics):
     self.variables = variables
     self.init = init
@@ -17,6 +17,7 @@ class SASTask:
     self.condition_modules = condition_modules
     self.effect_modules = effect_modules
     self.cost_modules = cost_modules
+    self.grounding_modules = grounding_modules
     self.translation = translation
     self.module_inits = module_inits
     self.module_exits = module_exits
@@ -64,6 +65,9 @@ class SASTask:
       module.output(stream)
     print >> stream, "%d" % len(self.cost_modules)
     for module in self.cost_modules:
+      module.output(stream)
+    print >> stream, "%d" % len(self.grounding_modules)
+    for module in self.grounding_modules:
       module.output(stream)
     print >> stream, "end_modules"
     self.init.output(stream)
@@ -167,8 +171,9 @@ class SASOperator:
     print >> stream, "end_operator"
 
 class SASTemporalOperator:
-  def __init__(self, name, duration, prevail, pre_post, assign_effects, mod_effects):
+  def __init__(self, name, grounding_call, duration, prevail, pre_post, assign_effects, mod_effects):
     self.name = name
+    self.grounding_call = grounding_call
 
     ## Currently we assume in the knowledge compilation
     ## and search that there is a single exact at start
@@ -186,6 +191,11 @@ class SASTemporalOperator:
   def output(self, stream):
     print >> stream, "begin_operator"
     print >> stream, self.name[1:-1]
+    if self.grounding_call is None:
+        print >> stream, "0"
+    else:
+        print >> stream, "1"
+        print >> stream, "gm-%d" % self.grounding_call
     self.duration[0][0].output(stream)
     for time in range(3):
         print >> stream, len(self.prevail[time])
@@ -302,6 +312,17 @@ class SASConditionModule:
     for param in self.parameters:
       print >> stream, "%s %s %s" % (param[0], param[1], param[2]),
     print >> stream, "%d" % self.var
+
+class SASGroundingModule:
+  def __init__(self, modulecall, parameters, grounding_num):
+    self.modulecall = modulecall
+    self.parameters = parameters
+    self.grounding_num = grounding_num
+  def output(self, stream):
+    print >> stream, "%s %d" % (self.modulecall, len(self.parameters)),
+    for param in self.parameters:
+      print >> stream, "%s %s %s" % (param[0], param[1], param[2]),
+    print >> stream, "gm-%d" % self.grounding_num,
 
 class SASEffectModule:
   def __init__(self, modulecall, parameters, effect_num, effect_vars):

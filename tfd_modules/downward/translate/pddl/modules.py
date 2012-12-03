@@ -14,7 +14,7 @@ class Module(object):
       self.parent = parent
       self.hash = hash((self.__class__, self.name, self.parameters, 
                         self.type, self.modulecall, self.effects))
-      assert self.type in ("conditionchecker", "effect", "cost"), self.type
+      assert self.type in ("conditionchecker", "effect", "cost", "grounding"), self.type
       assert (self.type == "effect") or (len(self.effects) == 0)
     def __hash__(self):
       return self.hash

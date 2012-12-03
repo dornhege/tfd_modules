@@ -65,6 +65,18 @@ void EffectModule::generate_cpp_input(ostream &outfile) const
     outfile << endl;
 }
 
+GroundingModule::GroundingModule(istream &in, const vector<Variable*> &variables) :
+    Module(in)
+{
+    in >> name;
+}
+
+void GroundingModule::generate_cpp_input(ostream &outfile) const
+{
+    Module::generate_cpp_input(outfile);
+    outfile << name << endl; 
+}
+
 void Module::extractNameAndLib(const string &complete_name)
 {
     int posOfAt = complete_name.find("@");
