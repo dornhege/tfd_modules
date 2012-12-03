@@ -207,7 +207,7 @@ int main(int argc, char **argv)
         (*it)->execExit(best_raw_plan);
     }
 
-    engine->dump_everything();
+    //engine->dump_everything();
 
     switch(search_result) {
         case SearchEngine::SOLVED_TIMEOUT:

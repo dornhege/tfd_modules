@@ -29,8 +29,10 @@ double LocalTransition::get_direct_cost()
         } else if(g_variable_types[label->duration_variable] == costmodule) {
             predicateCallbackType pct = getPreds;
             numericalFluentCallbackType nct = getFuncs;
+            modules::ParameterList parameters = g_cost_modules[label->duration_variable]->params;
+            label->op->addGroundParameters(parameters);
             ret = g_cost_modules[label->duration_variable]->checkCost(
-                    g_cost_modules[label->duration_variable]->params, pct, nct, 1);
+                     parameters, pct, nct, 1);
             //printf("Duration from module: %f\n", ret);
             return ret;
         } else {
@@ -223,8 +225,10 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
             if(g_variable_types[duration_variable] == costmodule) {
                 predicateCallbackType pct = getPreds;
                 numericalFluentCallbackType nct = getFuncs;
+                modules::ParameterList parameters = g_cost_modules[duration_variable]->params;
+                reached_by->label->op->addGroundParameters(parameters);
                 duration = g_cost_modules[duration_variable]->checkCost(
-                        g_cost_modules[duration_variable]->params, pct, nct, 1);
+                        parameters, pct, nct, 1);
                 //printf("Duration from module: %f\n", duration);
             } else {
                 duration = reached_by->get_source()->children_state[reached_by->duration_var_local];
