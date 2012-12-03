@@ -28,7 +28,7 @@ struct Prevail
     {
     }
 
-    bool is_applicable(const TimeStampedState & state, bool allowRelaxed) const;
+    bool is_applicable(const TimeStampedState & state, const Operator* op, bool allowRelaxed) const;
 
     void dump() const;
 
@@ -68,9 +68,9 @@ struct PrePost
 
     bool is_applicable(const TimeStampedState &state) const;
 
-    bool does_fire(const TimeStampedState &state, bool relaxed) const {
+    bool does_fire(const TimeStampedState &state, const Operator* op, bool relaxed) const {
         for(unsigned int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, relaxed))
+            if(!cond_start[i].is_applicable(state, op, relaxed))
                 return false;
         return true;
     }
@@ -94,10 +94,10 @@ struct ModuleEffect
         ROS_ASSERT(module != NULL);
     }
 
-    bool does_fire(const TimeStampedState &state, bool relaxed) const
+    bool does_fire(const TimeStampedState &state, const Operator* op, bool relaxed) const
     {
         for(unsigned int i = 0; i < cond_start.size(); i++)
-            if(!cond_start[i].is_applicable(state, relaxed))
+            if(!cond_start[i].is_applicable(state, op, relaxed))
                 return false;
         return true;
     }
@@ -117,13 +117,17 @@ struct ModuleGrounding
 struct ScheduledEffect : public PrePost
 {
     double time_increment;
+    const Operator* parent_op;  ///< the op this PrePost belongs to
+
     ScheduledEffect(double t, vector<Prevail> &cas, vector<Prevail> &coa, vector<Prevail> &cae,
-        int va, int vi, assignment_op op) :
-        PrePost(va, -1.0, vi, -1.0, cas, coa, cae, op), time_increment(t)
+        int va, int vi, assignment_op op,
+        const Operator* parent_op) :
+        PrePost(va, -1.0, vi, -1.0, cas, coa, cae, op), time_increment(t), parent_op(parent_op)
     {
         initialize();
     }
-    ScheduledEffect(double t, const PrePost& pp) : PrePost(pp), time_increment(t)
+    ScheduledEffect(double t, const PrePost& pp, const Operator* parent_op) :
+        PrePost(pp), time_increment(t), parent_op(parent_op)
     {
         initialize();
     }
@@ -196,17 +200,21 @@ struct ScheduledEffect : public PrePost
 struct ScheduledModuleEffect : public ModuleEffect
 {
     double time_increment;
+    const Operator* parent_op;  ///< the op this ModuleEffect belongs to
+
     ScheduledModuleEffect(double t, vector<Prevail> &cas,
             vector<Prevail> &coa, vector<Prevail> &cae,
-            EffectModule *module) :
-        ModuleEffect(cas, coa, cae, module), time_increment(t)
+            EffectModule *module,
+            const Operator* parent_op) :
+        ModuleEffect(cas, coa, cae, module), time_increment(t), parent_op(parent_op)
     {
         initialize();
     }
 
     ScheduledModuleEffect(double _time_increment,
-            const ModuleEffect &_mod_eff) :
-        ModuleEffect(_mod_eff), time_increment(_time_increment)
+            const ModuleEffect &_mod_eff,
+            const Operator* parent_op) :
+        ModuleEffect(_mod_eff), time_increment(_time_increment), parent_op(parent_op)
     {
     }
 
@@ -263,11 +271,14 @@ struct ScheduledModuleEffect : public ModuleEffect
 struct ScheduledCondition : public Prevail
 {
     double time_increment;
-    ScheduledCondition(double t, int v, double p) :
-        Prevail(v, p), time_increment(t)
+    const Operator* parent_op;  ///< the op this ModuleEffect belongs to
+
+    ScheduledCondition(double t, int v, double p, const Operator* parent_op) :
+        Prevail(v, p), time_increment(t), parent_op(parent_op)
     {
     }
-    ScheduledCondition(double t, const Prevail &prev) : Prevail(prev), time_increment(t)
+    ScheduledCondition(double t, const Prevail &prev, const Operator* parent_op)
+        : Prevail(prev), time_increment(t), parent_op(parent_op)
     {
     }
     bool operator<(const ScheduledCondition &other) const
@@ -302,15 +313,15 @@ class TimeStampedState
     friend struct TssCompareIgnoreTimestamp;
 
     private:
-        bool satisfies(const Prevail& cond, bool relaxed) const
+        bool satisfies(const Prevail& cond, const Operator* op, bool relaxed) const
         {
-            return cond.is_applicable(*this, relaxed);
+            return cond.is_applicable(*this, op, relaxed);
         }
 
-        bool satisfies(const vector<Prevail>& conds, bool relaxed) const
+        bool satisfies(const vector<Prevail>& conds, const Operator* op, bool relaxed) const
         {
             for(unsigned int i = 0; i < conds.size(); i++)
-                if(!satisfies(conds[i], relaxed))
+                if(!satisfies(conds[i], op, relaxed))
                     return false;
             return true;
         }
@@ -349,7 +360,7 @@ class TimeStampedState
             state[var] = post;
         }
 
-        void apply_module_effect(string internal_name, bool relaxed);
+        void apply_module_effect(string internal_name, const Operator* op, bool relaxed);
 
         void apply_effect(int lhs, assignment_op op, int rhs, double post)
         {
@@ -420,6 +431,6 @@ class TimeStampedState
         }
 };
 
-TimeStampedState &buildTestState(TimeStampedState &state);
+//TimeStampedState &buildTestState(TimeStampedState &state);
 
 #endif

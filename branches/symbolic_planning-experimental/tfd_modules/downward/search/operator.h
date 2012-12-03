@@ -13,6 +13,7 @@
 
 class Operator
 {
+    private:
         vector<Prevail> prevail_start; // var, val
         vector<Prevail> prevail_overall; // var, val
         vector<Prevail> prevail_end; // var, val
@@ -24,6 +25,7 @@ class Operator
         int duration_var;
         string name;
 
+    private:
         bool deletesPrecond(const vector<Prevail>& conds,
                 const vector<PrePost>& effects) const;
         bool deletesPrecond(const vector<PrePost>& effs1,
@@ -39,7 +41,9 @@ class Operator
     public:
         Operator(std::istream &in);
         explicit Operator(bool uses_concrete_time_information);
+
         void dump() const;
+
         const vector<Prevail> &get_prevail_start() const {
             return prevail_start;
         }
@@ -69,6 +73,29 @@ class Operator
         }
 
         bool operator<(const Operator &other) const;
+
+        /// Is this operator fully grounded or just partially.
+        bool isGrounded() const;
+
+        /// Ground this ungrounded operator in state.
+        /**
+         * \param [out] ok set to true if a new grounded operator was constructed.
+         *      Set to false in any other case, i.e. if no further grounding for
+         *      a partially grounded operator was possible or if this operator
+         *      is already grounded (it could not be grounded any more than that).
+         *      If ok is false the returned operator should not be used!
+         * \returns the newly grounded operator.
+         */
+        Operator ground(const TimeStampedState & state, bool relaxed, bool & ok);
+
+        /// Add additional ground parameters from a grounded operators name
+        /// to the partially grounded parameters of a module call.
+        /**
+         * \param [in, out] parameters if grounding added parameters to the operator's name
+         *      those are added to parameters. It should be the case that all parameters
+         *      up to that point are the same in parameters and the operator's name.
+         */
+        void addGroundParameters(modules::ParameterList & parameters) const;
 
         /// Calculate the duration of this operator when applied in state.
         /**

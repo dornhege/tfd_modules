@@ -4,6 +4,7 @@
 #include "best_first_search.h"
 #include "plannerParameters.h"
 #include "ros_printouts.h"
+#include "tfd_modules/opl/stringutil.h"
 
 #include <iostream>
 using namespace std;
@@ -13,7 +14,7 @@ Prevail::Prevail(istream &in)
     in >> var >> prev;
 }
 
-bool Prevail::is_applicable(const TimeStampedState &state, bool allowRelaxed) const
+bool Prevail::is_applicable(const TimeStampedState &state, const Operator* op, bool allowRelaxed) const
 {
     assert(var >= 0 && var < g_variable_name.size());
     assert((prev >= 0 && prev < g_variable_domain[var]) || (g_variable_types[var] == module));
@@ -21,8 +22,11 @@ bool Prevail::is_applicable(const TimeStampedState &state, bool allowRelaxed) co
         g_setModuleCallbackState(&state);
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
+
+        modules::ParameterList parameters = g_condition_modules[var]->params;
+        op->addGroundParameters(parameters);
         double cost = g_condition_modules[var]->checkCondition(
-                g_condition_modules[var]->params, pct, nct, allowRelaxed);
+                parameters, pct, nct, allowRelaxed);
         return cost < INFINITE_COST;
     } else {
         return state_equals(state[var], prev);
@@ -182,6 +186,86 @@ Operator::Operator(bool uses_concrete_time_information)
     }
 }
 
+bool Operator::isGrounded() const
+{
+    // if there are no grounding modules left, we are grounded
+    return mod_groundings.empty();
+}
+
+Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & ok)
+{
+    Operator ret(*this);
+
+    if(isGrounded()) {
+        ok = false;
+        return ret;
+    }
+
+    ROS_ASSERT(mod_groundings.size() == 1);
+
+    // perform the actual grounding.
+    string name = get_name();
+    // name = drive loc1 loc2 -> params: loc1 loc2
+    std::vector<string> parts = StringUtil::split(name, " ");
+    ParameterList params;
+    for(unsigned int i = 1; i < parts.size(); i++) {
+        params.push_back(Parameter("", "", parts[i]));
+    }
+
+    predicateCallbackType pct = getPreds;
+    numericalFluentCallbackType nct = getFuncs;
+    g_setModuleCallbackState(&state);
+
+    string groundParam = mod_groundings.front().module->groundingModule(params, pct, nct, relaxed);
+
+    if(groundParam.empty()) {
+        ok = false;
+        return ret;
+    }
+
+    // created a grounded operator from that.
+    ok = true;
+    ret.name += " " + groundParam;
+    ret.mod_groundings.clear();
+    return ret;
+}
+
+void Operator::addGroundParameters(modules::ParameterList & parameters) const
+{
+    // add grounding param from op name
+    std::string name = get_name();     // drive loc1 loc2
+    std::vector<string> parts = StringUtil::split(name, " ");
+    if(parts.empty()) {
+        ROS_ERROR("%s: Bad Operator Name: %s", __func__, name.c_str());
+        return;
+    } 
+    std::vector<string> op_params;
+    for(unsigned int i = 1; i < parts.size(); i++) {
+        op_params.push_back(parts[i]);
+    }
+
+    if(parameters.size() > op_params.size()) {
+        ROS_ERROR("%s: more module params (%zu) than op params for op: %s", __func__, parameters.size(),
+                name.c_str());
+        return;
+    }
+
+    // now parameters.size <= op_params.size
+    // check all params match until parameters.size and add the additional ones.
+    for(unsigned int i = 0; i < op_params.size(); i++) {
+        if(i < parameters.size()) {     // already stored in modules parameters
+            string mod_param = parameters[i].value;
+            if(op_params[i] != mod_param) {
+                ROS_ERROR("%s: mismatched module parameter %s at %d for op %s",
+                        __func__, mod_param.c_str(), i, name.c_str());
+            }
+        } else {
+            parameters.push_back(modules::Parameter("?grounding", "groundingobject", op_params[i]));
+        }
+    }
+}
+
+
 void Prevail::dump() const
 {
     cout << g_variable_name[var] << ": " << prev << endl;
@@ -259,7 +343,7 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
     }
 
     for(int i = 0; i < prevail_start.size(); i++)
-        if(!prevail_start[i].is_applicable(state, allowRelaxed))
+        if(!prevail_start[i].is_applicable(state, this, allowRelaxed))
             return false;
     for(int i = 0; i < pre_post_start.size(); i++)
         if(!pre_post_start[i].is_applicable(state))
@@ -416,10 +500,14 @@ double Operator::get_duration(const TimeStampedState* state, bool relaxed) const
 
     if(g_variable_types[duration_var] == costmodule) {
         g_setModuleCallbackState(state);
+
+        modules::ParameterList parameters = g_cost_modules[duration_var]->params;
+        addGroundParameters(parameters);
+
         predicateCallbackType pct = getPreds;
         numericalFluentCallbackType nct = getFuncs;
         double duration = g_cost_modules[duration_var]->checkCost(
-                g_cost_modules[duration_var]->params, pct, nct, relaxed);
+                parameters, pct, nct, relaxed);
         //printf("Duration from module: %f\n", duration);
         return duration;
     }

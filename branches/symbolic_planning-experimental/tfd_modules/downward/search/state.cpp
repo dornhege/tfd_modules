@@ -27,7 +27,7 @@ TimeStampedState::TimeStampedState(istream &in)
     initialize();
 }
 
-void TimeStampedState::apply_module_effect(string internal_name, bool relaxed)
+void TimeStampedState::apply_module_effect(string internal_name, const Operator* op, bool relaxed)
 {
     int index = atoi(internal_name.substr(3).c_str());
     g_setModuleCallbackState(this);
@@ -36,8 +36,11 @@ void TimeStampedState::apply_module_effect(string internal_name, bool relaxed)
 
     EffectModule *module = g_effect_modules[index];
     vector<double> new_values = vector<double> (module->writtenVars.size());
-    ParameterList &params = module->params;
-    if(module->applyEffect(params, pct, nct, relaxed, new_values)) {
+
+    modules::ParameterList parameters = module->params;
+    op->addGroundParameters(parameters);
+
+    if(module->applyEffect(parameters, pct, nct, relaxed, new_values)) {
         for(int i = 0; i < new_values.size(); ++i) {
             state[module->writtenVars[i]] = new_values[i];
         }
@@ -71,8 +74,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_pre_post_end().size(); i++) {
         const PrePost &eff = op.get_pre_post_end()[i];
-        if(eff.does_fire(predecessor, relaxed)) {
-            scheduled_effects.push_back(ScheduledEffect(duration, eff));
+        if(eff.does_fire(predecessor, &op, relaxed)) {
+            scheduled_effects.push_back(ScheduledEffect(duration, eff, &op));
         }
     }
 
@@ -82,9 +85,9 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // satisfied.
     for(int i = 0; i < op.get_mod_effs_end().size(); i++) {
         const ModuleEffect &mod_eff = op.get_mod_effs_end()[i];
-        if(mod_eff.does_fire(predecessor, relaxed)) {
+        if(mod_eff.does_fire(predecessor, &op, relaxed)) {
             scheduled_module_effects.push_back(ScheduledModuleEffect(duration,
-                        mod_eff));
+                        mod_eff, &op));
         }
     }
 
@@ -95,7 +98,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         // at-start effects may not have any at-end conditions
         assert(pre_post.cond_end.size() == 0);
 
-        if(pre_post.does_fire(predecessor, relaxed)) {
+        if(pre_post.does_fire(predecessor, &op, relaxed)) {
             apply_effect(pre_post.var, pre_post.fop, pre_post.var_post,
                     pre_post.post);
         }
@@ -105,8 +108,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
         const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
         assert(mod_eff.cond_end.size() == 0);
-        if(mod_eff.does_fire(predecessor, relaxed)) {
-            apply_module_effect(mod_eff.module->internal_name, relaxed);
+        if(mod_eff.does_fire(predecessor, &op, relaxed)) {
+            apply_module_effect(mod_eff.module->internal_name, &op, relaxed);
         }
     }
 
@@ -118,7 +121,7 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < scheduled_effects.size(); i++) {
         ScheduledEffect &eff = scheduled_effects[i];
         if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
-                         satisfies(eff.cond_end, relaxed)) {
+                         satisfies(eff.cond_end, eff.parent_op, relaxed)) {
             apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
         }
         if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
@@ -133,8 +136,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     for(int i = 0; i < scheduled_module_effects.size(); i++) {
         ScheduledModuleEffect &eff = scheduled_module_effects[i];
         if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
-                         satisfies(eff.cond_end, relaxed)) {
-            apply_module_effect(eff.module->internal_name, relaxed);
+                         satisfies(eff.cond_end, eff.parent_op, relaxed)) {
+            apply_module_effect(eff.module->internal_name, eff.parent_op, relaxed);
         }
         if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
             scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
@@ -152,14 +155,14 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
     // state plus the over-all conditions of the newly added operator
     for(int i = 0; i < op.get_prevail_overall().size(); i++) {
         conds_over_all.push_back(ScheduledCondition(duration,
-                    op.get_prevail_overall()[i]));
+                    op.get_prevail_overall()[i], &op));
     }
 
     // The persistent at-end conditions of the new state are
     // precisely the persistent at-end conditions of the predecessor
     // state plus the at-end conditions of the newly added operator
     for(int i = 0; i < op.get_prevail_end().size(); i++) {
-        conds_at_end.push_back(ScheduledCondition(duration, op.get_prevail_end()[i]));
+        conds_at_end.push_back(ScheduledCondition(duration, op.get_prevail_end()[i], &op));
     }
 
     // The running operators of the new state are precisely
@@ -239,7 +242,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = scheduled_effects[i];
             if((eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
-                succ.satisfies(eff.cond_end, relaxed)) {
+                succ.satisfies(eff.cond_end, eff.parent_op, relaxed)) {
                 succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
@@ -248,8 +251,8 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
             if((mod_eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
-                    succ.satisfies(mod_eff.cond_end, relaxed)) {
-                succ.apply_module_effect(mod_eff.module->internal_name, relaxed);
+                    succ.satisfies(mod_eff.cond_end, mod_eff.parent_op, relaxed)) {
+                succ.apply_module_effect(mod_eff.module->internal_name, mod_eff.parent_op, relaxed);
             }
         }
 
@@ -267,7 +270,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < succ.scheduled_effects.size(); i++) {
             const ScheduledEffect &eff = succ.scheduled_effects[i];
             if((eff.time_increment < g_parameters.epsTimeComparison) ||
-                !succ.satisfies(eff.cond_overall, relaxed)) {
+                !succ.satisfies(eff.cond_overall, eff.parent_op, relaxed)) {
                 succ.scheduled_effects.erase(succ.scheduled_effects.begin() + i);
                 i--;
             }
@@ -285,7 +288,7 @@ TimeStampedState TimeStampedState::let_time_pass(
         for(int i = 0; i < succ.scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = succ.scheduled_module_effects[i];
             if((mod_eff.time_increment < g_parameters.epsTimeComparison) ||
-                !succ.satisfies(mod_eff.cond_overall, relaxed)) {
+                !succ.satisfies(mod_eff.cond_overall, mod_eff.parent_op, relaxed)) {
                 succ.scheduled_module_effects.erase(
                         succ.scheduled_module_effects.begin() + i);
                 i--;
@@ -468,14 +471,14 @@ bool TimeStampedState::is_consistent_now(bool relaxed) const
 {
     // Persistent over-all conditions must be satisfied
     for(int i = 0; i < conds_over_all.size(); i++)
-        if(!satisfies(conds_over_all[i], relaxed))
+        if(!satisfies(conds_over_all[i], conds_over_all[i].parent_op, relaxed))
             return false;
 
     // Persistent at-end conditions must be satisfied
     // if their end time point is now
     for(int i = 0; i < conds_at_end.size(); i++)
         if(time_equals(conds_at_end[i].time_increment, 0) &&
-            !satisfies(conds_at_end[i], relaxed))
+            !satisfies(conds_at_end[i], conds_at_end[i].parent_op, relaxed))
             return false;
 
     // No further conditions (?)
@@ -513,15 +516,15 @@ bool TimeStampedState::is_consistent_when_progressed(bool relaxed,
     return true;
 }
 
-TimeStampedState &buildTestState(TimeStampedState &state)
-{
-    vector<Prevail> cas;
-    vector<Prevail> coa;
-    vector<Prevail> cae;
-    state.scheduleEffect(ScheduledEffect(1.0, cas, coa, cae, 11, 0, increase));
-    state.scheduleEffect(ScheduledEffect(1.0, cas, coa, cae, 9, 0, assign));
-    return state;
-}
+//TimeStampedState &buildTestState(TimeStampedState &state)
+//{
+//    vector<Prevail> cas;
+//    vector<Prevail> coa;
+//    vector<Prevail> cae;
+//    state.scheduleEffect(ScheduledEffect(1.0, cas, coa, cae, 11, 0, increase));
+//    state.scheduleEffect(ScheduledEffect(1.0, cas, coa, cae, 9, 0, assign));
+//    return state;
+//}
 
 void ModuleEffect::dump() const
 {
