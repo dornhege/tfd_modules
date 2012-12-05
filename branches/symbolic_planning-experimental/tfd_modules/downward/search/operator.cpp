@@ -192,7 +192,7 @@ bool Operator::isGrounded() const
     return mod_groundings.empty();
 }
 
-Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & ok)
+Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & ok) const
 {
     Operator ret(*this);
 
@@ -493,12 +493,16 @@ bool Operator::writesOnSameVar(const vector<PrePost>& effs1, const vector<
     return false;
 }
 
-double Operator::get_duration(const TimeStampedState* state, bool relaxed) const
+double Operator::get_duration(const TimeStampedState* state, bool relaxed, bool allow_module) const
 {
     assert(duration_var >= 0);
     assert(state != NULL);
 
     if(g_variable_types[duration_var] == costmodule) {
+        if(!allow_module) {
+            return 0.0;
+        }
+
         g_setModuleCallbackState(state);
 
         modules::ParameterList parameters = g_cost_modules[duration_var]->params;

@@ -44,6 +44,12 @@ class PlannerParameters
        */
       bool use_cost_modules_for_applicability;
 
+      /// In anytime search operators are not scheduled if their expected makespan is
+      /// greater than the best_makespan found so far. Therefore the duration needs
+      /// to be computed. If this flag is off, duration modules are not called for
+      /// this pruning and a cost of 0.0 is assumed (i.e. no pruning)
+      bool use_cost_modules_for_makespan_pruning;
+
       bool cyclic_cg_heuristic;                    ///< Use cyclic_cg heuristic
       bool cyclic_cg_preferred_operators;          ///< Use cyclic_cg heuristic preferred operators
       bool makespan_heuristic;                     ///< Use makespan heuristic
@@ -64,6 +70,13 @@ class PlannerParameters
       double g_weight;            ///< The weight w for GWeighted
 
       BestFirstSearchEngine::QueueManagementMode queueManagementMode;
+
+      enum GroundingMode {
+        GroundAll,                          ///< Ground operator until it can't be grounded anymore.
+        GroundSingleDiscard,                ///< Ground one occurence and discard the op
+        GroundSingleReinsert,               ///< Ground one occurence and keep the ungrounded op
+      };
+      enum GroundingMode grounding_mode;    ///< How to deal with partially grounded operators.
 
       bool use_known_by_logical_state_only;         ///< Enable tss known filtering (might crop search space!)
 

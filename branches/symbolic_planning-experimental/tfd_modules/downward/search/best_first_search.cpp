@@ -435,6 +435,12 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
 
     bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
 
+    // compute expected min makespan of this op
+    double maxTimeIncrement = 0.0;
+    for(int k = 0; k < parent_ptr->operators.size(); ++k) {
+        maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
+    }
+
     for(int i = 0; i < open_lists.size(); i++) {
         if(DEBUG_GENERATE_SUCCESSORS)
             cout << "OPEN LIST: " << i << endl;
@@ -465,53 +471,25 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 ops[j]->dump();
             }
 
-            // compute expected min makespan of this op
-            double maxTimeIncrement = 0.0;
-            for(int k = 0; k < parent_ptr->operators.size(); ++k) {
-                maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
-            }
-
-            if(DEBUG_GENERATE_SUCCESSORS) cout << "Getting Duration..." << endl;
-            double duration = ops[j]->get_duration(parent_ptr, lazy_state_module_eval);
-            if(DEBUG_GENERATE_SUCCESSORS) cout << "Duration: " << duration << endl;
-            maxTimeIncrement = max(maxTimeIncrement, duration);
-            double makespan = maxTimeIncrement + parent_ptr->timestamp;
-            bool betterMakespan = makespan < bestMakespan;
-            if(g_parameters.use_subgoals_to_break_makespan_ties && makespan == bestMakespan)
-                betterMakespan = true;
-
-            // Generate a child/Use an operator if
-            // - it is applicable
-            // - its minimum makespan is better than the best we had so far
-            // - if knownByLogicalStateOnly hasn't closed this state (when feature enabled)
-
-            // only compute tss if needed
-            TimedSymbolicStates timedSymbolicStates;
-            TimedSymbolicStates* tssPtr = NULL;
-            if(g_parameters.use_known_by_logical_state_only)
-                tssPtr = &timedSymbolicStates;
-
-            if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
-            if(betterMakespan && ops[j]->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
-                    (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
-                if(DEBUG_GENERATE_SUCCESSORS) cout << "Applicable" << endl;
-                // non lazy eval = compute priority by child
-                if(!g_parameters.lazy_evaluation) {
-                    // need to compute the child to evaluate it
-                    TimeStampedState tss = TimeStampedState(*parent_ptr, *ops[j], lazy_state_module_eval);
-                    double childG = getG(&tss, parent_ptr, ops[j]);
-                    double childH = heur->evaluate(tss);
-                    if(heur->is_dead_end())
-                        continue;
-                    double childF = childG + childH;
-                    if(g_parameters.greedy)
-                        priority = childH;
-                    else
-                        priority = childF;
+            if(ops[j]->isGrounded()) {
+                insert_successor(ops[j], open_lists[i], i, parent_ptr, priority, maxTimeIncrement);
+            } else {
+                // decide what to do with an ungrounded op.
+                if(g_parameters.grounding_mode == PlannerParameters::GroundAll) {
+                    bool couldGround = true;
+                    while(couldGround) {
+                        couldGround = false;
+                        Operator opGround = ops[j]->ground(*parent_ptr, false, couldGround);
+                        pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                        // we want to work with the it, not the opGround, which will go out of scope
+                        // it points to the Op actually inside g_grounded_operators
+                        // Also, if the same grounded op already exists, this will point to it, not
+                        // some new one.
+                        const Operator* groundedOp = &(*ret.first);
+                        insert_successor(groundedOp, open_lists[i], i,
+                                parent_ptr, priority, maxTimeIncrement);
+                    }
                 }
-
-                open.push(std::tr1::make_tuple(parent_ptr, ops[j], priority));
-                search_statistics.countChild(i);
             }
         }
 
@@ -544,6 +522,65 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
     if(DEBUG_GENERATE_SUCCESSORS) cout << "Generated successors." << endl;
 }
 
+void BestFirstSearchEngine::insert_successor(const Operator* op, OpenListInfo& openInfo, int openIndex,
+        const TimeStampedState* parent_ptr, double priority, double maxParentTimeIncrement)
+{
+    if(DEBUG_GENERATE_SUCCESSORS) {
+        cout << endl << "insert_successor: op:" << endl;
+        op->dump();
+    }
+
+    Heuristic* heur = openInfo.heuristic;
+    OpenList & open = openInfo.open;
+
+    bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
+
+    // compute expected min makespan of this op
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Getting Duration..." << endl;
+    double duration = op->get_duration(parent_ptr, lazy_state_module_eval,
+            g_parameters.use_cost_modules_for_makespan_pruning);
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Duration: " << duration << endl;
+    double maxTimeIncrement = max(maxParentTimeIncrement, duration);
+    double makespan = maxTimeIncrement + parent_ptr->timestamp;
+    bool betterMakespan = makespan < bestMakespan;
+    if(g_parameters.use_subgoals_to_break_makespan_ties && makespan == bestMakespan)
+        betterMakespan = true;
+
+    // Generate a child/Use an operator if
+    // - it is applicable
+    // - its minimum makespan is better than the best we had so far
+    // - if knownByLogicalStateOnly hasn't closed this state (when feature enabled)
+
+    // only compute tss if needed
+    TimedSymbolicStates timedSymbolicStates;
+    TimedSymbolicStates* tssPtr = NULL;
+    if(g_parameters.use_known_by_logical_state_only)
+        tssPtr = &timedSymbolicStates;
+
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
+    if(betterMakespan && op->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
+            (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
+        if(DEBUG_GENERATE_SUCCESSORS) cout << "Applicable" << endl;
+        // non lazy eval = compute priority by child
+        if(!g_parameters.lazy_evaluation) {
+            // need to compute the child to evaluate it
+            TimeStampedState tss = TimeStampedState(*parent_ptr, *op, lazy_state_module_eval);
+            double childG = getG(&tss, parent_ptr, op);
+            double childH = heur->evaluate(tss);
+            if(heur->is_dead_end())
+                return;
+            double childF = childG + childH;
+            if(g_parameters.greedy)
+                priority = childH;
+            else
+                priority = childF;
+        }
+
+        open.push(std::tr1::make_tuple(parent_ptr, op, priority));
+        search_statistics.countChild(openIndex);
+    }
+}
+
 enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 {
     OpenListInfo *open_info = select_open_queue();
@@ -552,7 +589,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
             cout << "Completely explored state space -- best plan found!" << endl;
             return SOLVED_COMPLETE;
         }
-        
+
         if(g_parameters.verbose) {
             time_t current_time = time(NULL);
             statistics(current_time);

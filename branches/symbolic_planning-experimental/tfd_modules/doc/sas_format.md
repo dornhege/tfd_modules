@@ -21,7 +21,7 @@ The following sections are defined:
 
 Preprocess adds the following additional sections:
  
- 11. SG?
+ 11. SG - Successor Generator?
  12. Causal Graph (CG)
  13. Domain Transition Graph(s) (DTG)
 
