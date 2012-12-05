@@ -86,7 +86,7 @@ class Operator
          *      If ok is false the returned operator should not be used!
          * \returns the newly grounded operator.
          */
-        Operator ground(const TimeStampedState & state, bool relaxed, bool & ok);
+        Operator ground(const TimeStampedState & state, bool relaxed, bool & ok) const;
 
         /// Add additional ground parameters from a grounded operators name
         /// to the partially grounded parameters of a module call.
@@ -101,8 +101,11 @@ class Operator
         /**
          * This function will retrieve the duration and handle cost modules correctly.
          * The state pointer should keep on valid as it can be used for caching in modules.
+         *
+         * \param [in] allow_module if false and the duration is determined by a module, 
+         *      do NOT call the module and return 0.0
          */
-        double get_duration(const TimeStampedState* state, bool relaxed) const;
+        double get_duration(const TimeStampedState* state, bool relaxed, bool allow_module = true) const;
 
         /// Compute applicability of this operator in state.
         /**

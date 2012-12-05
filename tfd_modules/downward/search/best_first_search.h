@@ -69,6 +69,21 @@ class BestFirstSearchEngine : public SearchEngine
         void report_progress();
         void reward_progress();
         void generate_successors(const TimeStampedState *parent_ptr);
+
+        /// Try to insert op into openInfo.
+        /**
+         * If op is applicable it should be pushed into openInfo's open list.
+         *
+         * \param [in] op the grounded operator to insert
+         * \param [in] openInfo the open list to insert into
+         * \param [in] openIndex the index of the open list (for statistics)
+         * \param [in] parent_ptr the parent state that this op was generated in
+         * \param [in] priority the priority computed so far (usually parent prior for lazy eval)
+         * \param [in] maxParentTimeIncrement max time increment of the parent's scheduled ops
+         */
+        void insert_successor(const Operator* op, OpenListInfo& openInfo, int openIndex,
+                const TimeStampedState* parent_ptr, double priority, double maxParentTimeIncrement);
+
         OpenListInfo *select_open_queue();
 
         void dump_plan_prefix_for_current_state() const;

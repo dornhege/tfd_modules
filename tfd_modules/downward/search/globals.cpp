@@ -196,6 +196,7 @@ ObjectTypeMap g_objectTypes;
 TimeStampedState *g_initial_state;
 vector<pair<int, double> > g_goal;
 vector<Operator> g_operators;
+set<Operator> g_grounded_operators;
 vector<Axiom*> g_axioms;
 AxiomEvaluator *g_axiom_evaluator;
 SuccessorGenerator *g_successor_generator;

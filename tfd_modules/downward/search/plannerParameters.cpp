@@ -29,6 +29,7 @@ PlannerParameters::PlannerParameters()
 
     lazy_state_module_evaluation = -1;
     use_cost_modules_for_applicability = true;
+    use_cost_modules_for_makespan_pruning = true;
 
     cyclic_cg_heuristic = false;
     cyclic_cg_preferred_operators = false;
@@ -43,6 +44,8 @@ PlannerParameters::PlannerParameters()
     g_weight = 0.5;
 
     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
+
+    grounding_mode = GroundSingleReinsert;
 
     use_known_by_logical_state_only = false;
 
@@ -135,6 +138,8 @@ void PlannerParameters::dump() const
     cout << endl;
     cout << "Use cost modules for applicablity: "
         << (use_cost_modules_for_applicability ? "Enabled" : "Disabled") << endl;
+    cout << "Use cost modules for makespan pruning: "
+        << (use_cost_modules_for_makespan_pruning ? "Enabled" : "Disabled") << endl;
 
     cout << "Cyclic CG heuristic: " << (cyclic_cg_heuristic ? "Enabled" : "Disabled")
         << " \tPreferred Operators: " << (cyclic_cg_preferred_operators ? "Enabled" : "Disabled") << endl;
@@ -170,6 +175,20 @@ void PlannerParameters::dump() const
             break;
         case BestFirstSearchEngine::ROUND_ROBIN:
             cout << "Round Robin";
+            break;
+    }
+    cout << endl;
+
+    cout << "Grounding mode: ";
+    switch(grounding_mode) {
+        case GroundAll:
+            cout << "All";
+            break;
+        case GroundSingleDiscard:
+            cout << "Single and Discard";
+            break;
+        case GroundSingleReinsert:
+            cout << "Single and Reinsert";
             break;
     }
     cout << endl;
@@ -223,6 +242,7 @@ bool PlannerParameters::readROSParameters()
 
     nhPriv.param("lazy_state_module_evaluation", lazy_state_module_evaluation, lazy_state_module_evaluation);
     nhPriv.param("use_cost_modules_for_applicability", use_cost_modules_for_applicability, use_cost_modules_for_applicability);
+    nhPriv.param("use_cost_modules_for_makespan_pruning", use_cost_modules_for_makespan_pruning, use_cost_modules_for_makespan_pruning);
 
     nhPriv.param("cyclic_cg_heuristic", cyclic_cg_heuristic, cyclic_cg_heuristic);
     nhPriv.param("cyclic_cg_heuristic_preferred_operators", 
@@ -261,6 +281,19 @@ bool PlannerParameters::readROSParameters()
         } else {
             ROS_FATAL("Unknown value: %s for queue management mode. Valid values: [priority_based, round_robin, hierarchical]", qMode.c_str());
             ret = false;
+        }
+    }
+
+    string groundingMode;
+    if(nhPriv.getParam("grounding_mode", groundingMode)) {
+        if(groundingMode == "ground_all") {
+            grounding_mode = GroundAll;
+        } else if(groundingMode == "ground_single_discard") {
+            grounding_mode = GroundSingleDiscard;
+        } else if(groundingMode == "ground_single_reinsert") {
+            grounding_mode = GroundSingleReinsert;
+        } else {
+            ROS_FATAL("Unknown value: %s for grounding mode: Valid values: [ground_all, ground_single_discard, ground_single_reinsert]", groundingMode.c_str());
         }
     }
 

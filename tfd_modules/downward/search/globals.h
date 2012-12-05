@@ -79,6 +79,7 @@ extern TimeStampedState *g_initial_state;
 extern ObjectTypeMap g_objectTypes;
 extern vector<pair<int, double> > g_goal;
 extern vector<Operator> g_operators;
+extern set<Operator> g_grounded_operators;
 extern vector<Axiom*> g_axioms;
 extern AxiomEvaluator *g_axiom_evaluator;
 extern SuccessorGenerator *g_successor_generator;
