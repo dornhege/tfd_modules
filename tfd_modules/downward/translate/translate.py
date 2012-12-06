@@ -874,6 +874,7 @@ def unsolvable_sas_task(msg):
     condition_modules = []
     effect_modules = []
     cost_modules = []
+    grounding_modules = []
     strips_to_sas = {}
     module_inits = []
     module_exits = []
@@ -881,7 +882,7 @@ def unsolvable_sas_task(msg):
     init_cons_pred = []
     init_cons_numer = []
     return sas_tasks.SASTask(variables, init, goal, operators,
-            temp_operators, axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, module_exits, subplan_generators,
+            temp_operators, axioms, num_axioms, comp_axioms, oplinit, objects, condition_modules, effect_modules, cost_modules, grounding_modules, sas_tasks.SASTranslation(strips_to_sas), module_inits, module_exits, subplan_generators,
             init_cons_pred, init_cons_numer)
 
 def pddl_to_sas(task):
