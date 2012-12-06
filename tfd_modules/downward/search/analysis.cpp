@@ -236,8 +236,11 @@ void Analysis::writeDotNodes(std::ofstream & of)
         }
     }
 
+    // TODO
     // re-consolidate states that were properly closed later on and might have been
     // replicated here
+    // Can this later stuff actually happen? Maybe for condesned mode??? but we almost
+    // never generate, do we? Do we ever???
 
     // check which have good names, for others invent/generate some (maybe keep them when
     // in recording already?), but name generated ones differently (_anon)
