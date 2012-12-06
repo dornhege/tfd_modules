@@ -24,6 +24,7 @@ PlannerParameters::PlannerParameters()
     greedy = false;
     lazy_evaluation = true;
     verbose = true;
+    analyze = false;
 
     insert_let_time_pass_only_when_running_operators_not_empty = false;
 
@@ -131,6 +132,7 @@ void PlannerParameters::dump() const
     cout << "Min search time factor after plan found: " << min_search_time_factor_after_plan_found << " seconds" << endl;
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
     cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
+    cout << "Analyze: " << (analyze ? "Enabled" : "Disabled") << endl;
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
     cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
     if(lazy_state_module_evaluation < 0)
@@ -237,6 +239,7 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("min_search_time_factor_after_plan_found",
             min_search_time_factor_after_plan_found, min_search_time_factor_after_plan_found);
 
+    nhPriv.param("analyze", analyze, analyze);
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
 

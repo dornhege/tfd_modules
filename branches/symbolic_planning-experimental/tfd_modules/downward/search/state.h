@@ -413,6 +413,17 @@ class TimeStampedState
         }
         void dump(bool verbose) const;
 
+        /// Pretty PDDL like output for state.
+        /**
+         * \param [in] logical include logical predicates
+         * \param [in] onlyTruePredicates when listing logical predicates, only list true ones
+         * \param [in] numerical include numerical fluents
+         * \param [in] separator how fluents should be separated
+         * \param [in] maxLineLength how many characters should go on one line
+         */
+        std::string toPDDL(bool logical, bool onlyTruePredicates, bool numerical,
+                std::string separator = " ", int maxLineLength = -1) const;
+
         void scheduleEffect(ScheduledEffect effect);
 
         double next_happening() const;

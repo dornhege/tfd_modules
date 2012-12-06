@@ -465,7 +465,76 @@ void TimeStampedState::dump(bool verbose) const
             cout << "  <" << (operators[i].time_increment + timestamp) << ",<";
             cout << operators[i].get_name() << ">>" << endl;
         }
+        cout << "PDDL: " << toPDDL(true, true, true, " ", 80) << endl;
     }
+}
+
+std::string TimeStampedState::toPDDL(bool logical, bool onlyTruePredicates, bool numerical,
+        std::string separator, int maxLineLength) const
+{
+    std::string ret;
+    std::string curLine;
+    if(logical) {
+        for(PredicateMapping::iterator it = g_pred_mapping.begin(); it
+                != g_pred_mapping.end(); it++) {
+            string pred = it->first;
+            int var = it->second.first;
+            int val = it->second.second;
+
+            string pddlName;
+            if(state_equals(state[var], val)) {
+                pddlName = "(" + pred + ")";
+            } else if(!onlyTruePredicates) {
+                pddlName = "(not (" + pred + "))";
+            }
+            if(pddlName.empty())
+                continue;
+
+            // does the next entry fit into curLine?
+            if(!curLine.empty() && maxLineLength > 0 &&
+                    curLine.length() + separator.length() + pddlName.length() > maxLineLength) {
+                ret += "\n" + curLine;
+                curLine = pddlName;
+            } else {
+                if(curLine.empty())
+                    curLine = pddlName;
+                else
+                    curLine += separator + pddlName;
+            }
+        }
+    }
+    if(numerical) {
+        for (FunctionMapping::iterator it = g_func_mapping.begin(); it
+                != g_func_mapping.end(); it++) {
+            string pred = it->first;
+            int var = it->second;
+
+            stringstream numVal;
+            numVal << state[var];
+            string pddlName = "(= (" + pred + ") " + numVal.str() + ")";
+
+            // does the next entry fit into curLine?
+            if(!curLine.empty() && maxLineLength > 0 &&
+                    curLine.length() + separator.length() + pddlName.length() > maxLineLength) {
+                ret += "\n" + curLine;
+                curLine = pddlName;
+            } else {
+                if(curLine.empty())
+                    curLine = pddlName;
+                else
+                    curLine += separator + pddlName;
+            }
+        }
+    }
+    if(!curLine.empty()) {
+        if(ret.empty())
+            ret = curLine;
+        else {
+            ret += "\n" + curLine;
+        }
+        curLine = "";
+    }
+    return ret;
 }
 
 void TimeStampedState::scheduleEffect(ScheduledEffect effect)

@@ -4,6 +4,7 @@
 #include "heuristic.h"
 #include "successor_generator.h"
 #include "plannerParameters.h"
+#include "analysis.h"
 #include <time.h>
 #include <iomanip>
 #include "ros_printouts.h"
@@ -85,6 +86,9 @@ void BestFirstSearchEngine::statistics(time_t & current_time)
     //        best_states[0]->dump();
     //    }
     //    cout << endl;
+    if(g_parameters.analyze && !g_analysis.writeDot("state_space")) {
+        ROS_ERROR("Failed to write Analysis to state_space...");
+    }
 }
 
 void BestFirstSearchEngine::dump_transition() const
@@ -167,6 +171,7 @@ SearchEngine::status BestFirstSearchEngine::step()
         const TimeStampedState *parent_ptr = closed_list.insert(current_state,
                 current_predecessor, current_operator);
         assert(&current_state != current_predecessor);
+        g_analysis.recordClosingStep(current_predecessor, current_operator, parent_ptr);
 
         // evaluate the current/parent state
         // also do this for non/lazy-evaluation as the heuristics
@@ -184,18 +189,21 @@ SearchEngine::status BestFirstSearchEngine::step()
                 return SOLVED;
             generate_successors(parent_ptr);
         }
-    } else if ((current_operator == g_let_time_pass) &&
-            current_state.operators.empty() &&
-            makeSpan < bestMakespan) {
-        // arrived at same state by letting time pass
-        // e.g. when having an action with duration and only start effect
-        // the result would be discarded, check if we are at goal    
-        for(int i = 0; i < heuristics.size(); i++) {
-            heuristics[i]->evaluate(current_state);
-        }
-        if(!is_dead_end()) {
-            if(check_goal())
-                return SOLVED;
+    } else {
+        g_analysis.recordDiscardingStep(current_predecessor, current_operator, current_state);
+        if ((current_operator == g_let_time_pass) &&
+                current_state.operators.empty() &&
+                makeSpan < bestMakespan) {
+            // arrived at same state by letting time pass
+            // e.g. when having an action with duration and only start effect
+            // the result would be discarded, check if we are at goal    
+            for(int i = 0; i < heuristics.size(); i++) {
+                heuristics[i]->evaluate(current_state);
+            }
+            if(!is_dead_end()) {
+                if(check_goal())
+                    return SOLVED;
+            }
         }
     }
 
@@ -289,6 +297,8 @@ bool BestFirstSearchEngine::check_goal()
             dump_everything();
         }
         assert(current_state.operators.empty() && current_state.satisfies(g_goal));
+
+        g_analysis.recordGoal(current_state);
 
         Plan plan;
         PlanTrace path;
@@ -546,6 +556,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                     priority = childF;
             }
             open.push(std::tr1::make_tuple(parent_ptr, g_let_time_pass, priority));
+            g_analysis.recordOpenPush(parent_ptr, g_let_time_pass, i, priority);
             search_statistics.countChild(i);
         }
     }
@@ -609,6 +620,7 @@ void BestFirstSearchEngine::insert_successor(const Operator* op, OpenListInfo& o
         }
 
         open.push(std::tr1::make_tuple(parent_ptr, op, priority));
+        g_analysis.recordOpenPush(parent_ptr, op, openIndex, priority);
         search_statistics.countChild(openIndex);
     }
 }
@@ -676,6 +688,7 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
         // TODO here discuss discounting + record N branched off in op.
 
         open.push(std::tr1::make_tuple(parent_ptr, op, priority));
+        g_analysis.recordOpenPush(parent_ptr, op, openIndex, priority);
         if(openIndex < 0)
             search_statistics.countLiveBranch();
         else
@@ -718,12 +731,21 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
             Operator opGround = open_op->ground(*open_state, false, couldGround);
             if(couldGround) {
                 // reinsert (only) if we could ground
-                insert_ungrounded_successor(open_op, *open_info, -1,
+                // recover index
+                int openIndex = -1;
+                for(int i = 0; i < open_lists.size(); i++) {
+                    if(&open_lists[i] == open_info) {
+                        openIndex = i;
+                        break;
+                    }
+                }
+                insert_ungrounded_successor(open_op, *open_info, openIndex,
                         open_state, -1.0, 0.0);
 
                 pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
                 open_op = &(*ret.first);    // open_op is the grounded one, not the
                 if(!open_op->is_applicable(*open_state, false)) {
+                    g_analysis.recordLiveGroundingDiscard(open_state, open_op);
                     // OK, we had a grounding, but that didn't work. As we can't produce a successor,
                     // just discard this one and continue looking.
                     return fetch_next_state();
@@ -739,6 +761,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
         // We need to recheck operator applicability in case a lazy evaluated op (relaxed module calls)
         // was inserted in the open queue
         if (open_op != g_let_time_pass && !open_op->is_applicable(*open_state, false)) {
+            g_analysis.recordModuleRelaxedDiscardingStep(open_state, open_op);
             return fetch_next_state();
         }
     }

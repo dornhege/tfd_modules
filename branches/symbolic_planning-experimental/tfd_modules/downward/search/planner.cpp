@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <math.h>
 #include "plannerParameters.h"
+#include "analysis.h"
 #include "ros_printouts.h"
 
 #if ROS_BUILD
@@ -62,6 +63,8 @@ int main(int argc, char **argv)
         return 2;
     }
     g_parameters.dump();
+
+    g_analysis.setEnabled(g_parameters.analyze);
 
     bool poly_time_method = false;
     cin >> poly_time_method;
@@ -208,6 +211,9 @@ int main(int argc, char **argv)
     }
 
     //engine->dump_everything();
+
+    time_t now = time(NULL);
+    engine->statistics(now);
 
     switch(search_result) {
         case SearchEngine::SOLVED_TIMEOUT:

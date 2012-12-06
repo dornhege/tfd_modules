@@ -16,6 +16,7 @@ using namespace std;
 #include "state.h"
 #include "successor_generator.h"
 #include "plannerParameters.h"
+#include "analysis.h"
 
 void PlanStep::dump() const
 {
@@ -202,6 +203,8 @@ AxiomEvaluator *g_axiom_evaluator;
 SuccessorGenerator *g_successor_generator;
 vector<DomainTransitionGraph *> g_transition_graphs;
 CausalGraph *g_causal_graph;
+
+Analysis g_analysis;
 
 PlannerParameters g_parameters;
 

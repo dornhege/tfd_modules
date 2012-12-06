@@ -23,6 +23,7 @@ class LogicAxiom;
 class NumericAxiom;
 class TimeStampedState;
 class SuccessorGenerator;
+class Analysis;
 
 struct PlanStep
 {
@@ -85,6 +86,8 @@ extern AxiomEvaluator *g_axiom_evaluator;
 extern SuccessorGenerator *g_successor_generator;
 extern vector<DomainTransitionGraph *> g_transition_graphs;
 extern CausalGraph *g_causal_graph;
+
+extern Analysis g_analysis;
 
 class PlannerParameters;
 extern PlannerParameters g_parameters;
