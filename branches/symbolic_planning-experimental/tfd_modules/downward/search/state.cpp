@@ -11,6 +11,11 @@
 #include <cassert>
 using namespace std;
 
+bool Prevail::is_module() const
+{
+    return g_variable_types[var] == module;
+}
+
 TimeStampedState::TimeStampedState(istream &in)
 {
     check_magic(in, "begin_state");
@@ -55,6 +60,8 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         conds_at_end(predecessor.conds_at_end),
         operators(predecessor.operators)
 {
+    ROS_ASSERT(op.isGrounded());
+
     // FIXME: The effects between now and now + sep can 
     // happen at different timestamps. So, to implement this method 
     // correctly, we have to apply and check the effects in the correct 

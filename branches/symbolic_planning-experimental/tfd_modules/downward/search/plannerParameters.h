@@ -72,9 +72,20 @@ class PlannerParameters
       BestFirstSearchEngine::QueueManagementMode queueManagementMode;
 
       enum GroundingMode {
-        GroundAll,                          ///< Ground operator until it can't be grounded anymore.
-        GroundSingleDiscard,                ///< Ground one occurence and discard the op
-        GroundSingleReinsert,               ///< Ground one occurence and keep the ungrounded op
+        /// When generating successors, ground this operator until it can't be grounded anymore
+        /// and add all grounded successors to the open queue. After it is exhausted, discard it.
+        /// This will lead to infinite branching if the operator does not have a finite branching factor.
+        GroundAll,
+        /// When generating successors, ground this operator once, if possible and
+        /// add that grounded op to the open queue. Discard the ungrounded one.
+        GroundSingleDiscard,
+        /// When generating successors, add the ungrounded op to the open queue.
+        /// If the heuristic selects this state,op pair during fetch_next_state,
+        /// try to ground the op.
+        /// If that succeeded, use the grounded one for that step and
+        /// in addition, re-insert the ungrounded op in the open queue.
+        /// If it failed discard the ungrounded op and continue fetching another state.
+        GroundSingleReinsert,
       };
       enum GroundingMode grounding_mode;    ///< How to deal with partially grounded operators.
 
