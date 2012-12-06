@@ -441,6 +441,15 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
         maxTimeIncrement = max(maxTimeIncrement, parent_ptr->operators[k].time_increment);
     }
 
+    // check if we can prune here by comparing the min timestamp this op will reach
+    // and the best plan we have so far
+    double makespan = maxTimeIncrement + parent_ptr->timestamp;
+    bool betterMakespan = makespan < bestMakespan;
+    if(g_parameters.use_subgoals_to_break_makespan_ties && makespan == bestMakespan)
+        betterMakespan = true;
+    if(!betterMakespan) // parent state is already past our best plan - skip
+        return;
+
     for(int i = 0; i < open_lists.size(); i++) {
         if(DEBUG_GENERATE_SUCCESSORS)
             cout << "OPEN LIST: " << i << endl;
@@ -476,10 +485,15 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
             } else {
                 // decide what to do with an ungrounded op.
                 if(g_parameters.grounding_mode == PlannerParameters::GroundAll) {
+                    // ground the ungrounded one as often as we can,
+                    // insert the grounded ones,
+                    // discard the ungrounded one
                     bool couldGround = true;
                     while(couldGround) {
                         couldGround = false;
                         Operator opGround = ops[j]->ground(*parent_ptr, false, couldGround);
+                        if(!couldGround)
+                            break;
                         pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
                         // we want to work with the it, not the opGround, which will go out of scope
                         // it points to the Op actually inside g_grounded_operators
@@ -489,6 +503,23 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                         insert_successor(groundedOp, open_lists[i], i,
                                 parent_ptr, priority, maxTimeIncrement);
                     }
+                } else if(g_parameters.grounding_mode == PlannerParameters::GroundSingleDiscard) {
+                    // ground the ungrounded one once (if poss)
+                    // insert the grounded one,
+                    // discard the ungrounded one
+                    bool couldGround = false;
+                    Operator opGround = ops[j]->ground(*parent_ptr, false, couldGround);
+                    if(couldGround) {
+                        pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                        const Operator* groundedOp = &(*ret.first);
+                        insert_successor(groundedOp, open_lists[i], i,
+                                parent_ptr, priority, maxTimeIncrement);
+                    }
+                } else if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert) {
+                    // Actually insert the ungrounded op in the open list
+                    // fetch_next_state needs to deal with that correctly.
+                    insert_ungrounded_successor(ops[j], open_lists[i], i,
+                            parent_ptr, priority, maxTimeIncrement);
                 }
             }
         }
@@ -529,6 +560,7 @@ void BestFirstSearchEngine::insert_successor(const Operator* op, OpenListInfo& o
         cout << endl << "insert_successor: op:" << endl;
         op->dump();
     }
+    ROS_ASSERT(op->isGrounded());
 
     Heuristic* heur = openInfo.heuristic;
     OpenList & open = openInfo.open;
@@ -581,6 +613,76 @@ void BestFirstSearchEngine::insert_successor(const Operator* op, OpenListInfo& o
     }
 }
 
+void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, OpenListInfo& openInfo,
+        int openIndex,
+        const TimeStampedState* parent_ptr, double priority, double maxParentTimeIncrement)
+{
+    if(DEBUG_GENERATE_SUCCESSORS) {
+        cout << endl << "insert_successor: op:" << endl;
+        op->dump();
+    }
+    ROS_ASSERT(!op->isGrounded());
+
+    Heuristic* heur = openInfo.heuristic;
+    OpenList & open = openInfo.open;
+
+    bool lazy_state_module_eval = g_parameters.lazy_state_module_evaluation > 0;
+
+    // compute expected min makespan of this op
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Getting Duration..." << endl;
+    // this could still give us some info, but we can't allow modules on the ungrounded op.
+    double duration = op->get_duration(parent_ptr, lazy_state_module_eval, false);
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Duration: " << duration << endl;
+    double maxTimeIncrement = max(maxParentTimeIncrement, duration);
+    double makespan = maxTimeIncrement + parent_ptr->timestamp;
+    bool betterMakespan = makespan < bestMakespan;
+    if(g_parameters.use_subgoals_to_break_makespan_ties && makespan == bestMakespan)
+        betterMakespan = true;
+
+    // Generate a child/Use an operator if
+    // - it is applicable
+    // - its minimum makespan is better than the best we had so far
+    // - if knownByLogicalStateOnly hasn't closed this state (when feature enabled)
+
+    // only compute tss if needed
+    TimedSymbolicStates timedSymbolicStates;
+    TimedSymbolicStates* tssPtr = NULL;
+    if(g_parameters.use_known_by_logical_state_only)
+        tssPtr = &timedSymbolicStates;
+
+    if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
+    // check applicability, but do not use modules for that.
+    if(betterMakespan && op->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr, false) &&
+            (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
+        if(DEBUG_GENERATE_SUCCESSORS) cout << "Applicable" << endl;
+
+        // base priority is determined by the parent state as we cannot
+        // produce a child (would need to ground for that)
+        // when in non-lazy eval the parent prior might not have been determined,
+        // do that now.
+        if(priority < 0) {
+            double parentG = getG(parent_ptr, parent_ptr, NULL);
+            double parentH = heur->get_heuristic();
+            assert(!heur->is_dead_end());
+            double parentF = parentG + parentH;
+            if(g_parameters.greedy)
+                priority = parentH;
+            else
+                priority = parentF;
+        }
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert)
+            //priority *= (op->getNumBranches() + 1); // TODO should depend on mode
+            priority *= pow(2.0, op->getNumBranches()); // TODO should depend on mode
+        // TODO here discuss discounting + record N branched off in op.
+
+        open.push(std::tr1::make_tuple(parent_ptr, op, priority));
+        if(openIndex < 0)
+            search_statistics.countLiveBranch();
+        else
+            search_statistics.countChild(openIndex);
+    }
+}
+
 enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 {
     OpenListInfo *open_info = select_open_queue();
@@ -603,20 +705,46 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     open_info->open.pop();
     open_info->priority++;
 
+    const TimeStampedState* open_state = std::tr1::get<0>(next);
+    const Operator* open_op = std::tr1::get<1>(next);
+
+    // grounding check if ungrounded or in other grounding mode...
+    if(g_parameters.grounding_mode != PlannerParameters::GroundSingleReinsert) {
+        ROS_ASSERT(open_op->isGrounded());   // Only GroundSingleReinsert is allowed to push ungrounded ops
+    } else {
+        // op might be ungrounded, deal with that.
+        if(!open_op->isGrounded()) {
+            bool couldGround = false;
+            Operator opGround = open_op->ground(*open_state, false, couldGround);
+            if(couldGround) {
+                // reinsert (only) if we could ground
+                insert_ungrounded_successor(open_op, *open_info, -1,
+                        open_state, -1.0, 0.0);
+
+                pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                open_op = &(*ret.first);    // open_op is the grounded one, not the
+                if(!open_op->is_applicable(*open_state, false)) {
+                    // OK, we had a grounding, but that didn't work. As we can't produce a successor,
+                    // just discard this one and continue looking.
+                    return fetch_next_state();
+                }
+            } else {    // could not ground this one, so we can't produce a successor, just discard...
+                return fetch_next_state();
+            }
+        }
+    }
+
     if(g_parameters.lazy_state_module_evaluation > 0) {
         // tentative new current_predecessor and current_operator
         // We need to recheck operator applicability in case a lazy evaluated op (relaxed module calls)
         // was inserted in the open queue
-        const TimeStampedState* state = std::tr1::get<0>(next);
-        const Operator* op = std::tr1::get<1>(next);
-
-        if (op != g_let_time_pass && !op->is_applicable(*state, false)) {
+        if (open_op != g_let_time_pass && !open_op->is_applicable(*open_state, false)) {
             return fetch_next_state();
         }
     }
 
-    current_predecessor = std::tr1::get<0>(next);
-    current_operator = std::tr1::get<1>(next);
+    current_predecessor = open_state;
+    current_operator = open_op;
 
     if(current_operator == g_let_time_pass) {
         // do not apply an operator but rather let some time pass until

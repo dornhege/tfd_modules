@@ -30,6 +30,9 @@ struct Prevail
 
     bool is_applicable(const TimeStampedState & state, const Operator* op, bool allowRelaxed) const;
 
+    /// Will this prevail be computed by a module?
+    bool is_module() const;
+
     void dump() const;
 
     bool operator<(const Prevail &other) const {

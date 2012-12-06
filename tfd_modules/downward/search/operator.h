@@ -25,6 +25,8 @@ class Operator
         int duration_var;
         string name;
 
+        mutable int numBranches;    ///< For ungrounded ops - how often was this one grounded.
+
     private:
         bool deletesPrecond(const vector<Prevail>& conds,
                 const vector<PrePost>& effects) const;
@@ -97,6 +99,9 @@ class Operator
          */
         void addGroundParameters(modules::ParameterList & parameters) const;
 
+        /// How often did we branch off this.
+        int getNumBranches() const { return numBranches; }
+
         /// Calculate the duration of this operator when applied in state.
         /**
          * This function will retrieve the duration and handle cost modules correctly.
@@ -111,9 +116,10 @@ class Operator
         /**
          * \param [in] allowRelaxed if true, only relaxed module calls will be performed.
          * \param [out] timedSymbolicStates if not NULL the timedSymbolicStates will be computed
+         * \param [in] use_modules if false, module prevails will not be checked and assumed true
          */
         bool is_applicable(const TimeStampedState & state, bool allowRelaxed,
-            TimedSymbolicStates* timedSymbolicStates = NULL) const;
+            TimedSymbolicStates* timedSymbolicStates = NULL, bool use_modules = true) const;
 
         bool isDisabledBy(const Operator* other) const;
 

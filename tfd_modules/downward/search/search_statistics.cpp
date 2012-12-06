@@ -5,9 +5,11 @@
 SearchStatistics::SearchStatistics()
 {
     generated_states = 0;
+    generated_live_branched_states = 0;
 
     lastDumpClosedListSize = 0;
     lastDumpGeneratedStates = 0;
+    lastDumpGeneratedLiveBranchedStates = 0;
     lastDumpTime = time(NULL);
     startTime = lastDumpTime;
 }
@@ -20,6 +22,11 @@ void SearchStatistics::countChild(int openListIndex)
 {
     generated_states++;
     childrenPerOpenList[openListIndex]++;
+}
+
+void SearchStatistics::countLiveBranch()
+{
+    generated_live_branched_states++;
 }
 
 void SearchStatistics::finishExpansion()
@@ -54,6 +61,12 @@ void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
     printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dGeneratedNodes/dt, dt,
             double(generated_states)/dTotal);
 
+    cout << "Generated Nodes due to live branching: " << generated_live_branched_states << " state(s)." << endl;
+    double dGenerated_live_branchedNodes = generated_live_branched_states - lastDumpGeneratedLiveBranchedStates;
+    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n",
+            dGenerated_live_branchedNodes/dt, dt,
+            double(generated_live_branched_states)/dTotal);
+
     cout << "Overall branching factor by list sizes: " << (generated_states / (double) closedListSize) << endl;
     printf("Averaged overall branching factor: ");
     overallBranchingFactor.print();
@@ -64,6 +77,7 @@ void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
     }
 
     lastDumpGeneratedStates = generated_states;
+    lastDumpGeneratedLiveBranchedStates = generated_live_branched_states;
     lastDumpClosedListSize = closedListSize;
     lastDumpTime = current_time;
 }

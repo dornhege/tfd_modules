@@ -168,6 +168,8 @@ Operator::Operator(istream &in)
         mod_effs_end.push_back(ModuleEffect(in));
     }
     check_magic(in, "end_operator");
+
+    numBranches = 0;
 }
 
 Operator::Operator(bool uses_concrete_time_information)
@@ -184,6 +186,8 @@ Operator::Operator(bool uses_concrete_time_information)
         name = "wait";
         duration_var = -2;
     }
+
+    numBranches = 0;
 }
 
 bool Operator::isGrounded() const
@@ -225,8 +229,11 @@ Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & o
 
     // created a grounded operator from that.
     ok = true;
+    numBranches++;
+
     ret.name += " " + groundParam;
     ret.mod_groundings.clear();
+
     return ret;
 }
 
@@ -321,7 +328,7 @@ void Operator::dump() const
 }
 
 bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
-        TimedSymbolicStates* timedSymbolicStates) const
+        TimedSymbolicStates* timedSymbolicStates, bool use_modules) const
 {
     if(g_parameters.disallow_concurrent_actions && !state.operators.empty())
         return false;
@@ -342,12 +349,16 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
         }
     }
 
-    for(int i = 0; i < prevail_start.size(); i++)
+    for(int i = 0; i < prevail_start.size(); i++) {
+        if(prevail_start[i].is_module() && !use_modules)
+            continue;
         if(!prevail_start[i].is_applicable(state, this, allowRelaxed))
             return false;
-    for(int i = 0; i < pre_post_start.size(); i++)
+    }
+    for(int i = 0; i < pre_post_start.size(); i++) {
         if(!pre_post_start[i].is_applicable(state))
             return false;
+    }
 
     // There may be no simultaneous applications of two instances of the
     // same ground operator (for technical reasons, to simplify the task
@@ -356,6 +367,11 @@ bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
     for(int i = 0; i < state.operators.size(); i++)
         if(state.operators[i].get_name() == get_name())
             return false;
+
+    // FIXME: We could do this better by looping through the next call
+    // but this will stop to work as soon as an effect module needs application
+    if(!use_modules)
+        return true;
 
     return TimeStampedState(state, *this, allowRelaxed).
         is_consistent_when_progressed(allowRelaxed, timedSymbolicStates);
