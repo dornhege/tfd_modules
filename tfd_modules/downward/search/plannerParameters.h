@@ -25,6 +25,11 @@ class PlannerParameters
 
       bool anytime_search;          ///< Perform anytime search (don't stop at first plan)
       bool disallow_concurrent_actions;     ///< Do NOT allow any concurrent actions, i.e. do NOT plan temporally
+      /// If fetch_next_state encounters a state with running operators it will let_time_pass
+      /// until all operators are finished (dangerous when concurrent actions are allowed).
+      bool fetch_next_state_immediately_lets_time_pass;
+
+      bool insert_let_time_pass_only_when_running_operators_not_empty;
 
       int timeout_if_plan_found;          ///< Timeout if a plan was found (0 - inf).
       int timeout_while_no_plan_found;    ///< Timeout while no plan found (0 - inf).
@@ -35,7 +40,8 @@ class PlannerParameters
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
       bool verbose;                 ///< Verbose outputs
       bool analyze;                 ///< Build and record extended debug info (performance impact!)
-      bool insert_let_time_pass_only_when_running_operators_not_empty;
+      bool analyzeOutputNumericalFluents;   ///< Display numerical fluents in state
+      bool analyzeCondensedOutput;      ///< Same transitions for open/closed are drawn as one edge
 
       int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
 
