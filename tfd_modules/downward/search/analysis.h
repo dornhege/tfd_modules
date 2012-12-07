@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <set>
+#include <deque>
 #include <map>
 #include <utility>
 #include <tr1/tuple>
@@ -47,7 +48,7 @@ class Analysis
          * \param [in] succ successor that is not safe to be stored and needs to be replicated/matched
          */
         void recordDiscardingStep(const TimeStampedState* pred, const Operator* op,
-                const TimeStampedState & succ);
+                const TimeStampedState & succ, const ClosedList & closedList);
 
         /// Record a tentative step, where op is module relaxed, but not applicable.
         /**
@@ -81,13 +82,6 @@ class Analysis
          */
         void recordLiveGroundingDiscard(const TimeStampedState* pred, const Operator* op);
 
-        // TODO what is the ideal desired output?
-        // Some of these overlap in transitions (open/closed), maybe should be marked as double/multi edge labels, - on the other hand should be mostly default for open->close, but might be different as open->ground->close (op grounded was never in open), open->discard
-        // Can we have nil transitions going nowhere for grounding stop? (and open pushes???) - how should those be reflected? -> just use node?
-        // Uniqueness of nodes before/after closed as closed list entries and current_state (is that always the same ptr?) - are we interested in the same "equal" node or in the exact same state?
-        // current_state is always the same, pred/op are pointers usually from globals ops list + pred from closed list!
-        // What is with let-time_pass? can we skip those?
-
     protected:
         struct OpenEntry {
             int eventNumber;
@@ -102,7 +96,13 @@ class Analysis
         typedef map< pair<const TimeStampedState*, const Operator*>,
                 pair<int, const TimeStampedState*> > CloseRecordMap;
         typedef map< pair<const TimeStampedState*, const Operator*>, int > DiscardRecordMap;
-        typedef map< pair<const TimeStampedState*, const Operator*>, OpenEntry > OpenRecordMap;
+        /// open push for TimeStampedState, Operator in queue
+        /**
+         * Might happen multiple times, current_state might be rediscovered by a better path,
+         * pushes into different queues, live grounding pushes exaclty the same
+         */
+        typedef map< pair<const TimeStampedState*, const Operator*>,
+                deque<OpenEntry> > OpenRecordMap;
 
         void writeDotNodes(std::ofstream & of);
 
@@ -115,6 +115,8 @@ class Analysis
         std::string generateDiscardEdgeLabel(const DiscardRecordMap::value_type & edge,
                 const OpenRecordMap & openRecords,
                 set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
+
+        std::string generateOpenEdgeLabel(const OpenRecordMap::value_type & edge);
 
         void writeDotEdgesAll(std::ofstream & of);
         void writeDotEdgesCondensed(std::ofstream & of);
@@ -130,24 +132,52 @@ class Analysis
 
         /// If state cannot be stored, find a storable instance in the records.
         /// If that does not exist, create one.
-        const TimeStampedState* findOrReplicateMatchingState(const TimeStampedState & state);
+        const TimeStampedState* findOrReplicateMatchingState(const TimeStampedState & state,
+                bool warnIfReplicated = true);
 
     protected:
+        // TODO those replicate params...
         bool enabled;
         bool includeNumericalFluents;
 
         bool condenseEvents;    ///< events like opening and closing the same transition are one edge.
 
+        // TODO  draw dashed line, no constraint, between equal closed states (-timestamp)
+        // should happen when better state is found in later event, otherwise we get the
+        // direct discard back edges.
+        // if discards are explicit, not as discard reason, then those should also have the
+        // dashed lines
+        // Only! in the explicit case discard reasons are Always replicated -> change the warning then
+        // -> is this automatic, if we just draw lines between all recorded (and/or replicated) states
+        // that are equal (not w/ timestmap)?
+
         unsigned int lastAnonymousNr;
         unsigned int currentEventNumber;
 
+        struct TssHashTimestamp
+        {
+            std::size_t operator()(const TimeStampedState & tss) const;
+
+            TssHash tssHash;
+        };
+
+        /// TimeStampedState equals that requires same timestamp for equality.
+        struct TssEqualsTimestamp
+        {
+            bool operator()(const TimeStampedState &tss1, const TimeStampedState &tss2) const;
+
+            TssEquals tssEquals;
+        };
+
         /// Recorded states that are safe to store permanently.
         /// State -> Recorded Ptr. The ptr should be unique per state.
-        typedef tr1::unordered_map<TimeStampedState, const TimeStampedState*, TssHash, TssEquals> RecordedStatesMap;
+        typedef tr1::unordered_map<TimeStampedState, const TimeStampedState*,
+                TssHashTimestamp, TssEqualsTimestamp> RecordedStatesMap;
         RecordedStatesMap recordedStates;
 
         /// Some states might not exist permanently, stored them here to have a safe pointer.
-        typedef tr1::unordered_set<TimeStampedState, TssHash, TssEquals> ReplicatedStatesSet;
+        typedef tr1::unordered_set<TimeStampedState,
+                TssHashTimestamp, TssEqualsTimestamp> ReplicatedStatesSet;
         ReplicatedStatesSet replicatedStates;
 
         CloseRecordMap closedRecords;

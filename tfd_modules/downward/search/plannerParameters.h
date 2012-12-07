@@ -42,6 +42,21 @@ class PlannerParameters
       bool analyze;                 ///< Build and record extended debug info (performance impact!)
       bool analyzeOutputNumericalFluents;   ///< Display numerical fluents in state
       bool analyzeCondensedOutput;      ///< Same transitions for open/closed are drawn as one edge
+      /// For discard edges, draw to the reason for a discarded state instead of inserting 
+      /// the new state (with a higher timestamp) explicityly.
+      /** States are discarded because the same state is already closed with a better timestamp
+       *  or because we already have a plan that is better than the makespan of the state.
+       *
+       *  If analyzeDiscardedStatesByReason is true, in the first case the discard transition is
+       *  drawn to the state causing the discard (with a lower timestamp) and not to the new state
+       *  with a higher makespan.
+       *  Only in the second case, if we can't find an equal state as a closing reason, an explicit state
+       *  is drawn.
+       *
+       *  If analyzeDiscardedStatesByReason is false, always the explicit state with the higher timestmap
+       *  is drawn.
+       */
+      bool analyzeDiscardedStatesByReason;
 
       int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
 

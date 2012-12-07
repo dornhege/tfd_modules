@@ -190,7 +190,7 @@ SearchEngine::status BestFirstSearchEngine::step()
             generate_successors(parent_ptr);
         }
     } else {
-        g_analysis.recordDiscardingStep(current_predecessor, current_operator, current_state);
+        g_analysis.recordDiscardingStep(current_predecessor, current_operator, current_state, closed_list);
         if ((current_operator == g_let_time_pass) &&
                 current_state.operators.empty() &&
                 makeSpan < bestMakespan) {
