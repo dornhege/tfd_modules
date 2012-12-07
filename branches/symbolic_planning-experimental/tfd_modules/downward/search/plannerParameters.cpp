@@ -15,7 +15,12 @@ PlannerParameters::PlannerParameters()
     epsSchedulingGapTime = 0.001;
 
     anytime_search = false;
+
     disallow_concurrent_actions = false;
+    fetch_next_state_immediately_lets_time_pass = false;
+
+    insert_let_time_pass_only_when_running_operators_not_empty = false;
+
     timeout_while_no_plan_found = 0;
     timeout_if_plan_found = 0;
     min_search_time_after_plan_found = 0;
@@ -25,8 +30,8 @@ PlannerParameters::PlannerParameters()
     lazy_evaluation = true;
     verbose = true;
     analyze = false;
-
-    insert_let_time_pass_only_when_running_operators_not_empty = false;
+    analyzeOutputNumericalFluents = false;
+    analyzeCondensedOutput = true;
 
     lazy_state_module_evaluation = -1;
     use_cost_modules_for_applicability = true;
@@ -120,6 +125,14 @@ void PlannerParameters::dump() const
     cout << "Disallow concurrent actions: " << (disallow_concurrent_actions ? "Enabled" : "Disabled") << endl;
     if(disallow_concurrent_actions)
         cout << "WARNING: planning non-temporally" << endl;
+
+    cout << "fetch_next_state immediately lets time pass: " <<
+        (fetch_next_state_immediately_lets_time_pass ? "Enabled" : "Disabled") << endl;
+    if(fetch_next_state_immediately_lets_time_pass && !disallow_concurrent_actions)
+        cout << "WARNING: planning temporally and fetch_next_state immediately lets_time_pass" << endl;
+    cout << "Insert let_time_pass only when running operators is not empty: " <<
+        (insert_let_time_pass_only_when_running_operators_not_empty ? "Enabled" : "Disabled") << endl;
+
     cout << "Timeout if plan was found: " << timeout_if_plan_found << " seconds";
     if(timeout_if_plan_found == 0)
         cout << " (no timeout)";
@@ -133,6 +146,9 @@ void PlannerParameters::dump() const
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
     cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
     cout << "Analyze: " << (analyze ? "Enabled" : "Disabled") << endl;
+    cout << "Analyze Output NumericalFluents: " << (analyzeOutputNumericalFluents ? "Enabled" : "Disabled") << endl;
+    cout << "Analyze Condensed Output: " << (analyzeCondensedOutput ? "Enabled" : "Disabled") << endl;
+
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
     cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
     if(lazy_state_module_evaluation < 0)
@@ -232,6 +248,13 @@ bool PlannerParameters::readROSParameters()
 
     nhPriv.param("anytime_search", anytime_search, anytime_search);
     nhPriv.param("disallow_concurrent_actions", disallow_concurrent_actions, disallow_concurrent_actions);
+    nhPriv.param("insert_let_time_pass_only_when_running_operators_not_empty",
+            insert_let_time_pass_only_when_running_operators_not_empty,
+            insert_let_time_pass_only_when_running_operators_not_empty);
+    nhPriv.param("fetch_next_state_immediately_lets_time_pass",
+            fetch_next_state_immediately_lets_time_pass,
+            fetch_next_state_immediately_lets_time_pass);
+
     nhPriv.param("timeout_if_plan_found", timeout_if_plan_found, timeout_if_plan_found);
     nhPriv.param("timeout_while_no_plan_found", timeout_while_no_plan_found, timeout_while_no_plan_found); 
     nhPriv.param("min_search_time_after_plan_found",
@@ -240,6 +263,10 @@ bool PlannerParameters::readROSParameters()
             min_search_time_factor_after_plan_found, min_search_time_factor_after_plan_found);
 
     nhPriv.param("analyze", analyze, analyze);
+    nhPriv.param("analyze_output_numerical_fluents", analyzeOutputNumericalFluents,
+            analyzeOutputNumericalFluents);
+    nhPriv.param("analyze_condensed_output", analyzeCondensedOutput, analyzeCondensedOutput);
+
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
 

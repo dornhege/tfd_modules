@@ -14,7 +14,7 @@ static const string dot_class_closed = "style=bold,color=black";
 static const string dot_class_discard = "color=gray,constraint=false";
 static const string dot_class_module_relaxed_discard = "style=dashed,color=gray";
 static const string dot_class_grounding_discard = "style=dotted,color=gray";
-static const string dot_class_open = "style=dashed,constraint=false";
+static const string dot_class_open = "style=dashed";
 
 std::string formatString(const char* str, ...)
 {

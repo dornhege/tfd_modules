@@ -20,6 +20,8 @@ class Analysis
         Analysis();
 
         void setEnabled(bool on) { enabled = on; }
+        void setOutputNumericalFluents(bool on) { includeNumericalFluents = on; }
+        void setCondensedOutput(bool on) { condenseEvents = on; }
 
         int getCurrentEventNumber() const { return currentEventNumber; }
 
