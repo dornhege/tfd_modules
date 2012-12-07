@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <algorithm>
 #include "operator.h"
 #include <boost/foreach.hpp>
 #define forEach BOOST_FOREACH
@@ -10,10 +11,10 @@
 static const string dot_class_state = "shape=box";
 static const string dot_class_goal_state = "shape=box,color=green";
 static const string dot_class_closed = "style=bold,color=black";
-static const string dot_class_discard = "color=gray";
-static const string dot_class_module_relaxed_discard = "style=dashed,color=gray";
-static const string dot_class_grounding_discard = "style=dotted,color=gray";
-static const string dot_class_open = "style=dashed";
+static const string dot_class_discard = "color=gray,constraint=false";
+static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,constraint=false";
+static const string dot_class_grounding_discard = "style=dotted,color=gray,constraint=false";
+static const string dot_class_open = "style=dashed,constraint=false";
 
 std::string formatString(const char* str, ...)
 {
@@ -31,7 +32,7 @@ std::string formatString(const char* str, ...)
    return ret;
 }
 
-Analysis::Analysis() : enabled(false), includeNumericalFluents(false),
+Analysis::Analysis() : enabled(false), includeNumericalFluents(false), condenseEvents(true),
     lastAnonymousNr(0), currentEventNumber(0)
 {
 }
@@ -228,7 +229,7 @@ void Analysis::writeDotNodes(std::ofstream & of)
     }
     forEach(const TimeStampedState* s, all_states) {
         if(goalRecords.find(s) != goalRecords.end()) {
-            of << generateNodeName(s) << "[label=\"(" << goalRecords[s] << ") "
+            of << generateNodeName(s) << "[label=\"" << goalRecords[s] << ": "
                 << generateNodeLabel(s) << "\"," <<
                 dot_class_goal_state << "]" << endl;
         } else {
@@ -240,7 +241,7 @@ void Analysis::writeDotNodes(std::ofstream & of)
     // re-consolidate states that were properly closed later on and might have been
     // replicated here
     // Can this later stuff actually happen? Maybe for condesned mode??? but we almost
-    // never generate, do we? Do we ever???
+    // never generate, do we? Do we ever??? CHECK
 
     // check which have good names, for others invent/generate some (maybe keep them when
     // in recording already?), but name generated ones differently (_anon)
@@ -248,12 +249,192 @@ void Analysis::writeDotNodes(std::ofstream & of)
 
 void Analysis::writeDotEdges(std::ofstream & of)
 {
-// go through all the possible edges
-// for each edge collect all other possibilities and annotations
-// write edge
-// for every next edge type, make sure we haven't done that already.
-//
-// -> other method first: allow multiple edges (open edges might lead to nowhere)
+    if(condenseEvents)
+        writeDotEdgesCondensed(of);
+    else 
+        writeDotEdgesAll(of);
+}
+
+std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & edge,
+        const OpenRecordMap & openRecords,
+        set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
+{
+    // collect matching open transitions
+    vector<OpenEntry> matchingOpenTransitions;
+    forEach(const OpenRecordMap::value_type & ort, openRecords) {
+        if(edge.first != ort.first)
+            continue;
+
+        matchingOpenTransitions.push_back(ort.second);
+        handledTransitions.insert(ort.first);
+    }
+    sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
+
+    stringstream ss;
+    // print (openEv1, openEv2 - closeEv)
+    bool first = true;
+    forEach(const OpenEntry & oe, matchingOpenTransitions) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << oe.eventNumber;
+    }
+    // actual edge label: the op name
+    ss << " -> " << edge.second.first << ": " << edge.first.second->get_name();
+    ss << " ";
+    // print (openId1, prior1), (openId2, prior2)
+    first = true;
+    forEach(const OpenEntry & oe, matchingOpenTransitions) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
+    }
+    return ss.str();
+}
+
+void Analysis::writeDotEdgesCondensed(std::ofstream & of)
+{
+    set< pair<const TimeStampedState*, const Operator*> > handledTransitions;
+
+    lastAnonymousNr = 0;
+
+    // go through all the possible edges
+    // for each edge collect all other possibilities and annotations
+    // for every next edge type, make sure we haven't done that already.
+    forEach(CloseRecordMap::value_type & vt, closedRecords) {
+        if(vt.first.first == NULL) {
+            of << "pre_init[shape=point,label=\"\"]" << endl;
+            of << "pre_init -> " << generateNodeName(vt.second.second);
+            of << " [label=\"";
+            of << vt.second.first << "\"]" << endl;
+            continue;
+        }   // catch init
+
+        of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
+
+        of << " [label=\"";
+        of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
+#if 0
+        // collect matching open transitions
+        vector<OpenEntry> matchingOpenTransitions;
+        forEach(OpenRecordMap::value_type & ort, openRecords) {
+            if(vt.first != ort.first)
+                continue;
+
+            matchingOpenTransitions.push_back(ort.second);
+            handledTransitions.insert(ort.first);
+        }
+        sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
+
+        stringstream ss;
+        // print (openEv1, openEv2 - closeEv)
+        bool first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << oe.eventNumber;
+        }
+        ss << " -> " << vt.second.first << ": " << vt.first.second->get_name();
+        ss << " ";
+        // print (openId1, prior1), (openId2, prior2)
+        first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << "(" << oe.openIndex << ", " << oe.priority << ")";
+        }
+        of << ss.str();
+#endif
+        of << "\"," << dot_class_closed << "]" << endl;
+    }
+
+    forEach(CloseRecordMap::value_type & vt, discardRecords) {
+        of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
+
+        of << " [label=\"";
+        of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
+#if 0
+        // collect matching open transitions
+        vector<OpenEntry> matchingOpenTransitions;
+        forEach(OpenRecordMap::value_type & ort, openRecords) {
+            if(vt.first != ort.first)
+                continue;
+
+            matchingOpenTransitions.push_back(ort.second);
+            handledTransitions.insert(ort.first);
+        }
+        sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
+
+        stringstream ss;
+        // print (openEv1, openEv2 - closeEv)
+        ss << "(";
+        bool first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << oe.eventNumber;
+        }
+        ss << " - " << vt.second.first << ") " << vt.first.second->get_name();
+        ss << " ";
+        // print (openId1, prior1), (openId2, prior2)
+        first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << "(" << oe.openIndex << ", " << oe.priority << ")";
+        }
+        of << ss.str();
+#endif
+        of << "\"," << dot_class_discard << "]" << endl;
+    }
+
+    // can debug consolidation here with no manip planner running
+    forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
+        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        of << " [label=\"";
+        stringstream ss;
+        ss << vt.second << ": " << vt.first.second->get_name();
+        of << ss.str();
+        of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
+    }
+    forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
+        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        of << " [label=\"";
+        stringstream ss;
+        ss << vt.second << ": " << vt.first.second->get_name();
+        of << ss.str();
+        of << "\"," << dot_class_grounding_discard << "]" << endl;
+    }
+
+    forEach(OpenRecordMap::value_type & vt, openRecords) {
+        if(handledTransitions.find(vt.first) != handledTransitions.end())
+            continue;
+        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        of << " [label=\"";
+        stringstream ss;
+        ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
+        ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
+        of << ss.str();
+        of << "\"," << dot_class_open << "]" << endl;
+    }
+}
+
+void Analysis::writeDotEdgesAll(std::ofstream & of)
+{
+    // allow multiple edges (open edges might lead to nowhere/anon nodes)
+    // i.e. draw opening and closing transitions as separate edges
+
     lastAnonymousNr = 0;
 
     forEach(CloseRecordMap::value_type & vt, closedRecords) {
