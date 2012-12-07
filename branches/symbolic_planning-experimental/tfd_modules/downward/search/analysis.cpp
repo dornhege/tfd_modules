@@ -12,8 +12,8 @@ static const string dot_class_state = "shape=box";
 static const string dot_class_goal_state = "shape=box,color=green";
 static const string dot_class_closed = "style=bold,color=black";
 static const string dot_class_discard = "color=gray,constraint=false";
-static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,constraint=false";
-static const string dot_class_grounding_discard = "style=dotted,color=gray,constraint=false";
+static const string dot_class_module_relaxed_discard = "style=dashed,color=gray";
+static const string dot_class_grounding_discard = "style=dotted,color=gray";
 static const string dot_class_open = "style=dashed,constraint=false";
 
 std::string formatString(const char* str, ...)
@@ -255,6 +255,46 @@ void Analysis::writeDotEdges(std::ofstream & of)
         writeDotEdgesAll(of);
 }
 
+std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_type & edge,
+        const OpenRecordMap & openRecords,
+        set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
+{
+    // collect matching open transitions
+    vector<OpenEntry> matchingOpenTransitions;
+    forEach(const OpenRecordMap::value_type & ort, openRecords) {
+        if(edge.first != ort.first)
+            continue;
+
+        matchingOpenTransitions.push_back(ort.second);
+        handledTransitions.insert(ort.first);
+    }
+    sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
+
+    stringstream ss;
+    // print (openEv1, openEv2 - closeEv)
+    bool first = true;
+    forEach(const OpenEntry & oe, matchingOpenTransitions) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << oe.eventNumber;
+    }
+    // actual edge label: the op name
+    ss << " -> " << edge.second << ": " << edge.first.second->get_name();
+    ss << " ";
+    // print (openId1, prior1), (openId2, prior2)
+    first = true;
+    forEach(const OpenEntry & oe, matchingOpenTransitions) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
+    }
+    return ss.str();
+}
+
 std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & edge,
         const OpenRecordMap & openRecords,
         set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
@@ -317,41 +357,6 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
 
         of << " [label=\"";
         of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
-#if 0
-        // collect matching open transitions
-        vector<OpenEntry> matchingOpenTransitions;
-        forEach(OpenRecordMap::value_type & ort, openRecords) {
-            if(vt.first != ort.first)
-                continue;
-
-            matchingOpenTransitions.push_back(ort.second);
-            handledTransitions.insert(ort.first);
-        }
-        sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
-
-        stringstream ss;
-        // print (openEv1, openEv2 - closeEv)
-        bool first = true;
-        forEach(const OpenEntry & oe, matchingOpenTransitions) {
-            if(first)
-                first = false;
-            else
-                ss << ", ";
-            ss << oe.eventNumber;
-        }
-        ss << " -> " << vt.second.first << ": " << vt.first.second->get_name();
-        ss << " ";
-        // print (openId1, prior1), (openId2, prior2)
-        first = true;
-        forEach(const OpenEntry & oe, matchingOpenTransitions) {
-            if(first)
-                first = false;
-            else
-                ss << ", ";
-            ss << "(" << oe.openIndex << ", " << oe.priority << ")";
-        }
-        of << ss.str();
-#endif
         of << "\"," << dot_class_closed << "]" << endl;
     }
 
@@ -360,67 +365,30 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
 
         of << " [label=\"";
         of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
-#if 0
-        // collect matching open transitions
-        vector<OpenEntry> matchingOpenTransitions;
-        forEach(OpenRecordMap::value_type & ort, openRecords) {
-            if(vt.first != ort.first)
-                continue;
-
-            matchingOpenTransitions.push_back(ort.second);
-            handledTransitions.insert(ort.first);
-        }
-        sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
-
-        stringstream ss;
-        // print (openEv1, openEv2 - closeEv)
-        ss << "(";
-        bool first = true;
-        forEach(const OpenEntry & oe, matchingOpenTransitions) {
-            if(first)
-                first = false;
-            else
-                ss << ", ";
-            ss << oe.eventNumber;
-        }
-        ss << " - " << vt.second.first << ") " << vt.first.second->get_name();
-        ss << " ";
-        // print (openId1, prior1), (openId2, prior2)
-        first = true;
-        forEach(const OpenEntry & oe, matchingOpenTransitions) {
-            if(first)
-                first = false;
-            else
-                ss << ", ";
-            ss << "(" << oe.openIndex << ", " << oe.priority << ")";
-        }
-        of << ss.str();
-#endif
         of << "\"," << dot_class_discard << "]" << endl;
     }
 
     // can debug consolidation here with no manip planner running
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
-        stringstream ss;
-        ss << vt.second << ": " << vt.first.second->get_name();
-        of << ss.str();
+        of << generateDiscardEdgeLabel(vt, openRecords, handledTransitions);
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
     forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
-        stringstream ss;
-        ss << vt.second << ": " << vt.first.second->get_name();
-        of << ss.str();
+        of << generateDiscardEdgeLabel(vt, openRecords, handledTransitions);
         of << "\"," << dot_class_grounding_discard << "]" << endl;
     }
 
     forEach(OpenRecordMap::value_type & vt, openRecords) {
         if(handledTransitions.find(vt.first) != handledTransitions.end())
             continue;
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
         ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
@@ -467,7 +435,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     // try to enforce ordering by node depth (and ignore backlinks for that)
 
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
         ss << vt.second << ": " << vt.first.second->get_name();
@@ -475,7 +444,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
     forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
         ss << vt.second << ": " << vt.first.second->get_name();
@@ -484,7 +454,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     }
 
     forEach(OpenRecordMap::value_type & vt, openRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateAnonymousName();
+        std::string openNode = createAnonymousNode(of);
+        of << generateNodeName(vt.first.first) << " -> " << openNode;
         of << " [label=\"";
         stringstream ss;
         ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
@@ -499,10 +470,13 @@ std::string Analysis::generateNodeName(const TimeStampedState* state)
     return formatString("state_%08X", state);
 }
 
-std::string Analysis::generateAnonymousName()
+std::string Analysis::createAnonymousNode(std::ofstream & of)
 {
     lastAnonymousNr++;
-    return formatString("state_anon_%09d", lastAnonymousNr);
+    std::string name = formatString("invalid_state_anon_%09d", lastAnonymousNr);
+
+    of << name << "[shape=doublecircle,label=\"\"]" << endl;
+    return name;
 }
 
 std::string Analysis::generateNodeLabel(const TimeStampedState* state)
