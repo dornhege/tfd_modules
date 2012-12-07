@@ -776,6 +776,13 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     } else {
         assert(current_operator->get_name().compare("wait") != 0);
         current_state = TimeStampedState(*current_predecessor, *current_operator, false);
+        if(g_parameters.fetch_next_state_immediately_lets_time_pass) {
+            // FIXME This is OK regarding closed list, plan tracing, etc. as we here define
+            // what the successor (current_state) of current_predecessor/op actually is.
+            while(!current_state.operators.empty()) {
+                current_state = current_state.let_time_pass(false, true, false);
+            }
+        }
     }
     assert(&current_state != current_predecessor);
     return IN_PROGRESS;
