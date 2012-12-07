@@ -5,16 +5,21 @@
 #include <fstream>
 #include <algorithm>
 #include "operator.h"
+#include "plannerParameters.h"
+#include "closed_list.h"
 #include <boost/foreach.hpp>
 #define forEach BOOST_FOREACH
 
 static const string dot_class_state = "shape=box";
 static const string dot_class_goal_state = "shape=box,color=green";
-static const string dot_class_closed = "style=bold,color=black";
+static const string dot_class_closed = "style=bold,color=black,weight=10";
 static const string dot_class_discard = "color=gray,constraint=false";
-static const string dot_class_module_relaxed_discard = "style=dashed,color=gray";
-static const string dot_class_grounding_discard = "style=dotted,color=gray";
-static const string dot_class_open = "style=dashed";
+// TODO switch those two on param
+// Even better: switch if we generated the new state or if it is a discard reason!
+//static const string dot_class_discard = "color=gray";
+static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,weight=3";
+static const string dot_class_grounding_discard = "style=dotted,color=gray,weight=3";
+static const string dot_class_open = "style=dashed,weight=3";
 
 std::string formatString(const char* str, ...)
 {
@@ -30,6 +35,19 @@ std::string formatString(const char* str, ...)
    std::string ret = buf;
    free(buf);
    return ret;
+}
+
+std::size_t Analysis::TssHashTimestamp::operator()(const TimeStampedState & tss) const
+{
+    return tssHash(tss) + tss.timestamp;
+}
+
+bool Analysis::TssEqualsTimestamp::operator()(const TimeStampedState &tss1, const TimeStampedState &tss2) const
+{
+    if(!time_equals(tss1.timestamp, tss2.timestamp))
+        return false;
+
+    return tssEquals(tss1, tss2);
 }
 
 Analysis::Analysis() : enabled(false), includeNumericalFluents(false), condenseEvents(true),
@@ -80,17 +98,29 @@ void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* o
     }
     RecordedStatesMap::iterator it = recordedStates.find(*succ);
     if(it != recordedStates.end() && it->second != succ) {
-        ROS_ERROR("Closing Step mismatched succ state: %s in: %08X, new: %08X",
+        ROS_ERROR("Closing Step mismatched succ state: \n%s (%f)\n%08X\nin: \n%s (%f)\n%08X",
                 succ->toPDDL(true, true, true).c_str(),
-                (unsigned int)(long)it->second, (unsigned int)(long)succ);
+                succ->get_timestamp(),
+                (unsigned int)(long)succ,
+                it->second->toPDDL(true, true, true).c_str(),
+                it->second->get_timestamp(),
+                (unsigned int)(long)it->second);
     } else {
         recordedStates.insert(make_pair(*succ, succ));
     }
     closedRecords[make_pair(pred, op)] = make_pair(currentEventNumber, succ);
 }
 
+/**
+ * Not sure what is correct now:
+ *
+ * We should have the back edge to a state that is already there, but we are discarding because of (even  if we are other Timestamp)?
+ * We should have a new edge, if we are closing a new state for a better TS
+ *
+ */
+
 void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator* op,
-        const TimeStampedState & succ)
+        const TimeStampedState & succ, const ClosedList & closedList)
 {
     if(!enabled)
         return;
@@ -108,8 +138,23 @@ void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator
     } else {
         recordedStates.insert(make_pair(*pred, pred));
     }
+    printf("%s\n", __func__);
+    const TimeStampedState* discardedState = NULL;
+    if(g_parameters.analyzeDiscardedStatesByReason) {
+        // we discarded either because this equal state is closed (with better timestamp)
+        // or because our timestamp is larger than the best plan
+        if(closedList.contains(succ)) {
+            const TimeStampedState & reason = closedList.get(succ);
+            discardedState = &reason;   // safe to store - closed
+        } else {    // not in closed list, we are new, but worse than the best plan
+            discardedState = findOrReplicateMatchingState(succ, false);
+        }
+    } else {
+            discardedState = findOrReplicateMatchingState(succ, false);
+    }
+    ROS_ASSERT(discardedState != NULL);
     discardRecords[make_pair(pred, op)] = make_pair(currentEventNumber,
-            findOrReplicateMatchingState(succ));
+            discardedState);
 }
 
 void Analysis::recordModuleRelaxedDiscardingStep(const TimeStampedState* pred, const Operator* op)
@@ -141,6 +186,7 @@ void Analysis::recordGoal(const TimeStampedState & goalState)
 
     currentEventNumber++;
 
+    printf("%s\n", __func__);
     const TimeStampedState* goal = findOrReplicateMatchingState(goalState);
     if(goalRecords.find(goal) != goalRecords.end()) {
         ROS_ERROR("goal record for ... already existed.");
@@ -158,10 +204,12 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
 
     currentEventNumber++;
 
-    if(openRecords.find(make_pair(parent, op)) != openRecords.end()) {
-        ROS_ERROR("open push for ..., %s already existed.", op->get_name().c_str());
-        return;
+    OpenRecordMap::iterator openRecordIt = openRecords.find(make_pair(parent, op));
+    if(openRecordIt == openRecords.end()) {   // make sure we have an entry to push to
+        openRecords[make_pair(parent, op)] = deque<OpenEntry>();
+        openRecordIt = openRecords.find(make_pair(parent, op));
     }
+    ROS_ASSERT(openRecordIt != openRecords.end());
 
     OpenEntry entry;
     entry.eventNumber = currentEventNumber;
@@ -174,7 +222,7 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
     } else {
         recordedStates.insert(make_pair(*parent, parent));
     }
-    openRecords[make_pair(parent, op)] = entry;
+    openRecordIt->second.push_back(entry);
 }
 
 void Analysis::recordLiveGroundingDiscard(const TimeStampedState* pred, const Operator* op)
@@ -237,14 +285,8 @@ void Analysis::writeDotNodes(std::ofstream & of)
         }
     }
 
-    // TODO
-    // re-consolidate states that were properly closed later on and might have been
-    // replicated here
-    // Can this later stuff actually happen? Maybe for condesned mode??? but we almost
-    // never generate, do we? Do we ever??? CHECK
-
-    // check which have good names, for others invent/generate some (maybe keep them when
-    // in recording already?), but name generated ones differently (_anon)
+    // FIXME: Do we need to re-consolidate states that were properly closed later on
+    // and might have been replicated here?
 }
 
 void Analysis::writeDotEdges(std::ofstream & of)
@@ -265,7 +307,8 @@ std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_typ
         if(edge.first != ort.first)
             continue;
 
-        matchingOpenTransitions.push_back(ort.second);
+        forEach(OpenEntry oe, ort.second)
+            matchingOpenTransitions.push_back(oe);
         handledTransitions.insert(ort.first);
     }
     sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
@@ -305,7 +348,8 @@ std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & 
         if(edge.first != ort.first)
             continue;
 
-        matchingOpenTransitions.push_back(ort.second);
+        forEach(OpenEntry oe, ort.second)
+            matchingOpenTransitions.push_back(oe);
         handledTransitions.insert(ort.first);
     }
     sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
@@ -332,6 +376,33 @@ std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & 
             ss << ", ";
         ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
     }
+    return ss.str();
+}
+
+std::string Analysis::generateOpenEdgeLabel(const OpenRecordMap::value_type & edge)
+{
+    deque<OpenEntry> pushes = edge.second;
+    sort(pushes.begin(), pushes.end());
+    stringstream ss;
+    bool first = true;
+    forEach(const OpenEntry & oe, pushes) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << oe.eventNumber;
+    }
+    ss << ": " << edge.first.second->get_name();
+
+    first = true;
+    forEach(const OpenEntry & oe, pushes) {
+        if(first)
+            first = false;
+        else
+            ss << ", ";
+        ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
+    }
+
     return ss.str();
 }
 
@@ -368,7 +439,7 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         of << "\"," << dot_class_discard << "]" << endl;
     }
 
-    // can debug consolidation here with no manip planner running
+    // TODO consolidation for grounding possible somehow???
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
@@ -390,10 +461,11 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
-        stringstream ss;
-        ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
-        ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
-        of << ss.str();
+        of << generateOpenEdgeLabel(vt);
+        //stringstream ss;
+        //ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
+        //ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
+        //of << ss.str();
         of << "\"," << dot_class_open << "]" << endl;
     }
 }
@@ -429,10 +501,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         ss << vt.second.first << ": " << vt.first.second->get_name();
         of << ss.str();
         of << "\"," << dot_class_discard << "]" << endl;
-        // TODO mark as irrelevant for sorting
     }
-
-    // try to enforce ordering by node depth (and ignore backlinks for that)
 
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
@@ -457,10 +526,11 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         std::string openNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << openNode;
         of << " [label=\"";
-        stringstream ss;
-        ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
-        ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
-        of << ss.str();
+        of << generateOpenEdgeLabel(vt);
+        //stringstream ss;
+        //ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
+        //ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
+        //of << ss.str();
         of << "\"," << dot_class_open << "]" << endl;
     }
 }
@@ -495,19 +565,25 @@ std::string Analysis::generateNodeLabel(const TimeStampedState* state)
     return ss.str();
 }
 
-const TimeStampedState* Analysis::findOrReplicateMatchingState(const TimeStampedState & state)
+const TimeStampedState* Analysis::findOrReplicateMatchingState(const TimeStampedState & state,
+        bool warnIfReplicated)
 {
     // first check the recorded ones from planning
     RecordedStatesMap::iterator it = recordedStates.find(state);
     if(it != recordedStates.end()) {
+        ROS_INFO("findOrReplicateMatchingState: found recorded state.");
         return it->second;
     }
 
     // next check if we already replicated that
     ReplicatedStatesSet::iterator replIt = replicatedStates.find(state);
     if(replIt != replicatedStates.end()) {
+        ROS_INFO("findOrReplicateMatchingState: found replicated state.");
         return &(*replIt);
     }
+
+    if(warnIfReplicated)
+        ROS_WARN("findOrReplicateMatchingState new entry for %s", state.toPDDL(true, true, true).c_str());
 
     // finally: we didn't, so actually create this new one.
     pair<ReplicatedStatesSet::iterator, bool> insIt = replicatedStates.insert(state);

@@ -32,6 +32,7 @@ PlannerParameters::PlannerParameters()
     analyze = false;
     analyzeOutputNumericalFluents = false;
     analyzeCondensedOutput = true;
+    analyzeDiscardedStatesByReason = true;
 
     lazy_state_module_evaluation = -1;
     use_cost_modules_for_applicability = true;
@@ -148,6 +149,7 @@ void PlannerParameters::dump() const
     cout << "Analyze: " << (analyze ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Output NumericalFluents: " << (analyzeOutputNumericalFluents ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Condensed Output: " << (analyzeCondensedOutput ? "Enabled" : "Disabled") << endl;
+    cout << "Analyze Discarded States by Reason: " << (analyzeDiscardedStatesByReason ? "Enabled" : "Disabled") << endl;
 
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
     cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
@@ -266,6 +268,7 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("analyze_output_numerical_fluents", analyzeOutputNumericalFluents,
             analyzeOutputNumericalFluents);
     nhPriv.param("analyze_condensed_output", analyzeCondensedOutput, analyzeCondensedOutput);
+    nhPriv.param("analyze_discarded_states_by_reason", analyzeDiscardedStatesByReason, analyzeDiscardedStatesByReason);
 
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
@@ -324,6 +327,7 @@ bool PlannerParameters::readROSParameters()
             grounding_mode = GroundSingleReinsert;
         } else {
             ROS_FATAL("Unknown value: %s for grounding mode: Valid values: [ground_all, ground_single_discard, ground_single_reinsert]", groundingMode.c_str());
+            ret = false;
         }
     }
 
