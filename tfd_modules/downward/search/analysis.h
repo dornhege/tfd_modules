@@ -110,6 +110,10 @@ class Analysis
                 const OpenRecordMap & openRecords,
                 set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
 
+        std::string generateDiscardEdgeLabel(const DiscardRecordMap::value_type & edge,
+                const OpenRecordMap & openRecords,
+                set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
+
         void writeDotEdgesAll(std::ofstream & of);
         void writeDotEdgesCondensed(std::ofstream & of);
 
@@ -117,7 +121,7 @@ class Analysis
         std::string generateNodeName(const TimeStampedState* state);
 
         /// Generate a new unused name.
-        std::string generateAnonymousName();
+        std::string createAnonymousNode(std::ofstream & of);
 
         /// Generate a node label for this state using the actual state content.
         std::string generateNodeLabel(const TimeStampedState* state);
