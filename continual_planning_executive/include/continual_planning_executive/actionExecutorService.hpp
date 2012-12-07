@@ -50,12 +50,13 @@ class ActionExecutorService : public continual_planning_executive::ActionExecuto
 
       /// Update the state after an action was executed.
       /**
-       * \param [in] success the return value of the service call
+       * \param [in, out] success the return value of the service call,
+       *    can be changed based on service response
        * \param [in] response what the call returned
        * \param [in] a the action that was executed
        * \param [in, out] current the current planner state to be updated
        */
-      virtual void updateState(bool success, typename Service::Response & response,
+      virtual void updateState(bool & success, typename Service::Response & response,
               const DurativeAction & a, SymbolicState & current) {}
 
       /// can't really do anything here
