@@ -87,9 +87,31 @@ class Analysis
         // What is with let-time_pass? can we skip those?
 
     protected:
+        struct OpenEntry {
+            int eventNumber;
+            int openIndex;
+            double priority;
+
+            bool operator<(const OpenEntry & rhs) const {
+                return eventNumber < rhs.eventNumber;
+            }
+        };
+
+        typedef map< pair<const TimeStampedState*, const Operator*>,
+                pair<int, const TimeStampedState*> > CloseRecordMap;
+        typedef map< pair<const TimeStampedState*, const Operator*>, int > DiscardRecordMap;
+        typedef map< pair<const TimeStampedState*, const Operator*>, OpenEntry > OpenRecordMap;
+
         void writeDotNodes(std::ofstream & of);
 
         void writeDotEdges(std::ofstream & of);
+
+        std::string generateCloseEdgeLabel(const CloseRecordMap::value_type & edge,
+                const OpenRecordMap & openRecords,
+                set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
+
+        void writeDotEdgesAll(std::ofstream & of);
+        void writeDotEdgesCondensed(std::ofstream & of);
 
         /// Generate a unique node name "state_XXXXXXXX" based on this state pointer.
         std::string generateNodeName(const TimeStampedState* state);
@@ -108,19 +130,10 @@ class Analysis
         bool enabled;
         bool includeNumericalFluents;
 
+        bool condenseEvents;    ///< events like opening and closing the same transition are one edge.
+
         unsigned int lastAnonymousNr;
         unsigned int currentEventNumber;
-
-        struct OpenEntry {
-            int eventNumber;
-            int openIndex;
-            double priority;
-        };
-
-        typedef map< pair<const TimeStampedState*, const Operator*>,
-                pair<int, const TimeStampedState*> > CloseRecordMap;
-        typedef map< pair<const TimeStampedState*, const Operator*>, int > DiscardRecordMap;
-        typedef map< pair<const TimeStampedState*, const Operator*>, OpenEntry > OpenRecordMap;
 
         /// Recorded states that are safe to store permanently.
         /// State -> Recorded Ptr. The ptr should be unique per state.
