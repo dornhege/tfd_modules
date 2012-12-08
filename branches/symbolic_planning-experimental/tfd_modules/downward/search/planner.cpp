@@ -64,10 +64,6 @@ int main(int argc, char **argv)
     }
     g_parameters.dump();
 
-    g_analysis.setEnabled(g_parameters.analyze);
-    g_analysis.setOutputNumericalFluents(g_parameters.analyzeOutputNumericalFluents);
-    g_analysis.setCondensedOutput(g_parameters.analyzeCondensedOutput);
-
     bool poly_time_method = false;
     cin >> poly_time_method;
     if(poly_time_method) {

@@ -50,8 +50,7 @@ bool Analysis::TssEqualsTimestamp::operator()(const TimeStampedState &tss1, cons
     return tssEquals(tss1, tss2);
 }
 
-Analysis::Analysis() : enabled(false), includeNumericalFluents(false), condenseEvents(true),
-    lastAnonymousNr(0), currentEventNumber(0)
+Analysis::Analysis() : lastAnonymousNr(0), currentEventNumber(0)
 {
 }
 
@@ -75,7 +74,7 @@ bool Analysis::writeDot(const std::string & filePrefix)
 void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* op,
         const TimeStampedState* succ)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -122,7 +121,7 @@ void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* o
 void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator* op,
         const TimeStampedState & succ, const ClosedList & closedList)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -159,7 +158,7 @@ void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator
 
 void Analysis::recordModuleRelaxedDiscardingStep(const TimeStampedState* pred, const Operator* op)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -181,7 +180,7 @@ void Analysis::recordModuleRelaxedDiscardingStep(const TimeStampedState* pred, c
 
 void Analysis::recordGoal(const TimeStampedState & goalState)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -199,7 +198,7 @@ void Analysis::recordGoal(const TimeStampedState & goalState)
 void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op,
         int openIndex, double priority)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -208,6 +207,19 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
     if(openRecordIt == openRecords.end()) {   // make sure we have an entry to push to
         openRecords[make_pair(parent, op)] = deque<OpenEntry>();
         openRecordIt = openRecords.find(make_pair(parent, op));
+    } else {
+        if(g_parameters.grounding_mode != PlannerParameters::GroundSingleReinsert) {
+            // consistency check: the same open push for the same queue shouldn't happen twice.
+            set<int> queuesPushed;
+            forEach(const OpenEntry & oe, openRecordIt->second) {
+                if(queuesPushed.find(oe.openIndex) != queuesPushed.end()) {
+                    ROS_ERROR("Multiple Open Push for same queue: %d at state %s\nop: %s", oe.openIndex,
+                            parent->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+                }
+                queuesPushed.insert(oe.openIndex);
+            }
+        }
+
     }
     ROS_ASSERT(openRecordIt != openRecords.end());
 
@@ -227,7 +239,7 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
 
 void Analysis::recordLiveGroundingDiscard(const TimeStampedState* pred, const Operator* op)
 {
-    if(!enabled)
+    if(!g_parameters.analyze)
         return;
 
     currentEventNumber++;
@@ -291,7 +303,7 @@ void Analysis::writeDotNodes(std::ofstream & of)
 
 void Analysis::writeDotEdges(std::ofstream & of)
 {
-    if(condenseEvents)
+    if(g_parameters.analyzeCondensedOutput)
         writeDotEdgesCondensed(of);
     else 
         writeDotEdgesAll(of);
@@ -553,7 +565,7 @@ std::string Analysis::generateNodeLabel(const TimeStampedState* state)
 {
     stringstream ss;
     // symbolic/numeric optional
-    std::string stateStr = state->toPDDL(true, true, includeNumericalFluents, " ", 30);
+    std::string stateStr = state->toPDDL(true, true, g_parameters.analyzeOutputNumericalFluents, " ", 30);
 
     string::size_type pos = stateStr.find("\n");
     while(pos != string::npos) {
