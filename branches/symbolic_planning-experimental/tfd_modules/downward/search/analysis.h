@@ -134,6 +134,9 @@ class Analysis
         /// Is this state in the closed list or do we only have that locally.
         bool isReplicated(const TimeStampedState* state);
 
+        /// Split a string label with newlines (\\n) if it is longer than maxLength
+        std::string breakStringLabel(const std::string & s, unsigned int maxLength);
+
     protected:
         // TODO  draw dashed line, no constraint, between equal closed states (-timestamp)
         // should happen when better state is found in later event, otherwise we get the
