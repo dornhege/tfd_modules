@@ -20,10 +20,6 @@ class Analysis
     public:
         Analysis();
 
-        void setEnabled(bool on) { enabled = on; }
-        void setOutputNumericalFluents(bool on) { includeNumericalFluents = on; }
-        void setCondensedOutput(bool on) { condenseEvents = on; }
-
         int getCurrentEventNumber() const { return currentEventNumber; }
 
         /// Write all records to a dot file starting with filePrefix and appending the current event nr.
@@ -136,12 +132,6 @@ class Analysis
                 bool warnIfReplicated = true);
 
     protected:
-        // TODO those replicate params...
-        bool enabled;
-        bool includeNumericalFluents;
-
-        bool condenseEvents;    ///< events like opening and closing the same transition are one edge.
-
         // TODO  draw dashed line, no constraint, between equal closed states (-timestamp)
         // should happen when better state is found in later event, otherwise we get the
         // direct discard back edges.
