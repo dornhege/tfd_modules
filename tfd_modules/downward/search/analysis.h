@@ -131,6 +131,9 @@ class Analysis
         const TimeStampedState* findOrReplicateMatchingState(const TimeStampedState & state,
                 bool warnIfReplicated = true);
 
+        /// Is this state in the closed list or do we only have that locally.
+        bool isReplicated(const TimeStampedState* state);
+
     protected:
         // TODO  draw dashed line, no constraint, between equal closed states (-timestamp)
         // should happen when better state is found in later event, otherwise we get the
