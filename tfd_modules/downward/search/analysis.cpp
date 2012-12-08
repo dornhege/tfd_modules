@@ -12,6 +12,7 @@
 #define forEach BOOST_FOREACH
 
 static const string dot_class_state = "shape=box";
+static const string dot_class_state_equal = "style=dashed,constraint=false,dir=none";
 static const string dot_class_goal_state = "shape=box,color=green";
 static const string dot_class_closed = "style=bold,color=black,weight=10";
 static const string dot_class_discard = "color=gray,constraint=false";
@@ -67,6 +68,7 @@ bool Analysis::writeDot(const std::string & filePrefix)
     of << "digraph StateSpace {" << endl;
     writeDotNodes(of);
     writeDotEdges(of);
+    writeDotEqualStates(of);
     of << "}" << endl;
 
     of.close();
@@ -459,6 +461,7 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
     }
 
     // TODO consolidation for grounding possible somehow???
+    // Maybe with intermediate node op_ug -> op_g?
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
@@ -547,6 +550,47 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << " [label=\"";
         of << generateOpenEdgeLabel(vt);
         of << "\"," << dot_class_open << "]" << endl;
+    }
+}
+
+void Analysis::writeDotEqualStates(std::ofstream & of)
+{
+    if(!g_parameters.analyzeLinkEqualStates)
+        return;
+
+    // draw line, no constraint, between equal closed states (-timestamp)
+    // should happen when better state is found in later event, otherwise we get the
+    // direct discard back edges.
+    // if discards are explicit, not as discard reason, then those should also have the
+    // dashed lines
+
+    // first collect all equal states (- timestamp)
+    tr1::unordered_set<TimeStampedState, TssHash, TssEquals> equalStates;
+    tr1::unordered_multimap<TimeStampedState, const TimeStampedState*, TssHash, TssEquals> equalMap;
+    typedef 
+        tr1::unordered_multimap<TimeStampedState, const TimeStampedState*, TssHash, TssEquals>::iterator
+        EqualMapIt;
+
+    forEach(const RecordedStatesMap::value_type & vt, recordedStates) {
+        equalStates.insert(vt.first);
+        equalMap.insert(make_pair(vt.first, vt.second));
+    }
+    forEach(const TimeStampedState & tss, replicatedStates) {
+        equalStates.insert(tss);
+        equalMap.insert(make_pair(tss, &tss));
+    }
+
+    forEach(const TimeStampedState & tss, equalStates) {
+        pair<EqualMapIt, EqualMapIt> r = equalMap.equal_range(tss);
+        // go over all pairs of equal states
+        for(EqualMapIt it = r.first; it != r.second; it++) {
+            EqualMapIt it2 = it;
+            it2++;
+            for(; it2 != r.second; it2++) {
+                of << generateNodeName(it->second) << " -> " << generateNodeName(it2->second);
+                of << " [" << dot_class_state_equal << "]" << endl;
+            }
+        }
     }
 }
 
