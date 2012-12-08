@@ -14,9 +14,8 @@ static const string dot_class_state = "shape=box";
 static const string dot_class_goal_state = "shape=box,color=green";
 static const string dot_class_closed = "style=bold,color=black,weight=10";
 static const string dot_class_discard = "color=gray,constraint=false";
-// TODO switch those two on param
-// Even better: switch if we generated the new state or if it is a discard reason!
-//static const string dot_class_discard = "color=gray";
+/// discard should be drawn with constraint if there is no discard reason (i.e. it is not a back arrow)
+static const string dot_class_discard_constraint = "color=gray";
 static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,weight=3";
 static const string dot_class_grounding_discard = "style=dotted,color=gray,weight=3";
 static const string dot_class_open = "style=dashed,weight=3";
@@ -448,7 +447,10 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
 
         of << " [label=\"";
         of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
-        of << "\"," << dot_class_discard << "]" << endl;
+        if(isReplicated(vt.second.second))
+            of << "\"," << dot_class_discard_constraint << "]" << endl;
+        else
+            of << "\"," << dot_class_discard << "]" << endl;
     }
 
     // TODO consolidation for grounding possible somehow???
@@ -512,7 +514,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         stringstream ss;
         ss << vt.second.first << ": " << vt.first.second->get_name();
         of << ss.str();
-        of << "\"," << dot_class_discard << "]" << endl;
+        of << "\"," << dot_class_discard_constraint << "]" << endl;
     }
 
     forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
@@ -600,5 +602,10 @@ const TimeStampedState* Analysis::findOrReplicateMatchingState(const TimeStamped
     // finally: we didn't, so actually create this new one.
     pair<ReplicatedStatesSet::iterator, bool> insIt = replicatedStates.insert(state);
     return &(*(insIt.first));
+}
+
+bool Analysis::isReplicated(const TimeStampedState* state)
+{
+    return replicatedStates.find(*state) != replicatedStates.end();
 }
 
