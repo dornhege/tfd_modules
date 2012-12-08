@@ -8,6 +8,7 @@
 #include "plannerParameters.h"
 #include "closed_list.h"
 #include <boost/foreach.hpp>
+#include "tfd_modules/opl/stringutil.h"
 #define forEach BOOST_FOREACH
 
 static const string dot_class_state = "shape=box";
@@ -19,6 +20,8 @@ static const string dot_class_discard_constraint = "color=gray";
 static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,weight=3";
 static const string dot_class_grounding_discard = "style=dotted,color=gray,weight=3";
 static const string dot_class_open = "style=dashed,weight=3";
+
+static const unsigned int op_name_max_length = 20;
 
 std::string formatString(const char* str, ...)
 {
@@ -335,7 +338,8 @@ std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_typ
         ss << oe.eventNumber;
     }
     // actual edge label: the op name
-    ss << " -> " << edge.second << ": " << edge.first.second->get_name();
+    ss << " -> " << edge.second << ": "
+        << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
     ss << " ";
     // print (openId1, prior1), (openId2, prior2)
     first = true;
@@ -376,7 +380,8 @@ std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & 
         ss << oe.eventNumber;
     }
     // actual edge label: the op name
-    ss << " -> " << edge.second.first << ": " << edge.first.second->get_name();
+    ss << " -> " << edge.second.first << ": "
+        << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
     ss << " ";
     // print (openId1, prior1), (openId2, prior2)
     first = true;
@@ -403,7 +408,7 @@ std::string Analysis::generateOpenEdgeLabel(const OpenRecordMap::value_type & ed
             ss << ", ";
         ss << oe.eventNumber;
     }
-    ss << ": " << edge.first.second->get_name();
+    ss << ": " << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
 
     first = true;
     forEach(const OpenEntry & oe, pushes) {
@@ -476,10 +481,6 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         of << generateOpenEdgeLabel(vt);
-        //stringstream ss;
-        //ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
-        //ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
-        //of << ss.str();
         of << "\"," << dot_class_open << "]" << endl;
     }
 }
@@ -503,7 +504,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
         of << " [label=\"";
         stringstream ss;
-        ss << vt.second.first << ": " << vt.first.second->get_name();
+        ss << vt.second.first << ": "
+            << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
         of << ss.str();
         of << "\"," << dot_class_closed << "]" << endl;
     }
@@ -512,7 +514,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
         of << " [label=\"";
         stringstream ss;
-        ss << vt.second.first << ": " << vt.first.second->get_name();
+        ss << vt.second.first << ": "
+            << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
         of << ss.str();
         of << "\"," << dot_class_discard_constraint << "]" << endl;
     }
@@ -522,7 +525,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
-        ss << vt.second << ": " << vt.first.second->get_name();
+        ss << vt.second << ": "
+            << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
         of << ss.str();
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
@@ -531,7 +535,8 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
-        ss << vt.second << ": " << vt.first.second->get_name();
+        ss << vt.second << ": "
+            << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
         of << ss.str();
         of << "\"," << dot_class_grounding_discard << "]" << endl;
     }
@@ -541,10 +546,6 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << generateNodeName(vt.first.first) << " -> " << openNode;
         of << " [label=\"";
         of << generateOpenEdgeLabel(vt);
-        //stringstream ss;
-        //ss << vt.second.eventNumber << ": " << vt.first.second->get_name();
-        //ss << " (" << vt.second.openIndex << ", " << vt.second.priority << ")";
-        //of << ss.str();
         of << "\"," << dot_class_open << "]" << endl;
     }
 }
@@ -607,5 +608,35 @@ const TimeStampedState* Analysis::findOrReplicateMatchingState(const TimeStamped
 bool Analysis::isReplicated(const TimeStampedState* state)
 {
     return replicatedStates.find(*state) != replicatedStates.end();
+}
+
+std::string Analysis::breakStringLabel(const std::string & s, unsigned int maxLength)
+{
+    // basically split it up first and puzzle it back together
+    std::vector<string> parts = StringUtil::split(s, " ");
+    std::string ret;
+    std::string curLine;
+    forEach(const std::string & p, parts) {
+        if(curLine.empty()) {
+            curLine = p;
+            continue;
+        }
+        if(curLine.length() + 1 + p.length() > maxLength) {     // cur + " " + p
+            if(ret.empty())
+                ret = curLine;
+            else
+                ret += "\\n" + curLine;
+            curLine = p;
+        } else {
+            curLine += " " + p;
+        }
+    }
+    if(!curLine.empty()) {
+        if(ret.empty())
+            ret = curLine;
+        else
+            ret += "\\n" + curLine;
+    }
+    return ret;
 }
 
