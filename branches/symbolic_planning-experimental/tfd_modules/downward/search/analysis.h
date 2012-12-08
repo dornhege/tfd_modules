@@ -117,6 +117,8 @@ class Analysis
         void writeDotEdgesAll(std::ofstream & of);
         void writeDotEdgesCondensed(std::ofstream & of);
 
+        void writeDotEqualStates(std::ofstream & of);
+
         /// Generate a unique node name "state_XXXXXXXX" based on this state pointer.
         std::string generateNodeName(const TimeStampedState* state);
 
@@ -138,15 +140,6 @@ class Analysis
         std::string breakStringLabel(const std::string & s, unsigned int maxLength);
 
     protected:
-        // TODO  draw dashed line, no constraint, between equal closed states (-timestamp)
-        // should happen when better state is found in later event, otherwise we get the
-        // direct discard back edges.
-        // if discards are explicit, not as discard reason, then those should also have the
-        // dashed lines
-        // Only! in the explicit case discard reasons are Always replicated -> change the warning then
-        // -> is this automatic, if we just draw lines between all recorded (and/or replicated) states
-        // that are equal (not w/ timestmap)?
-
         unsigned int lastAnonymousNr;
         unsigned int currentEventNumber;
 

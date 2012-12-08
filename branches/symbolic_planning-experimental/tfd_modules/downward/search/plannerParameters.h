@@ -57,6 +57,7 @@ class PlannerParameters
        *  is drawn.
        */
       bool analyzeDiscardedStatesByReason;
+      bool analyzeLinkEqualStates;      ///< Draw a line between states that are equal (besides ts)
 
       int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
 

@@ -33,6 +33,7 @@ PlannerParameters::PlannerParameters()
     analyzeOutputNumericalFluents = false;
     analyzeCondensedOutput = true;
     analyzeDiscardedStatesByReason = true;
+    analyzeLinkEqualStates = true;
 
     lazy_state_module_evaluation = -1;
     use_cost_modules_for_applicability = true;
@@ -150,6 +151,7 @@ void PlannerParameters::dump() const
     cout << "Analyze Output NumericalFluents: " << (analyzeOutputNumericalFluents ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Condensed Output: " << (analyzeCondensedOutput ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Discarded States by Reason: " << (analyzeDiscardedStatesByReason ? "Enabled" : "Disabled") << endl;
+    cout << "Analyze Link Equal States: " << (analyzeLinkEqualStates ? "Enabled" : "Disabled") << endl;
 
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
     cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
@@ -269,6 +271,7 @@ bool PlannerParameters::readROSParameters()
             analyzeOutputNumericalFluents);
     nhPriv.param("analyze_condensed_output", analyzeCondensedOutput, analyzeCondensedOutput);
     nhPriv.param("analyze_discarded_states_by_reason", analyzeDiscardedStatesByReason, analyzeDiscardedStatesByReason);
+    nhPriv.param("analyze_link_equal_states", analyzeLinkEqualStates, analyzeLinkEqualStates);
 
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
