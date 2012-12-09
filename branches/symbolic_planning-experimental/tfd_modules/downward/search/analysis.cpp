@@ -82,6 +82,11 @@ void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* o
         return;
 
     currentEventNumber++;
+    if(pred == NULL)
+        ROS_DEBUG_NAMED("analyze", "%s: %d INIT", __func__, currentEventNumber);
+    else
+        ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+                pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(closedRecords.find(make_pair(pred, op)) != closedRecords.end()) {
         ROS_ERROR("Closing step for %s, %s already existed.", pred->toPDDL(true, true, true).c_str(),
@@ -114,14 +119,6 @@ void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* o
     closedRecords[make_pair(pred, op)] = make_pair(currentEventNumber, succ);
 }
 
-/**
- * Not sure what is correct now:
- *
- * We should have the back edge to a state that is already there, but we are discarding because of (even  if we are other Timestamp)?
- * We should have a new edge, if we are closing a new state for a better TS
- *
- */
-
 void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator* op,
         const TimeStampedState & succ, const ClosedList & closedList)
 {
@@ -129,6 +126,9 @@ void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator
         return;
 
     currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+
     if(discardRecords.find(make_pair(pred, op)) != discardRecords.end()) {
         ROS_ERROR("Discarding step for ..., %s already existed.", op->get_name().c_str());
         return;
@@ -141,7 +141,7 @@ void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator
     } else {
         recordedStates.insert(make_pair(*pred, pred));
     }
-    printf("%s\n", __func__);
+
     const TimeStampedState* discardedState = NULL;
     if(g_parameters.analyzeDiscardedStatesByReason) {
         // we discarded either because this equal state is closed (with better timestamp)
@@ -166,6 +166,8 @@ void Analysis::recordModuleRelaxedDiscardingStep(const TimeStampedState* pred, c
         return;
 
     currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(moduleRelaxedDiscardRecords.find(make_pair(pred, op)) != moduleRelaxedDiscardRecords.end()) {
         ROS_ERROR("moduleRelaxedDiscarding step for ..., %s already existed.", op->get_name().c_str());
@@ -188,8 +190,9 @@ void Analysis::recordGoal(const TimeStampedState & goalState)
         return;
 
     currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s", __func__, currentEventNumber,
+            goalState.toPDDL(true, true, true).c_str());
 
-    printf("%s\n", __func__);
     const TimeStampedState* goal = findOrReplicateMatchingState(goalState);
     if(goalRecords.find(goal) != goalRecords.end()) {
         ROS_ERROR("goal record for ... already existed.");
@@ -206,6 +209,8 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
         return;
 
     currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            parent->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     OpenRecordMap::iterator openRecordIt = openRecords.find(make_pair(parent, op));
     if(openRecordIt == openRecords.end()) {   // make sure we have an entry to push to
@@ -247,6 +252,9 @@ void Analysis::recordLiveGroundingDiscard(const TimeStampedState* pred, const Op
         return;
 
     currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+
     if(liveGroundingDiscardRecords.find(make_pair(pred, op)) != liveGroundingDiscardRecords.end()) {
         ROS_ERROR("liveGroundingDiscarding for ..., %s already existed.", op->get_name().c_str());
         return;
@@ -630,7 +638,7 @@ const TimeStampedState* Analysis::findOrReplicateMatchingState(const TimeStamped
     // first check the recorded ones from planning
     RecordedStatesMap::iterator it = recordedStates.find(state);
     if(it != recordedStates.end()) {
-        ROS_INFO("findOrReplicateMatchingState: found recorded state.");
+        //ROS_INFO("findOrReplicateMatchingState: found recorded state.");
         return it->second;
     }
 
