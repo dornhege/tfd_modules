@@ -16,7 +16,7 @@ double NoHeuristic::compute_heuristic(const TimeStampedState &state)
     if(state.satisfies(g_goal) && state.scheduled_effects.empty())
         return 0.0;
 
-    return (state.timestamp + 1.0);
+    //return (state.timestamp + 1.0);
 
-    //    return 1;
+    return 1;
 }
