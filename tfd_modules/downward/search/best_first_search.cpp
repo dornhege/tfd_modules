@@ -175,7 +175,8 @@ SearchEngine::status BestFirstSearchEngine::step()
 
         // evaluate the current/parent state
         // also do this for non/lazy-evaluation as the heuristics
-        // provide preferred operators!
+        // provide preferred operators and check_goal/check_progress rely
+        // on the correct value for get_heuristic anyways!
         for(int i = 0; i < heuristics.size(); i++) {
             heuristics[i]->evaluate(current_state);
         }
@@ -528,6 +529,9 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                 } else if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert) {
                     // Actually insert the ungrounded op in the open list
                     // fetch_next_state needs to deal with that correctly.
+                    if(g_parameters.lazy_evaluation)    // ensure that we won't have to recompute the
+                        ROS_ASSERT(priority >= 0);      // priority in lazy_evaluation mode, which 
+                                                        // would invalidate calls to get_heuristic
                     insert_ungrounded_successor(ops[j], open_lists[i], i,
                             parent_ptr, priority, maxTimeIncrement);
                 }
@@ -674,7 +678,7 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
         // do that now.
         if(priority < 0) {
             double parentG = getG(parent_ptr, parent_ptr, NULL);
-            double parentH = heur->get_heuristic();
+            double parentH = heur->evaluate(*parent_ptr);
             assert(!heur->is_dead_end());
             double parentF = parentG + parentH;
             if(g_parameters.greedy)
@@ -728,6 +732,7 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
         // op might be ungrounded, deal with that.
         if(!open_op->isGrounded()) {
             bool couldGround = false;
+            printf("Trying to ground: %s\n", open_op->get_name().c_str());
             Operator opGround = open_op->ground(*open_state, false, couldGround);
             if(couldGround) {
                 // reinsert (only) if we could ground
@@ -744,13 +749,17 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
 
                 pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
                 open_op = &(*ret.first);    // open_op is the grounded one, not the
+                printf("Succeeded to ground to: %s\n", open_op->get_name().c_str());
                 if(!open_op->is_applicable(*open_state, false)) {
+                    printf("N/A\n");
                     g_analysis.recordLiveGroundingDiscard(open_state, open_op);
                     // OK, we had a grounding, but that didn't work. As we can't produce a successor,
                     // just discard this one and continue looking.
                     return fetch_next_state();
                 }
+                printf("applicable\n");
             } else {    // could not ground this one, so we can't produce a successor, just discard...
+                printf("could not ground\n");
                 return fetch_next_state();
             }
         }
