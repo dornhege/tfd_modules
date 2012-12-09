@@ -171,7 +171,17 @@ int main(int argc, char **argv)
             // all other possibilities are either a timeout or completely explored search space
             if(g_parameters.anytime_search) {
                 if (search_result == SearchEngine::SOLVED) {
-                    engine->fetch_next_state();
+                    // we got a plan, so we can continue searching. The next
+                    // search call will start with step() that expects the step to be set up
+                    // We trigger for next step by calling fetch_next_state manually
+                    search_result = engine->fetch_next_state();
+                    // It might happen that right after finding the goal the search is 
+                    // completed (queues empty) and fetch_next_state could not do anything.
+                    // In that case we should NOT call search() again as step() will reuse
+                    // the last step that was and still is set up.
+                    // So, catch here, that fetch_next_state finished.
+                    if(search_result != SearchEngine::IN_PROGRESS)
+                        break;
                 } else {
                     break;
                 }
