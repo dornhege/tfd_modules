@@ -94,6 +94,7 @@ class BestFirstSearchEngine : public SearchEngine
          * \param [in] openIndex the index of the open list (for statistics)
          * \param [in] parent_ptr the parent state that this op was generated in
          * \param [in] priority the priority computed so far (usually parent prior for lazy eval)
+         *                      might be -1, if invalid and needs to be recomputed
          * \param [in] maxParentTimeIncrement max time increment of the parent's scheduled ops
          */
         void insert_ungrounded_successor(const Operator* op, OpenListInfo& openInfo, int openIndex,
