@@ -32,7 +32,7 @@ double LocalTransition::get_direct_cost()
             modules::ParameterList parameters = g_cost_modules[label->duration_variable]->params;
             label->op->addGroundParameters(parameters);
             ret = g_cost_modules[label->duration_variable]->checkCost(
-                     parameters, pct, nct, 1);
+                     parameters, pct, nct, 2);
             //printf("Duration from module: %f\n", ret);
             return ret;
         } else {
@@ -228,7 +228,7 @@ void LocalProblemNode::mark_helpful_transitions(const TimeStampedState &state)
                 modules::ParameterList parameters = g_cost_modules[duration_variable]->params;
                 reached_by->label->op->addGroundParameters(parameters);
                 duration = g_cost_modules[duration_variable]->checkCost(
-                        parameters, pct, nct, 1);
+                        parameters, pct, nct, 2);
                 //printf("Duration from module: %f\n", duration);
             } else {
                 duration = reached_by->get_source()->children_state[reached_by->duration_var_local];
