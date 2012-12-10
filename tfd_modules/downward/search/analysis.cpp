@@ -270,6 +270,30 @@ void Analysis::recordLiveGroundingDiscard(const TimeStampedState* pred, const Op
     liveGroundingDiscardRecords[make_pair(pred, op)] = currentEventNumber;
 }
 
+void Analysis::recordLiveGroundingGroundedOut(const TimeStampedState* pred, const Operator* op)
+{
+    if(!g_parameters.analyze)
+        return;
+
+    currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+
+
+}
+
+void Analysis::recordLiveGrounding(const TimeStampedState* pred, const Operator* op)
+{
+    if(!g_parameters.analyze)
+        return;
+
+    currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+
+
+}
+
 void Analysis::writeDotNodes(std::ofstream & of)
 {
     // collect all nodes first

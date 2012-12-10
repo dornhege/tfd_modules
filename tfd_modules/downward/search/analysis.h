@@ -78,6 +78,12 @@ class Analysis
          */
         void recordLiveGroundingDiscard(const TimeStampedState* pred, const Operator* op);
 
+        /// The ungrounded operator op could not be grounded any more in pred.
+        void recordLiveGroundingGroundedOut(const TimeStampedState* pred, const Operator* op);
+
+        /// The operator op has just been grounded successfully.
+        void recordLiveGrounding(const TimeStampedState* pred, const Operator* op);
+
     protected:
         struct OpenEntry {
             int eventNumber;

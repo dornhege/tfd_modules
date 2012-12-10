@@ -54,6 +54,8 @@ PlannerParameters::PlannerParameters()
     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
 
     grounding_mode = GroundSingleReinsert;
+    grounding_discount_mode = GroundingDiscountLinear;
+    grounding_discount_gamma = 1.0;
 
     use_known_by_logical_state_only = false;
 
@@ -215,6 +217,21 @@ void PlannerParameters::dump() const
     }
     cout << endl;
 
+    cout << "Grounding Discount mode: ";
+    switch(grounding_discount_mode) {
+        case GroundingDiscountNone:
+            cout << "None";
+            break;
+        case GroundingDiscountLinear:
+            cout << "Linear";
+            break;
+        case GroundingDiscountExponential:
+            cout << "Exponential";
+            break;
+    }
+    cout << endl;
+    cout << "Grounding Discount gamma: " << grounding_discount_gamma << endl;
+
     cout << "Known by logical state only filtering: "
         << (use_known_by_logical_state_only ? "Enabled" : "Disabled") << endl;
 
@@ -333,6 +350,22 @@ bool PlannerParameters::readROSParameters()
             ret = false;
         }
     }
+
+    string groundingDiscountMode;
+    if(nhPriv.getParam("grounding_discount_mode", groundingDiscountMode)) {
+        if(groundingDiscountMode == "none") {
+            grounding_discount_mode = GroundingDiscountNone;
+        } else if(groundingDiscountMode == "linear") {
+            grounding_discount_mode = GroundingDiscountLinear;
+        } else if(groundingDiscountMode == "exponential") {
+            grounding_discount_mode = GroundingDiscountExponential;
+        } else {
+            ROS_FATAL("Unknown value: %s for grounding_discount mode: Valid values: [none, linear, exponential]", groundingDiscountMode.c_str());
+            ret = false;
+        }
+    }
+
+    nhPriv.param("grounding_discount_gamma", grounding_discount_gamma, grounding_discount_gamma);
 
     nhPriv.param("use_known_by_logical_state_only",
             use_known_by_logical_state_only, use_known_by_logical_state_only);

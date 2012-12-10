@@ -112,6 +112,18 @@ class PlannerParameters
       };
       enum GroundingMode grounding_mode;    ///< How to deal with partially grounded operators.
 
+      /// How are reinserted states/ungrounded ops' priorities discounted.
+      /**
+       * Discounting happens based on how often (N) an ungrounded op was grounded from.
+       */
+      enum GroundingDiscountMode {
+          GroundingDiscountNone,            ///< Do not discount, use the actual priority
+          GroundingDiscountLinear,          ///< Uses gamma * N + 1 (so, N = 0 -> 1)
+          GroundingDiscountExponential,     ///< Uses gamma ** N    (N = 0 -> 1)
+      };
+      enum GroundingDiscountMode grounding_discount_mode;
+      double grounding_discount_gamma;      ///< Parameter for discount modes
+
       bool use_known_by_logical_state_only;         ///< Enable tss known filtering (might crop search space!)
 
       /** when enabled: if two plans have the same makespan, consider one better 

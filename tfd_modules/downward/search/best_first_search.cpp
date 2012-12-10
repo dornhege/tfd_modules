@@ -686,10 +686,21 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
             else
                 priority = parentF;
         }
-        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert)
-            //priority *= (op->getNumBranches() + 1); // TODO should depend on mode
-            priority *= pow(2.0, op->getNumBranches()); // TODO should depend on mode
-        // TODO here discuss discounting + record N branched off in op.
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert) {
+            double discount = 1.0;
+            switch(g_parameters.grounding_discount_mode) {
+                case PlannerParameters::GroundingDiscountLinear:
+                    discount = 1.0 + g_parameters.grounding_discount_gamma * op->getNumBranches();
+                    break;
+                case PlannerParameters::GroundingDiscountExponential:
+                    discount = pow(g_parameters.grounding_discount_gamma, op->getNumBranches());
+                    break;
+                case PlannerParameters::GroundingDiscountNone:
+                    discount = 1.0;
+                    break;
+            }
+            priority *= discount;
+        }
 
         open.push(std::tr1::make_tuple(parent_ptr, op, priority));
         g_analysis.recordOpenPush(parent_ptr, op, openIndex, priority);
@@ -732,9 +743,17 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
         // op might be ungrounded, deal with that.
         if(!open_op->isGrounded()) {
             bool couldGround = false;
-            printf("Trying to ground: %s\n", open_op->get_name().c_str());
             Operator opGround = open_op->ground(*open_state, false, couldGround);
             if(couldGround) {
+                pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                g_analysis.recordLiveGrounding(open_state, &(*ret.first));
+                // TODO consolidation over these events
+                // TODO id for the intermediate node - how?
+                // How can we also later in the records detect that we need to have
+                // this unique intermediate ID node as tail/head of the specific 
+                // open pushes/live groundings?
+                // relevant for close/discard/open push of ungrounded op
+
                 // reinsert (only) if we could ground
                 // recover index
                 int openIndex = -1;
@@ -747,19 +766,16 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
                 insert_ungrounded_successor(open_op, *open_info, openIndex,
                         open_state, -1.0, 0.0);
 
-                pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                // now we can re set open_op to the grounded one.
                 open_op = &(*ret.first);    // open_op is the grounded one, not the
-                printf("Succeeded to ground to: %s\n", open_op->get_name().c_str());
                 if(!open_op->is_applicable(*open_state, false)) {
-                    printf("N/A\n");
                     g_analysis.recordLiveGroundingDiscard(open_state, open_op);
                     // OK, we had a grounding, but that didn't work. As we can't produce a successor,
                     // just discard this one and continue looking.
                     return fetch_next_state();
                 }
-                printf("applicable\n");
             } else {    // could not ground this one, so we can't produce a successor, just discard...
-                printf("could not ground\n");
+                g_analysis.recordLiveGroundingGroundedOut(open_state, open_op);
                 return fetch_next_state();
             }
         }
