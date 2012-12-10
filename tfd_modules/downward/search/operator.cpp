@@ -112,7 +112,7 @@ void Operator::sort_prevails(vector<Prevail> &prevails)
     }
 }
 
-Operator::Operator(istream &in)
+Operator::Operator(istream &in) : grounding_parent(NULL)
 {
     check_magic(in, "begin_operator");
     in >> ws;
@@ -172,7 +172,7 @@ Operator::Operator(istream &in)
     numBranches = 0;
 }
 
-Operator::Operator(bool uses_concrete_time_information)
+Operator::Operator(bool uses_concrete_time_information) : grounding_parent(NULL)
 {
     prevail_start   = vector<Prevail>();
     prevail_overall = vector<Prevail>();
@@ -199,6 +199,7 @@ bool Operator::isGrounded() const
 Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & ok) const
 {
     Operator ret(*this);
+    ret.grounding_parent = this;
 
     if(isGrounded()) {
         ok = false;

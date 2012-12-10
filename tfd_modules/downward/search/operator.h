@@ -24,6 +24,10 @@ class Operator
         vector<ModuleGrounding> mod_groundings;
         int duration_var;
         string name;
+ 
+        /// For grounded ops that were live grounded - the ungrounded op that 
+        /// this was grounded from, NULL otherwise
+        const Operator* grounding_parent;
 
         mutable int numBranches;    ///< For ungrounded ops - how often was this one grounded.
 
@@ -98,6 +102,8 @@ class Operator
          *      up to that point are the same in parameters and the operator's name.
          */
         void addGroundParameters(modules::ParameterList & parameters) const;
+
+        const Operator* getGroundingParent() const { return grounding_parent; }
 
         /// How often did we branch off this.
         int getNumBranches() const { return numBranches; }

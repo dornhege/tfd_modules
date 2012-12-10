@@ -634,7 +634,7 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
         const TimeStampedState* parent_ptr, double priority, double maxParentTimeIncrement)
 {
     if(DEBUG_GENERATE_SUCCESSORS) {
-        cout << endl << "insert_successor: op:" << endl;
+        cout << endl << "insert_ungrounded_successor: op:" << endl;
         op->dump();
     }
     ROS_ASSERT(!op->isGrounded());
@@ -667,6 +667,11 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
         tssPtr = &timedSymbolicStates;
 
     if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
+    // TODO can stop here at No better makespan (otherwise should have never been reinserted)
+    // Is this obvious somehow? can we see this in grounded, then not liveGroundDiscard/closed/discarded
+    // Timestmap??
+    // Should be similar like a discard that stops...
+    //
     // check applicability, but do not use modules for that.
     if(betterMakespan && op->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr, false) &&
             (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
@@ -708,6 +713,8 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
             search_statistics.countLiveBranch();
         else
             search_statistics.countChild(openIndex);
+    } else {
+        g_analysis.recordLiveGroundingUngroundedDiscard(parent_ptr, op);
     }
 }
 

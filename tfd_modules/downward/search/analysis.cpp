@@ -20,6 +20,8 @@ static const string dot_class_discard = "color=gray,constraint=false";
 static const string dot_class_discard_constraint = "color=gray";
 static const string dot_class_module_relaxed_discard = "style=dashed,color=gray,weight=3";
 static const string dot_class_grounding_discard = "style=dotted,color=gray,weight=3";
+static const string dot_class_grounding_grounded_out = "style=solid,color=black,weight=3,arrowhead=tee";
+static const string dot_class_grounding_ungrounded_discard = "style=solid,color=gray,weight=3,arrowhead=tee";
 static const string dot_class_open = "style=dashed,weight=3";
 
 static const unsigned int op_name_max_length = 20;
@@ -280,6 +282,43 @@ void Analysis::recordLiveGroundingGroundedOut(const TimeStampedState* pred, cons
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
 
+    if(operatorGroundedOutRecords.find(make_pair(pred, op)) != operatorGroundedOutRecords.end()) {
+        ROS_ERROR("recordLiveGroundedOut for ..., %s already existed.", op->get_name().c_str());
+        return;
+    }
+
+    RecordedStatesMap::iterator it = recordedStates.find(*pred);
+    if(it != recordedStates.end() && it->second != pred) {
+        ROS_ERROR("recordLiveGroundedOut mismatched state: ... in: %08X, new: %08X",
+                (unsigned int)(long)it->second, (unsigned int)(long)pred);
+    } else {
+        recordedStates.insert(make_pair(*pred, pred));
+    }
+    operatorGroundedOutRecords[make_pair(pred, op)] = currentEventNumber;
+}
+
+void Analysis::recordLiveGroundingUngroundedDiscard(const TimeStampedState* pred, const Operator* op)
+{
+    if(!g_parameters.analyze)
+        return;
+
+    currentEventNumber++;
+    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+            pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
+
+    if(ungroundedOpDiscardRecords.find(make_pair(pred, op)) != ungroundedOpDiscardRecords.end()) {
+        ROS_ERROR("%s for ..., %s already existed.", __func__, op->get_name().c_str());
+        return;
+    }
+
+    RecordedStatesMap::iterator it = recordedStates.find(*pred);
+    if(it != recordedStates.end() && it->second != pred) {
+        ROS_ERROR("recordLiveGroundedOut mismatched state: ... in: %08X, new: %08X",
+                (unsigned int)(long)it->second, (unsigned int)(long)pred);
+    } else {
+        recordedStates.insert(make_pair(*pred, pred));
+    }
+    ungroundedOpDiscardRecords[make_pair(pred, op)] = currentEventNumber;
 }
 
 void Analysis::recordLiveGrounding(const TimeStampedState* pred, const Operator* op)
@@ -291,7 +330,19 @@ void Analysis::recordLiveGrounding(const TimeStampedState* pred, const Operator*
     ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
+    if(operatorGroundingRecords.find(make_pair(pred, op)) != operatorGroundingRecords.end()) {
+        ROS_ERROR("recordLiveGrounding for ..., %s already existed.", op->get_name().c_str());
+        return;
+    }
 
+    RecordedStatesMap::iterator it = recordedStates.find(*pred);
+    if(it != recordedStates.end() && it->second != pred) {
+        ROS_ERROR("recordLiveGrounding mismatched state: ... in: %08X, new: %08X",
+                (unsigned int)(long)it->second, (unsigned int)(long)pred);
+    } else {
+        recordedStates.insert(make_pair(*pred, pred));
+    }
+    operatorGroundingRecords[make_pair(pred, op)] = currentEventNumber;
 }
 
 void Analysis::writeDotNodes(std::ofstream & of)
@@ -311,11 +362,11 @@ void Analysis::writeDotNodes(std::ofstream & of)
         ROS_ASSERT(vt.second.second);
         all_states.insert(vt.second.second);
     }
-    forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         ROS_ASSERT(vt.first.first);
         all_states.insert(vt.first.first);
     }
-    forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, liveGroundingDiscardRecords) {
         ROS_ASSERT(vt.first.first);
         all_states.insert(vt.first.first);
     }
@@ -335,6 +386,21 @@ void Analysis::writeDotNodes(std::ofstream & of)
 
     // FIXME: Do we need to re-consolidate states that were properly closed later on
     // and might have been replicated here?
+
+    // write intermediate nodes for ungrounded ops in a state, i.e. state_STATE_PTR_OP_PTR
+
+    set<pair<const TimeStampedState*, const Operator*> > ungroundedIntermediateStates;
+    typedef set<pair<const TimeStampedState*, const Operator*> >::value_type StateOp;
+    forEach(OpenRecordMap::value_type & vt, openRecords) {
+        if(vt.first.second->isGrounded())
+            continue;
+        ungroundedIntermediateStates.insert(vt.first);
+    }
+ 
+    forEach(const StateOp & sop, ungroundedIntermediateStates) {
+        of << generateUngroundedOpNodeName(sop) << "[label=\"U\",shape=doublecircle]" << endl;
+        // TODO style move to top
+    }
 }
 
 void Analysis::writeDotEdges(std::ofstream & of)
@@ -345,10 +411,12 @@ void Analysis::writeDotEdges(std::ofstream & of)
         writeDotEdgesAll(of);
 }
 
-std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_type & edge,
+std::string Analysis::generateModuleDiscardEdgeLabel(const EventRecordMap::value_type & edge,
         const OpenRecordMap & openRecords,
         set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
 {
+    ROS_ASSERT(edge.first.second->getGroundingParent() == NULL);
+
     // collect matching open transitions
     vector<OpenEntry> matchingOpenTransitions;
     forEach(const OpenRecordMap::value_type & ort, openRecords) {
@@ -371,6 +439,7 @@ std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_typ
             ss << ", ";
         ss << oe.eventNumber;
     }
+
     // actual edge label: the op name
     ss << " -> " << edge.second << ": "
         << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
@@ -387,44 +456,91 @@ std::string Analysis::generateDiscardEdgeLabel(const DiscardRecordMap::value_typ
     return ss.str();
 }
 
+std::string Analysis::generateLiveGroundingDiscardEdgeLabel(const EventRecordMap::value_type & edge,
+        const OpenRecordMap & openRecords,
+        set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
+{
+    ROS_ASSERT(edge.first.second->getGroundingParent() != NULL);
+
+    // collect matching operatorGroundingRecords
+    int matchingGroundingEvent = -1;
+    forEach(const EventRecordMap::value_type & er, operatorGroundingRecords) {
+        if(edge.first != er.first)
+            continue;
+
+        // there should only be one grounding per state/ground_op
+        ROS_ASSERT(matchingGroundingEvent == -1);
+
+        matchingGroundingEvent = er.second;
+    }
+    ROS_ASSERT(matchingGroundingEvent != -1);   // we should have an event.
+
+    // actual edge label: the op name
+    stringstream ss;
+    ss << matchingGroundingEvent << " -> " << edge.second << ": "
+        << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
+    return ss.str();
+}
+
 std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & edge,
         const OpenRecordMap & openRecords,
         set< pair<const TimeStampedState*, const Operator*> > & handledTransitions)
 {
-    // collect matching open transitions
-    vector<OpenEntry> matchingOpenTransitions;
-    forEach(const OpenRecordMap::value_type & ort, openRecords) {
-        if(edge.first != ort.first)
-            continue;
-
-        forEach(OpenEntry oe, ort.second)
-            matchingOpenTransitions.push_back(oe);
-        handledTransitions.insert(ort.first);
-    }
-    sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
-
     stringstream ss;
-    // print (openEv1, openEv2 - closeEv)
-    bool first = true;
-    forEach(const OpenEntry & oe, matchingOpenTransitions) {
-        if(first)
-            first = false;
-        else
-            ss << ", ";
-        ss << oe.eventNumber;
+    vector<OpenEntry> matchingOpenTransitions;
+
+    if(edge.first.second->getGroundingParent() != NULL) {
+        // collect matching operatorGroundingRecords
+        int matchingGroundingEvent = -1;
+        forEach(const EventRecordMap::value_type & er, operatorGroundingRecords) {
+            if(edge.first != er.first)
+                continue;
+
+            // there should only be one grounding per state/ground_op
+            ROS_ASSERT(matchingGroundingEvent == -1);
+
+            matchingGroundingEvent = er.second;
+        }
+        ROS_ASSERT(matchingGroundingEvent != -1);   // we should have an event.
+        ss << matchingGroundingEvent;
+    } else {
+        // collect matching open transitions
+        forEach(const OpenRecordMap::value_type & ort, openRecords) {
+            if(edge.first != ort.first)
+                continue;
+
+            forEach(OpenEntry oe, ort.second)
+                matchingOpenTransitions.push_back(oe);
+            handledTransitions.insert(ort.first);
+        }
+        sort(matchingOpenTransitions.begin(), matchingOpenTransitions.end());
+
+        // print (openEv1, openEv2 - closeEv)
+        bool first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << oe.eventNumber;
+        }
     }
+
     // actual edge label: the op name
     ss << " -> " << edge.second.first << ": "
         << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
-    ss << " ";
-    // print (openId1, prior1), (openId2, prior2)
-    first = true;
-    forEach(const OpenEntry & oe, matchingOpenTransitions) {
-        if(first)
-            first = false;
-        else
-            ss << ", ";
-        ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
+
+    if(edge.first.second->getGroundingParent() == NULL) {
+        ss << " ";
+        // print (openId1, prior1), (openId2, prior2)
+        bool first = true;
+        forEach(const OpenEntry & oe, matchingOpenTransitions) {
+            if(first)
+                first = false;
+            else
+                ss << ", ";
+            ss << "(" << oe.openIndex << ", " << std::fixed << std::setprecision(2) << oe.priority << ")";
+        }
     }
     return ss.str();
 }
@@ -474,7 +590,15 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
             continue;
         }   // catch init
 
-        of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
+        std::string headnode;
+        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+            headnode = generateNodeName(vt.first.first);
+        } else {        // open push to ungrounded op
+            headnode = generateUngroundedOpNodeName(
+                    make_pair(vt.first.first, vt.first.second->getGroundingParent()));
+        }
+
+        of << headnode << " -> " << generateNodeName(vt.second.second);
 
         of << " [label=\"";
         of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
@@ -482,7 +606,15 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
     }
 
     forEach(CloseRecordMap::value_type & vt, discardRecords) {
-        of << generateNodeName(vt.first.first) << " -> " << generateNodeName(vt.second.second);
+        std::string headnode;
+        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+            headnode = generateNodeName(vt.first.first);
+        } else {        // open push to ungrounded op
+            headnode = generateUngroundedOpNodeName(
+                    make_pair(vt.first.first, vt.first.second->getGroundingParent()));
+        }
+
+        of << headnode << " -> " << generateNodeName(vt.second.second);
 
         of << " [label=\"";
         of << generateCloseEdgeLabel(vt, openRecords, handledTransitions);
@@ -492,28 +624,51 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
             of << "\"," << dot_class_discard << "]" << endl;
     }
 
-    // TODO consolidation for grounding possible somehow???
-    // Maybe with intermediate node op_ug -> op_g?
-    forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
-        of << generateDiscardEdgeLabel(vt, openRecords, handledTransitions);
+        of << generateModuleDiscardEdgeLabel(vt, openRecords, handledTransitions);
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
-    forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, liveGroundingDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
-        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
+        of << generateUngroundedOpNodeName(
+                make_pair(vt.first.first, vt.first.second->getGroundingParent()))
+                << " -> " << invalidNode;
         of << " [label=\"";
-        of << generateDiscardEdgeLabel(vt, openRecords, handledTransitions);
+        of << generateLiveGroundingDiscardEdgeLabel(vt, openRecords, handledTransitions);
         of << "\"," << dot_class_grounding_discard << "]" << endl;
+    }
+    forEach(EventRecordMap::value_type & vt, operatorGroundedOutRecords) {
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateUngroundedOpNodeName(
+                make_pair(vt.first.first, vt.first.second))
+                << " -> " << invalidNode;
+        of << " [label=\"";
+        of << vt.second;
+        of << "\"," << dot_class_grounding_grounded_out << "]" << endl;
+    }
+    forEach(EventRecordMap::value_type & vt, ungroundedOpDiscardRecords) {
+        std::string invalidNode = createAnonymousNode(of);
+        of << generateUngroundedOpNodeName(
+                make_pair(vt.first.first, vt.first.second))
+                << " -> " << invalidNode;
+        of << " [label=\"";
+        of << vt.second;
+        of << "\"," << dot_class_grounding_ungrounded_discard << "]" << endl;
     }
 
     forEach(OpenRecordMap::value_type & vt, openRecords) {
         if(handledTransitions.find(vt.first) != handledTransitions.end())
             continue;
-        std::string invalidNode = createAnonymousNode(of);
-        of << generateNodeName(vt.first.first) << " -> " << invalidNode;
+        std::string node;
+        if(vt.first.second->isGrounded()) {   // open push that wasn't closed/discarded above
+            node = createAnonymousNode(of);
+        } else {        // open push to ungrounded op
+            node = generateUngroundedOpNodeName(vt.first);
+        }
+        of << generateNodeName(vt.first.first) << " -> " << node;
         of << " [label=\"";
         of << generateOpenEdgeLabel(vt);
         of << "\"," << dot_class_open << "]" << endl;
@@ -555,7 +710,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << "\"," << dot_class_discard_constraint << "]" << endl;
     }
 
-    forEach(DiscardRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
@@ -565,7 +720,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << ss.str();
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
-    forEach(DiscardRecordMap::value_type & vt, liveGroundingDiscardRecords) {
+    forEach(EventRecordMap::value_type & vt, liveGroundingDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
@@ -629,6 +784,11 @@ void Analysis::writeDotEqualStates(std::ofstream & of)
 std::string Analysis::generateNodeName(const TimeStampedState* state)
 {
     return formatString("state_%08X", state);
+}
+
+std::string Analysis::generateUngroundedOpNodeName(pair<const TimeStampedState*, const Operator*> sop)
+{
+    return formatString("state_%08X_op_%08X", sop.first, sop.second);
 }
 
 std::string Analysis::createAnonymousNode(std::ofstream & of)

@@ -81,7 +81,11 @@ class Analysis
         /// The ungrounded operator op could not be grounded any more in pred.
         void recordLiveGroundingGroundedOut(const TimeStampedState* pred, const Operator* op);
 
+        /// An ungrounded was supported to be pushed, but discarded.
+        void recordLiveGroundingUngroundedDiscard(const TimeStampedState* pred, const Operator* op);
+
         /// The operator op has just been grounded successfully.
+        // TODO also display in non-condensed to not have event# gaps?
         void recordLiveGrounding(const TimeStampedState* pred, const Operator* op);
 
     protected:
@@ -97,7 +101,7 @@ class Analysis
 
         typedef map< pair<const TimeStampedState*, const Operator*>,
                 pair<int, const TimeStampedState*> > CloseRecordMap;
-        typedef map< pair<const TimeStampedState*, const Operator*>, int > DiscardRecordMap;
+        typedef map< pair<const TimeStampedState*, const Operator*>, int > EventRecordMap;
         /// open push for TimeStampedState, Operator in queue
         /**
          * Might happen multiple times, current_state might be rediscovered by a better path,
@@ -114,7 +118,11 @@ class Analysis
                 const OpenRecordMap & openRecords,
                 set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
 
-        std::string generateDiscardEdgeLabel(const DiscardRecordMap::value_type & edge,
+        std::string generateModuleDiscardEdgeLabel(const EventRecordMap::value_type & edge,
+                const OpenRecordMap & openRecords,
+                set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
+
+        std::string generateLiveGroundingDiscardEdgeLabel(const EventRecordMap::value_type & edge,
                 const OpenRecordMap & openRecords,
                 set< pair<const TimeStampedState*, const Operator*> > & handledTransitions);
 
@@ -127,6 +135,9 @@ class Analysis
 
         /// Generate a unique node name "state_XXXXXXXX" based on this state pointer.
         std::string generateNodeName(const TimeStampedState* state);
+
+        /// Generate a unique node name "state_XXXXX_op_XXXXX" for this state and op.
+        std::string generateUngroundedOpNodeName(pair<const TimeStampedState*, const Operator*> sop);
 
         /// Generate a new unused name.
         std::string createAnonymousNode(std::ofstream & of);
@@ -177,8 +188,11 @@ class Analysis
 
         CloseRecordMap closedRecords;
         CloseRecordMap discardRecords;
-        DiscardRecordMap moduleRelaxedDiscardRecords;
-        DiscardRecordMap liveGroundingDiscardRecords;
+        EventRecordMap moduleRelaxedDiscardRecords;
+        EventRecordMap liveGroundingDiscardRecords;
+        EventRecordMap operatorGroundingRecords;
+        EventRecordMap operatorGroundedOutRecords;
+        EventRecordMap ungroundedOpDiscardRecords;
         OpenRecordMap openRecords;
         map<const TimeStampedState*, int> goalRecords;
 };
