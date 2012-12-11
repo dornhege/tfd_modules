@@ -85,7 +85,6 @@ class Analysis
         void recordLiveGroundingUngroundedDiscard(const TimeStampedState* pred, const Operator* op);
 
         /// The operator op has just been grounded successfully.
-        // TODO also display in non-condensed to not have event# gaps?
         void recordLiveGrounding(const TimeStampedState* pred, const Operator* op);
 
     protected:
@@ -140,7 +139,7 @@ class Analysis
         std::string generateUngroundedOpNodeName(pair<const TimeStampedState*, const Operator*> sop);
 
         /// Generate a new unused name.
-        std::string createAnonymousNode(std::ofstream & of);
+        std::string createAnonymousNode(std::ofstream & of, const std::string & shape);
 
         /// Generate a node label for this state using the actual state content.
         std::string generateNodeLabel(const TimeStampedState* state);

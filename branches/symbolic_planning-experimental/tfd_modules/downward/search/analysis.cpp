@@ -12,8 +12,10 @@
 #define forEach BOOST_FOREACH
 
 static const string dot_class_state = "shape=box";
-static const string dot_class_state_equal = "style=dashed,constraint=false,dir=none";
 static const string dot_class_goal_state = "shape=box,color=green";
+
+static const string dot_class_state_equal = "style=dashed,constraint=false,dir=none";
+
 static const string dot_class_closed = "style=bold,color=black,weight=10";
 static const string dot_class_discard = "color=gray,constraint=false";
 /// discard should be drawn with constraint if there is no discard reason (i.e. it is not a back arrow)
@@ -24,6 +26,14 @@ static const string dot_class_grounding_discard = "style=dotted,color=gray,weigh
 static const string dot_class_grounding_grounded_out = "style=solid,color=black,weight=3,arrowhead=tee";
 static const string dot_class_grounding_ungrounded_discard = "style=solid,color=gray,weight=3,arrowhead=tee";
 static const string dot_class_open = "style=dashed,weight=3";
+
+static const string dot_node_shape_grounding = "circle";
+static const string dot_node_shape_grounded_out = "none";
+static const string dot_node_shape_ungrounded_discard = "none";
+static const string dot_node_shape_ungrounded_intermediate = "triangle";
+static const string dot_node_shape_open = "doublecircle";
+static const string dot_node_shape_module_relaxed_discard = "circle";
+static const string dot_node_shape_live_grounding_discard = "circle";
 
 static const unsigned int op_name_max_length = 20;
 
@@ -399,8 +409,8 @@ void Analysis::writeDotNodes(std::ofstream & of)
     }
  
     forEach(const StateOp & sop, ungroundedIntermediateStates) {
-        of << generateUngroundedOpNodeName(sop) << "[label=\"U\",shape=doublecircle]" << endl;
-        // TODO style move to top
+        of << generateUngroundedOpNodeName(sop) << "[label=\"\",shape="
+            << dot_node_shape_ungrounded_intermediate << "]" << endl;
     }
 }
 
@@ -626,14 +636,14 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
     }
 
     forEach(EventRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_module_relaxed_discard);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         of << generateModuleDiscardEdgeLabel(vt, openRecords, handledTransitions);
         of << "\"," << dot_class_module_relaxed_discard << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, liveGroundingDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_live_grounding_discard);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second->getGroundingParent()))
                 << " -> " << invalidNode;
@@ -642,7 +652,7 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         of << "\"," << dot_class_grounding_discard << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, operatorGroundedOutRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_grounded_out);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second))
                 << " -> " << invalidNode;
@@ -651,7 +661,7 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         of << "\"," << dot_class_grounding_grounded_out << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, ungroundedOpDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_ungrounded_discard);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second))
                 << " -> " << invalidNode;
@@ -665,7 +675,7 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
             continue;
         std::string node;
         if(vt.first.second->isGrounded()) {   // open push that wasn't closed/discarded above
-            node = createAnonymousNode(of);
+            node = createAnonymousNode(of, dot_node_shape_open);
         } else {        // open push to ungrounded op
             node = generateUngroundedOpNodeName(vt.first);
         }
@@ -730,7 +740,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     }
 
     forEach(EventRecordMap::value_type & vt, moduleRelaxedDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_module_relaxed_discard);
         of << generateNodeName(vt.first.first) << " -> " << invalidNode;
         of << " [label=\"";
         stringstream ss;
@@ -741,7 +751,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     }
 
     forEach(EventRecordMap::value_type & vt, operatorGroundingRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_grounding);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second->getGroundingParent()))
                 << " -> " << invalidNode;
@@ -750,7 +760,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << "\"," << dot_class_grounding << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, liveGroundingDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_live_grounding_discard);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second->getGroundingParent()))
                 << " -> " << invalidNode;
@@ -762,7 +772,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << "\"," << dot_class_grounding_discard << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, operatorGroundedOutRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_grounded_out);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second))
                 << " -> " << invalidNode;
@@ -771,7 +781,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         of << "\"," << dot_class_grounding_grounded_out << "]" << endl;
     }
     forEach(EventRecordMap::value_type & vt, ungroundedOpDiscardRecords) {
-        std::string invalidNode = createAnonymousNode(of);
+        std::string invalidNode = createAnonymousNode(of, dot_node_shape_ungrounded_discard);
         of << generateUngroundedOpNodeName(
                 make_pair(vt.first.first, vt.first.second))
                 << " -> " << invalidNode;
@@ -784,7 +794,7 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     forEach(OpenRecordMap::value_type & vt, openRecords) {
         std::string openNode;
         if(vt.first.second->isGrounded()) {   // open push that wasn't closed/discarded above
-            openNode = createAnonymousNode(of);
+            openNode = createAnonymousNode(of, dot_node_shape_open);
         } else {        // open push to ungrounded op
             openNode = generateUngroundedOpNodeName(vt.first);
         }
@@ -846,12 +856,12 @@ std::string Analysis::generateUngroundedOpNodeName(pair<const TimeStampedState*,
     return formatString("state_%08X_op_%08X", sop.first, sop.second);
 }
 
-std::string Analysis::createAnonymousNode(std::ofstream & of)
+std::string Analysis::createAnonymousNode(std::ofstream & of, const std::string & shape)
 {
     lastAnonymousNr++;
     std::string name = formatString("invalid_state_anon_%09d", lastAnonymousNr);
 
-    of << name << "[shape=doublecircle,label=\"\"]" << endl;
+    of << name << "[shape=" << shape << ",label=\"\"]" << endl;
     return name;
 }
 
