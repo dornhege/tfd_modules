@@ -231,11 +231,29 @@ Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & o
     // created a grounded operator from that.
     ok = true;
     numBranches++;
+    BranchGroundingCountMap::iterator it = numBranchesByState.find(state);
+    if(it == numBranchesByState.end()) {
+        numBranchesByState[state] = 1;
+    } else {
+        it->second++;
+    }
 
     ret.name += " " + groundParam;
     ret.mod_groundings.clear();
 
     return ret;
+}
+
+int Operator::getNumBranches(const TimeStampedState* state) const
+{
+    if(g_parameters.grounding_number_depends_on_state) {
+        BranchGroundingCountMap::iterator it = numBranchesByState.find(*state);
+        if(it == numBranchesByState.end()) {
+            return 0;
+        }
+        return it->second;
+    }
+    return numBranches;
 }
 
 void Operator::addGroundParameters(modules::ParameterList & parameters) const

@@ -57,6 +57,7 @@ PlannerParameters::PlannerParameters()
     ground_n_max_groundings = 10;
     grounding_discount_mode = GroundingDiscountLinear;
     grounding_discount_gamma = 1.0;
+    grounding_number_depends_on_state = true;
 
     use_known_by_logical_state_only = false;
 
@@ -237,6 +238,7 @@ void PlannerParameters::dump() const
     }
     cout << endl;
     cout << "Grounding Discount gamma: " << grounding_discount_gamma << endl;
+    cout << "Grounding Number depends on state: " << (grounding_number_depends_on_state ? "true" : "false") << endl;
 
     cout << "Known by logical state only filtering: "
         << (use_known_by_logical_state_only ? "Enabled" : "Disabled") << endl;
@@ -376,6 +378,7 @@ bool PlannerParameters::readROSParameters()
     }
 
     nhPriv.param("grounding_discount_gamma", grounding_discount_gamma, grounding_discount_gamma);
+    nhPriv.param("grounding_number_depends_on_state", grounding_number_depends_on_state, grounding_number_depends_on_state);
 
     nhPriv.param("use_known_by_logical_state_only",
             use_known_by_logical_state_only, use_known_by_logical_state_only);
