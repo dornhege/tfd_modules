@@ -514,6 +514,24 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                         insert_successor(groundedOp, open_lists[i], i,
                                 parent_ptr, priority, maxTimeIncrement);
                     }
+                } else if(g_parameters.grounding_mode == PlannerParameters::GroundN) {
+                    // ground the ungrounded one max N times.
+                    // insert the grounded ones,
+                    // discard the ungrounded one
+                    for(int i = 0; i < g_parameters.ground_n_max_groundings; i++) {
+                        bool couldGround = false;
+                        Operator opGround = ops[j]->ground(*parent_ptr, false, couldGround);
+                        if(!couldGround)
+                            break;
+                        pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+                        // we want to work with the it, not the opGround, which will go out of scope
+                        // it points to the Op actually inside g_grounded_operators
+                        // Also, if the same grounded op already exists, this will point to it, not
+                        // some new one.
+                        const Operator* groundedOp = &(*ret.first);
+                        insert_successor(groundedOp, open_lists[i], i,
+                                parent_ptr, priority, maxTimeIncrement);
+                    }
                 } else if(g_parameters.grounding_mode == PlannerParameters::GroundSingleDiscard) {
                     // ground the ungrounded one once (if poss)
                     // insert the grounded one,

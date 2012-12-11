@@ -99,6 +99,8 @@ class PlannerParameters
         /// and add all grounded successors to the open queue. After it is exhausted, discard it.
         /// This will lead to infinite branching if the operator does not have a finite branching factor.
         GroundAll,
+        /// Like GroundAll, but produce a maximum of ground_n_max_groundings groundings.
+        GroundN,
         /// When generating successors, ground this operator once, if possible and
         /// add that grounded op to the open queue. Discard the ungrounded one.
         GroundSingleDiscard,
@@ -111,6 +113,8 @@ class PlannerParameters
         GroundSingleReinsert,
       };
       enum GroundingMode grounding_mode;    ///< How to deal with partially grounded operators.
+
+      int ground_n_max_groundings; ///< Max number of groundings in GroundN.
 
       /// How are reinserted states/ungrounded ops' priorities discounted.
       /**

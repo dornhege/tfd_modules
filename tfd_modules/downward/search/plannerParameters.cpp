@@ -54,6 +54,7 @@ PlannerParameters::PlannerParameters()
     queueManagementMode = BestFirstSearchEngine::PRIORITY_BASED;
 
     grounding_mode = GroundSingleReinsert;
+    ground_n_max_groundings = 10;
     grounding_discount_mode = GroundingDiscountLinear;
     grounding_discount_gamma = 1.0;
 
@@ -208,6 +209,9 @@ void PlannerParameters::dump() const
         case GroundAll:
             cout << "All";
             break;
+        case GroundN:
+            cout << "Ground N";
+            break;
         case GroundSingleDiscard:
             cout << "Single and Discard";
             break;
@@ -216,6 +220,8 @@ void PlannerParameters::dump() const
             break;
     }
     cout << endl;
+
+    cout << "GroundN max groundings: " << ground_n_max_groundings << endl;
 
     cout << "Grounding Discount mode: ";
     switch(grounding_discount_mode) {
@@ -341,15 +347,19 @@ bool PlannerParameters::readROSParameters()
     if(nhPriv.getParam("grounding_mode", groundingMode)) {
         if(groundingMode == "ground_all") {
             grounding_mode = GroundAll;
+        } else if(groundingMode == "ground_n") {
+            grounding_mode = GroundN;
         } else if(groundingMode == "ground_single_discard") {
             grounding_mode = GroundSingleDiscard;
         } else if(groundingMode == "ground_single_reinsert") {
             grounding_mode = GroundSingleReinsert;
         } else {
-            ROS_FATAL("Unknown value: %s for grounding mode: Valid values: [ground_all, ground_single_discard, ground_single_reinsert]", groundingMode.c_str());
+            ROS_FATAL("Unknown value: %s for grounding mode: Valid values: [ground_all, ground_n, ground_single_discard, ground_single_reinsert]", groundingMode.c_str());
             ret = false;
         }
     }
+
+    nhPriv.param("ground_n_max_groundings", ground_n_max_groundings, ground_n_max_groundings);
 
     string groundingDiscountMode;
     if(nhPriv.getParam("grounding_discount_mode", groundingDiscountMode)) {
