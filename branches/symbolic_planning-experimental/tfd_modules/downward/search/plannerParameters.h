@@ -127,6 +127,12 @@ class PlannerParameters
       };
       enum GroundingDiscountMode grounding_discount_mode;
       double grounding_discount_gamma;      ///< Parameter for discount modes
+      /// Is the number of grounding an ungrounded operator dependent on the state it is applied to.
+      /**
+       * If false all groundings for the same operator in the planner run are counted together,
+       * if true only the groundings in the parent state are counted.
+       */
+      bool grounding_number_depends_on_state;
 
       bool use_known_by_logical_state_only;         ///< Enable tss known filtering (might crop search space!)
 

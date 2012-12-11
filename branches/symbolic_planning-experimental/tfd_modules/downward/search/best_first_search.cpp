@@ -713,10 +713,12 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
             double discount = 1.0;
             switch(g_parameters.grounding_discount_mode) {
                 case PlannerParameters::GroundingDiscountLinear:
-                    discount = 1.0 + g_parameters.grounding_discount_gamma * op->getNumBranches();
+                    discount = 1.0 +
+                        g_parameters.grounding_discount_gamma * op->getNumBranches(parent_ptr);
                     break;
                 case PlannerParameters::GroundingDiscountExponential:
-                    discount = pow(g_parameters.grounding_discount_gamma, op->getNumBranches());
+                    discount = 
+                        pow(g_parameters.grounding_discount_gamma, op->getNumBranches(parent_ptr));
                     break;
                 case PlannerParameters::GroundingDiscountNone:
                     discount = 1.0;

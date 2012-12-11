@@ -10,6 +10,8 @@
 
 #include "globals.h"
 #include "state.h"
+#include "closed_list.h"
+#include <tr1/unordered_map>
 
 class Operator
 {
@@ -30,6 +32,9 @@ class Operator
         const Operator* grounding_parent;
 
         mutable int numBranches;    ///< For ungrounded ops - how often was this one grounded.
+
+        typedef tr1::unordered_map<TimeStampedState, int, TssHash, TssEquals> BranchGroundingCountMap;
+        mutable BranchGroundingCountMap numBranchesByState;
 
     private:
         bool deletesPrecond(const vector<Prevail>& conds,
@@ -105,8 +110,8 @@ class Operator
 
         const Operator* getGroundingParent() const { return grounding_parent; }
 
-        /// How often did we branch off this.
-        int getNumBranches() const { return numBranches; }
+        /// How often did we branch off this (in state given parameter setting).
+        int getNumBranches(const TimeStampedState* state) const;
 
         /// Calculate the duration of this operator when applied in state.
         /**
