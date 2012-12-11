@@ -5,24 +5,7 @@
 #include <tr1/unordered_map>
 #include <algorithm>
 #include <vector>
-
 #include "operator.h"
-
-struct TssHash
-{
-    std::size_t operator()(const TimeStampedState & tss) const;
-};
-
-bool prevailEquals(const Prevail &prev1, const Prevail &prev2);
-
-bool scheduledConditionEquals(const ScheduledCondition &cond1, const ScheduledCondition &cond2);
-
-bool scheduledEffectEquals(const ScheduledEffect &eff1, const ScheduledEffect &eff2);
-
-struct TssEquals
-{
-    bool operator()(const TimeStampedState &tss1, const TimeStampedState &tss2) const;
-};
 
 class ClosedList
 {
