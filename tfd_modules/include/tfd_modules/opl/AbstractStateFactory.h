@@ -26,7 +26,7 @@ public:
             const modules::FunctionMapping& functionMapping,
             const modules::PredicateList& predicateConstants,
             const modules::NumericalFluentList& numericConstants);
-    virtual ~AbstractStateFactory();
+    virtual ~AbstractStateFactory() {}
 
 protected:
     virtual AbstractState* instantiateState(const modules::ObjectTypeMap& objects) = 0;
