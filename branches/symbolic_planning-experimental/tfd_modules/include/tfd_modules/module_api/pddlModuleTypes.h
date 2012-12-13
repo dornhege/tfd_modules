@@ -139,12 +139,15 @@ typedef void (*moduleExitType)(const RawPlan & plan, int argc, char** argv,
 /**
  * FIXME Does relaxed make sense ???
  *
+ * \param [in] statePtr pointer that exactly identified the state that is grounded.
+ *      Different states that are equal might be expanded, and in that case should
+ *      generate the same successors again.
  * \returns a new ground object as an additional operator parameter that was not created
  * by this module before or empty string if it is not possible to ground the operator (any more).
  */
 typedef std::string (*groundingModuleType)(const ParameterList & parameterList,
         predicateCallbackType predicateCallback, numericalFluentCallbackType numericalFluentCallback,
-        int relaxed);
+        int relaxed, const void* statePtr);
  
 /// Semantic attachment for a condition (predicate).
 /**
