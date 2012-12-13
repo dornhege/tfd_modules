@@ -221,7 +221,7 @@ Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & o
     numericalFluentCallbackType nct = getFuncs;
     g_setModuleCallbackState(&state);
 
-    string groundParam = mod_groundings.front().module->groundingModule(params, pct, nct, relaxed);
+    string groundParam = mod_groundings.front().module->groundingModule(params, pct, nct, relaxed, &state);
 
     if(groundParam.empty()) {
         ok = false;
