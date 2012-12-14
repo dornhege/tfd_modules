@@ -662,11 +662,30 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
     }
     forEach(EventRecordMap::value_type & vt, ungroundedOpDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of, dot_node_shape_ungrounded_discard);
-        of << generateUngroundedOpNodeName(
-                make_pair(vt.first.first, vt.first.second))
-                << " -> " << invalidNode;
+        // it can happen that there is no ungrounded op node, because there actually never
+        // was an open push for this ungrounded op. So this ungrounded discard happens
+        // immediately when we try to push (e.g. try to push ungrounded op, there
+        // already is a better plan -> discard it immediately)
+        // In this case, there shouldn't be an open entry for state + ungrounded op, then
+        // just take the state as the origin node.
+        bool hasOpenPush = false;
+        forEach(OpenRecordMap::value_type & oe, openRecords) {
+            if(vt.first == oe.first) {
+                hasOpenPush = true;
+                break;
+            }
+        }
+        if(hasOpenPush){
+            of << generateUngroundedOpNodeName(make_pair(vt.first.first, vt.first.second));
+        } else {
+            of << generateNodeName(vt.first.first);
+        }
+        of << " -> " << invalidNode;
         of << " [label=\"";
         of << vt.second;
+        if(!hasOpenPush) {
+            of << ": " << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
+        }
         of << "\"," << dot_class_grounding_ungrounded_discard << "]" << endl;
     }
 
@@ -782,11 +801,26 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
     }
     forEach(EventRecordMap::value_type & vt, ungroundedOpDiscardRecords) {
         std::string invalidNode = createAnonymousNode(of, dot_node_shape_ungrounded_discard);
-        of << generateUngroundedOpNodeName(
-                make_pair(vt.first.first, vt.first.second))
-                << " -> " << invalidNode;
+
+        // handle immediate discards that didn't have a push
+        bool hasOpenPush = false;
+        forEach(OpenRecordMap::value_type & oe, openRecords) {
+            if(vt.first == oe.first) {
+                hasOpenPush = true;
+                break;
+            }
+        }
+        if(hasOpenPush){
+            of << generateUngroundedOpNodeName(make_pair(vt.first.first, vt.first.second));
+        } else {
+            of << generateNodeName(vt.first.first);
+        }
+        of << " -> " << invalidNode;
         of << " [label=\"";
         of << vt.second;
+        if(!hasOpenPush) {
+            of << ": " << breakStringLabel(vt.first.second->get_name(), op_name_max_length);
+        }
         of << "\"," << dot_class_grounding_ungrounded_discard << "]" << endl;
     }
 
