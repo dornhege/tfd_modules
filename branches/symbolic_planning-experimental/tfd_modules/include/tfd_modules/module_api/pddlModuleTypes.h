@@ -126,10 +126,12 @@ typedef bool (*numericalFluentCallbackType)(NumericalFluentList* & numericalFlue
 /// Function pointer to call for a module before any module calls are performed - parameters are passed on from the problem definition file.
 typedef void (*moduleInitType)(int argc, char** argv);
 
-/// Function pointer that is called when the planner exits - used for cleanup and writing out computed information to be stored/processed.
+/// Function pointer that is called when the planner produces a plan - used for cleanup and writing out computed information to be stored/processed.
 /**
  * \param [in] plan the best generated plan. Might be empty if no plan was created.
  * \param [in] argc, argv the parameters as passed on from the problem definition file.
+ *              The first parameter will be the module call, the second one the plan number,
+ *              following are the ones from the problem file.
  * \param [in] predicateCallback, numericalFluentCallback callback functions that allow to reconstruct the init state
  */
 typedef void (*moduleExitType)(const RawPlan & plan, int argc, char** argv,

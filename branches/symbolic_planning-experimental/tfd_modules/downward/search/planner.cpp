@@ -32,9 +32,6 @@ using namespace std;
 #include <sys/times.h>
 #include <sys/time.h>
 
-modules::RawPlan best_raw_plan;
-const TimeStampedState* best_raw_plan_init = NULL;
-
 double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_number, string &plan_name);
 std::string getTimesName(const string & plan_name);    ///< returns the file name of the .times file for plan_name
 double getCurrentTime();            ///< returns the system time in seconds
@@ -211,13 +208,6 @@ int main(int argc, char **argv)
         fclose(timeDebugFile);
     }
 
-    // exit modules
-    g_setModuleCallbackState(best_raw_plan_init);
-    for (vector<ExitModule*>::iterator it = g_exit_modules.begin(); it
-            != g_exit_modules.end(); it++) {
-        (*it)->execExit(best_raw_plan);
-    }
-
     //engine->dump_everything();
 
     time_t now = time(NULL);
@@ -289,8 +279,11 @@ bool epsilonize_plan(const std::string & filename, bool keepOriginalPlan = true)
     return true;
 }
 
-void record_raw_plan(const Plan & plan)
+void record_raw_plan(const Plan & plan, int plan_number)
 {
+    modules::RawPlan best_raw_plan;
+    const TimeStampedState* best_raw_plan_init = NULL;
+
     best_raw_plan.clear();
     best_raw_plan_init = NULL;
     if(plan.empty())
@@ -316,6 +309,13 @@ void record_raw_plan(const Plan & plan)
         }
 
         best_raw_plan.push_back(RawAction(op_name, parameters, step.start_time, step.duration));
+    }
+
+    // exit modules
+    g_setModuleCallbackState(best_raw_plan_init);
+    for (vector<ExitModule*>::iterator it = g_exit_modules.begin(); it
+            != g_exit_modules.end(); it++) {
+        (*it)->execExit(best_raw_plan, plan_number);
     }
 }
 
@@ -383,7 +383,7 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
     cout << "Solution with original makespan " << original_makespan
         << " found (ignoring no-moving-targets-rule)." << endl;
 
-    record_raw_plan(rescheduled_plan);
+    record_raw_plan(rescheduled_plan, plan_number);
 
     // Determine filenames to write to
     FILE *file = 0;
