@@ -518,7 +518,7 @@ void BestFirstSearchEngine::generate_successors(const TimeStampedState *parent_p
                     // ground the ungrounded one max N times.
                     // insert the grounded ones,
                     // discard the ungrounded one
-                    for(int i = 0; i < g_parameters.ground_n_max_groundings; i++) {
+                    for(int g = 0; g < g_parameters.ground_n_max_groundings; g++) {
                         bool couldGround = false;
                         Operator opGround = ops[j]->ground(*parent_ptr, false, couldGround);
                         if(!couldGround)
@@ -774,13 +774,6 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
             if(couldGround) {
                 pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
                 g_analysis.recordLiveGrounding(open_state, &(*ret.first));
-                // TODO consolidation over these events
-                // TODO id for the intermediate node - how?
-                // How can we also later in the records detect that we need to have
-                // this unique intermediate ID node as tail/head of the specific 
-                // open pushes/live groundings?
-                // relevant for close/discard/open push of ungrounded op
-
                 // reinsert (only) if we could ground
                 // recover index
                 int openIndex = -1;
@@ -790,8 +783,18 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
                         break;
                     }
                 }
-                insert_ungrounded_successor(open_op, *open_info, openIndex,
-                        open_state, -1.0, 0.0);
+                if(g_parameters.ground_n_max_groundings > 0) {
+                    if(open_op->getNumBranches(open_state) < g_parameters.ground_n_max_groundings) {
+                        insert_ungrounded_successor(open_op, *open_info, openIndex,
+                                open_state, -1.0, 0.0);
+                    } else {
+                        // grounded out.
+                        g_analysis.recordLiveGroundingGroundedOut(open_state, open_op);
+                    }
+                } else {
+                    insert_ungrounded_successor(open_op, *open_info, openIndex,
+                            open_state, -1.0, 0.0);
+                }
 
                 // now we can re set open_op to the grounded one.
                 open_op = &(*ret.first);    // open_op is the grounded one, not the
