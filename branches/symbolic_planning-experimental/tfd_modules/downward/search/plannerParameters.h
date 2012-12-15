@@ -103,6 +103,7 @@ class PlannerParameters
         GroundN,
         /// When generating successors, ground this operator once, if possible and
         /// add that grounded op to the open queue. Discard the ungrounded one.
+        /// Usefull for least commitment approaches.
         GroundSingleDiscard,
         /// When generating successors, add the ungrounded op to the open queue.
         /// If the heuristic selects this state,op pair during fetch_next_state,
@@ -114,7 +115,8 @@ class PlannerParameters
       };
       enum GroundingMode grounding_mode;    ///< How to deal with partially grounded operators.
 
-      int ground_n_max_groundings; ///< Max number of groundings in GroundN.
+      int ground_n_max_groundings; ///< Max number of groundings in GroundN or GroundSingleReinsert.
+                                   ///< For GroundSingleReinsert might be -1 for no limit.
 
       /// How are reinserted states/ungrounded ops' priorities discounted.
       /**
