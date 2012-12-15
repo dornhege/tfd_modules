@@ -191,14 +191,20 @@ ExitModule::ExitModule(istream &in)
     }
 }
 
-void ExitModule::execExit(const RawPlan & plan)
+void ExitModule::execExit(const RawPlan & plan, int plan_number)
 {
-    int argc = parameters.size() + 1;
+    int argc = parameters.size() + 2;
     char** argv = new char*[argc];
 
     argv[0] = strdup(libCall.c_str());
+
+    int nrLen = log10(plan_number) + 10;
+    char* planNr = (char*)malloc(nrLen * sizeof(char));
+    sprintf(planNr, "%d", plan_number);
+    argv[1] = planNr;
+
     for (int i = 0; i < parameters.size(); i++) {
-        argv[i + 1] = strdup(parameters.at(i).c_str());
+        argv[i + 2] = strdup(parameters.at(i).c_str());
     }
     exitModule(plan, argc, argv, getPreds, getFuncs);
     for (int i = 0; i < argc; i++) {

@@ -105,7 +105,7 @@ class ExitModule: public Module
         vector<string> parameters;
 
         ExitModule(istream &in);
-        void execExit(const RawPlan & plan);
+        void execExit(const RawPlan & plan, int plan_number);
 
         moduleExitType exitModule;
 };
