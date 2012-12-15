@@ -500,7 +500,8 @@ std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & 
     stringstream ss;
     vector<OpenEntry> matchingOpenTransitions;
 
-    if(edge.first.second->getGroundingParent() != NULL) {
+    if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert &&
+            edge.first.second->getGroundingParent() != NULL) {
         // collect matching operatorGroundingRecords
         int matchingGroundingEvent = -1;
         forEach(const EventRecordMap::value_type & er, operatorGroundingRecords) {
@@ -541,7 +542,8 @@ std::string Analysis::generateCloseEdgeLabel(const CloseRecordMap::value_type & 
     ss << " -> " << edge.second.first << ": "
         << breakStringLabel(edge.first.second->get_name(), op_name_max_length);
 
-    if(edge.first.second->getGroundingParent() == NULL) {
+    if(g_parameters.grounding_mode != PlannerParameters::GroundSingleReinsert ||
+            edge.first.second->getGroundingParent() == NULL) {
         ss << " ";
         // print (openId1, prior1), (openId2, prior2)
         bool first = true;
@@ -602,7 +604,11 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
         }   // catch init
 
         std::string headnode;
-        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+        bool wasLiveGrounded = false;
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert &&
+                vt.first.second->getGroundingParent() != NULL)
+            wasLiveGrounded = true;
+        if(!wasLiveGrounded) {   // this op wasn't live grounded
             headnode = generateNodeName(vt.first.first);
         } else {        // open push to ungrounded op
             headnode = generateUngroundedOpNodeName(
@@ -618,7 +624,11 @@ void Analysis::writeDotEdgesCondensed(std::ofstream & of)
 
     forEach(CloseRecordMap::value_type & vt, discardRecords) {
         std::string headnode;
-        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+        bool wasLiveGrounded = false;
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert &&
+                vt.first.second->getGroundingParent() != NULL)
+            wasLiveGrounded = true;
+        if(!wasLiveGrounded) {   // this op wasn't live grounded
             headnode = generateNodeName(vt.first.first);
         } else {        // open push to ungrounded op
             headnode = generateUngroundedOpNodeName(
@@ -722,7 +732,11 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
         }   // catch init
 
         std::string headnode;
-        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+        bool wasLiveGrounded = false;
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert &&
+                vt.first.second->getGroundingParent() != NULL)
+            wasLiveGrounded = true;
+        if(!wasLiveGrounded) {   // this op wasn't live grounded
             headnode = generateNodeName(vt.first.first);
         } else {        // open push to ungrounded op
             headnode = generateUngroundedOpNodeName(
@@ -741,7 +755,11 @@ void Analysis::writeDotEdgesAll(std::ofstream & of)
 
     forEach(CloseRecordMap::value_type & vt, discardRecords) {
         std::string headnode;
-        if(vt.first.second->getGroundingParent() == 0) {   // this op wasn't live grounded
+        bool wasLiveGrounded = false;
+        if(g_parameters.grounding_mode == PlannerParameters::GroundSingleReinsert &&
+                vt.first.second->getGroundingParent() != NULL)
+            wasLiveGrounded = true;
+        if(!wasLiveGrounded) {   // this op wasn't live grounded
             headnode = generateNodeName(vt.first.first);
         } else {        // open push to ungrounded op
             headnode = generateUngroundedOpNodeName(
