@@ -21,13 +21,13 @@
         arm_state                    ; specific arm positions, see constants
     )
 
-    (:modules
-        (costDrive ?start ?goal - location cost planning_scene_pathCost@libplanner_modules_pr2.so)
-        (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libputdown_modules.so)
-        (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
-            (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
-            effect updatePutdownPose@libputdown_modules.so)
-    )
+;    (:modules
+;        (costDrive ?start ?goal - location cost planning_scene_pathCost@libplanner_modules_pr2.so)
+;        (canPutdown ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location conditionchecker canPutdown@libputdown_modules.so)
+;        (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
+;            (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
+;            effect updatePutdownPose@libputdown_modules.so)
+;    )
 
     (:constants
         left_arm right_arm - arm
@@ -60,6 +60,8 @@
         ; wipe 
         (wipe-point-on ?w - wipe_point ?o - static_object)
         (wiped ?w - wipe_point)
+        (allow-traverse-door-assertion ?d - door)
+        (allow-putdown-object-assertion ?l - manipulation_location)
     )
 
     (:functions
@@ -108,15 +110,14 @@
         )
     )
 
-    ; place ?o in ?a at pose ?p (while robot is at ?l)
-    (:durative-action putdown-object
+    (:durative-action putdown-object-assertion
         :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
         :duration (= ?duration 5.0)
         :condition
         (and
+            (at start (allow-putdown-object-assertion ?l))
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
-            (at start ([canPutdown ?o ?a ?s ?l]))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
@@ -125,7 +126,32 @@
         (and
             (at end (not (grasped ?o ?a)))
             (at end (on ?o ?s))
-            (at end ([updatePutdownPose ?o ?a ?s ?l]))
+            (at start (assign (arm-state ?a) arm_unknown))
+            (at end (not (searched ?l)))
+            (at end (not (recent-detected-objects ?l)))
+            (at end (graspable-from ?o ?l ?a))
+        )
+    )
+
+    ; place ?o in ?a at pose ?p (while robot is at ?l)
+    (:durative-action putdown-object
+        :parameters (?l - manipulation_location ?o - movable_object ?s - static_object ?a - arm)
+        :duration (= ?duration 5.0)
+        :condition
+        (and
+            (at start (not (allow-putdown-object-assertion ?l)))
+            (at start (at-base ?l))
+            (at start (grasped ?o ?a))
+;            (at start ([canPutdown ?o ?a ?s ?l]))
+            (at start (recent-detected-objects ?l))
+            (at start (arms-drive-pose))
+            (at start (static-object-at-location ?s ?l))
+        )
+        :effect
+        (and
+            (at end (not (grasped ?o ?a)))
+            (at end (on ?o ?s))
+ ;           (at end ([updatePutdownPose ?o ?a ?s ?l]))
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (not (searched ?l)))
             (at end (not (recent-detected-objects ?l)))
@@ -246,7 +272,8 @@
 
     (:durative-action drive-base
         :parameters (?s - location ?g - location)
-        :duration (= ?duration [costDrive ?s ?g])
+        :duration (= ?duration 100)
+;        :duration (= ?duration [costDrive ?s ?g])
         :condition
         (and
             (at start (at-base ?s))
@@ -262,11 +289,36 @@
         )
     )
 
+    (:durative-action traverse-door-assertion
+        :parameters (?d - door ?s - door_in_location ?g - door_out_location)
+        :duration (= ?duration 10.0)
+        :condition
+        (and
+            (at start (allow-traverse-door-assertion ?d))
+            (at start (at-base ?s))
+            (at start (not (= ?s ?g)))
+            ; dont drive from in to out loc in the same room
+            (at start (not (= (location-in-room ?s) (location-in-room ?g))))
+            (at start (= (belongs-to-door ?s) ?d))
+            (at start (= (belongs-to-door ?g) ?d))
+            (at start (door-state-known ?d))
+            (at start (arms-drive-pose))
+        )
+        :effect
+        (and
+            (at start (not (at-base ?s)))
+            (at end (at-base ?g))
+            (at end (not (door-state-known ?d)))
+            ; set robot_location to goal room
+        )
+    )
+
     (:durative-action drive-through-door
         :parameters (?d - door ?s - door_in_location ?g - door_out_location)
         :duration (= ?duration 10.0)
         :condition
         (and
+            (at start (not (allow-traverse-door-assertion ?d)))
             (at start (at-base ?s))
             (at start (not (= ?s ?g)))
             ; dont drive from in to out loc in the same room
@@ -337,8 +389,7 @@
             )
             ; arms holding an object should be in arm_at_carry
             (forall (?a - arm)
-                ;(imply (not (hand-free ?a)) (= (arm-state ?a) arm_at_carry))
-                (imply (not (hand-free ?a)) (= (arm-state ?a) arm_at_side))
+                (imply (not (hand-free ?a)) (= (arm-state ?a) arm_at_carry))
             )
         )
     )
