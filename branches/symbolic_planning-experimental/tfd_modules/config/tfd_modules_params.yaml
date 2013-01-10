@@ -17,6 +17,6 @@ g_values: timestamp
 queue_management_mode: priority_based
 #queue_management_mode: round_robin
 #queue_management_mode: hierarchical
-use_tss_known: false
+use_known_by_logical_state_only: false
 plan_name: plan
 monitoring_verify_timestamps: false
