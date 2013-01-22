@@ -38,7 +38,10 @@ class PlannerParameters
 
       bool greedy;                  ///< Perform greedy search
       bool lazy_evaluation;         ///< Lazy heuristic evaluation
+      bool use_boosting;            ///< Reward search progress by boosting pref ops queues
+      int boost_strength;           ///< How much to boost a queue when it is boosted
       bool verbose;                 ///< Verbose outputs
+      double verbosePrintTime;      ///< How many seconds to wait between stats when verbose is on.
       bool analyze;                 ///< Build and record extended debug info (performance impact!)
       bool analyzeOutputNumericalFluents;   ///< Display numerical fluents in state
       bool analyzeCondensedOutput;      ///< Same transitions for open/closed are drawn as one edge

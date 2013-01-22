@@ -5,8 +5,11 @@ timeout_if_plan_found: 90
 timeout_while_no_plan_found: 300
 min_search_time_after_plan_found: 10
 min_search_time_factor_after_plan_found: 0.15
+verbose_print_time: 10.0
 greedy: true
 lazy_evaluation: true
+use_boosting: true
+boost_strength: 1000
 cyclic_cg_heuristic: true
 cyclic_cg_heuristic_preferred_operators: true
 makespan_heuristic: false

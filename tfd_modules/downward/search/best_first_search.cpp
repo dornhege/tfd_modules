@@ -209,8 +209,8 @@ SearchEngine::status BestFirstSearchEngine::step()
     }
 
     time_t current_time = time(NULL);
-    static time_t last_stat_time = current_time;
-    if(g_parameters.verbose && current_time - last_stat_time >= 10) {
+    last_stat_time = current_time;
+    if(g_parameters.verbose && current_time - last_stat_time >= g_parameters.verbosePrintTime) {
         statistics(current_time);
         last_stat_time = current_time;
     }
@@ -359,6 +359,9 @@ void BestFirstSearchEngine::report_progress()
 
 void BestFirstSearchEngine::reward_progress()
 {
+    if(!g_parameters.use_boosting)
+        return;
+
     // Boost the "preferred operator" open lists somewhat whenever
     // progress is made. This used to be used in multi-heuristic mode
     // only, but it is also useful in single-heuristic mode, at least
@@ -371,7 +374,7 @@ void BestFirstSearchEngine::reward_progress()
 
     for(int i = 0; i < open_lists.size(); i++)
         if(open_lists[i].only_preferred_operators)
-            open_lists[i].priority -= 1000;
+            open_lists[i].priority -= g_parameters.boost_strength;
 }
 
 bool knownByLogicalStateOnly(LogicalStateClosedList& scl, const TimedSymbolicStates& timedSymbolicStates)
@@ -769,6 +772,13 @@ enum SearchEngine::status BestFirstSearchEngine::fetch_next_state()
     } else {
         // op might be ungrounded, deal with that.
         if(!open_op->isGrounded()) {
+            // check/force stats here as this might take a while
+            time_t current_time = time(NULL);
+            if(g_parameters.verbose && current_time - last_stat_time >= g_parameters.verbosePrintTime) {
+                statistics(current_time);
+                last_stat_time = current_time;
+            }
+
             bool couldGround = false;
             Operator opGround = open_op->ground(*open_state, false, couldGround);
             if(couldGround) {
