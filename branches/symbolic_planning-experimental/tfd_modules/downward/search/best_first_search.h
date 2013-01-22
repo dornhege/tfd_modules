@@ -61,6 +61,7 @@ class BestFirstSearchEngine : public SearchEngine
         int currentQueueIndex;
 
         SearchStatistics search_statistics;
+        time_t last_stat_time;
 
     private:
         bool is_dead_end();

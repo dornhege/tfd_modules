@@ -28,7 +28,10 @@ PlannerParameters::PlannerParameters()
 
     greedy = false;
     lazy_evaluation = true;
+    use_boosting = true;
+    boost_strength = 1000;
     verbose = true;
+    verbosePrintTime = 10.0;
     analyze = false;
     analyzeOutputNumericalFluents = false;
     analyzeCondensedOutput = true;
@@ -151,6 +154,7 @@ void PlannerParameters::dump() const
     cout << "Min search time factor after plan found: " << min_search_time_factor_after_plan_found << " seconds" << endl;
     cout << "Greedy Search: " << (greedy ? "Enabled" : "Disabled") << endl;
     cout << "Verbose: " << (verbose ? "Enabled" : "Disabled") << endl;
+    cout << "Verbose Print Time: " << verbosePrintTime << endl;
     cout << "Analyze: " << (analyze ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Output NumericalFluents: " << (analyzeOutputNumericalFluents ? "Enabled" : "Disabled") << endl;
     cout << "Analyze Condensed Output: " << (analyzeCondensedOutput ? "Enabled" : "Disabled") << endl;
@@ -158,6 +162,9 @@ void PlannerParameters::dump() const
     cout << "Analyze Link Equal States: " << (analyzeLinkEqualStates ? "Enabled" : "Disabled") << endl;
 
     cout << "Lazy Heuristic Evaluation: " << (lazy_evaluation ? "Enabled" : "Disabled") << endl;
+    cout << "Boosting: " << (use_boosting ? "Enabled" : "Disabled") << endl;
+    cout << "Boost Strength: " << boost_strength << endl;
+
     cout << "Lazy State Module Evaluation: " << lazy_state_module_evaluation;
     if(lazy_state_module_evaluation < 0)
         cout << " (auto)";
@@ -300,6 +307,9 @@ bool PlannerParameters::readROSParameters()
 
     nhPriv.param("greedy", greedy, greedy);
     nhPriv.param("lazy_evaluation", lazy_evaluation, lazy_evaluation);
+    nhPriv.param("use_boosting", use_boosting, use_boosting);
+    nhPriv.param("boost_strength", boost_strength, boost_strength);
+    nhPriv.param("verbose_print_time", verbosePrintTime, verbosePrintTime);
 
     nhPriv.param("lazy_state_module_evaluation", lazy_state_module_evaluation, lazy_state_module_evaluation);
     nhPriv.param("use_cost_modules_for_applicability", use_cost_modules_for_applicability, use_cost_modules_for_applicability);
