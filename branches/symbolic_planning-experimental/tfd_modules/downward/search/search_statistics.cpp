@@ -24,9 +24,10 @@ void SearchStatistics::countChild(int openListIndex)
     childrenPerOpenList[openListIndex]++;
 }
 
-void SearchStatistics::countLiveBranch()
+void SearchStatistics::countLiveBranch(int openListIndex)
 {
     generated_live_branched_states++;
+    childrenPerOpenList[openListIndex]++;
 }
 
 void SearchStatistics::finishExpansion()
@@ -67,7 +68,7 @@ void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
             dGenerated_live_branchedNodes/dt, dt,
             double(generated_live_branched_states)/dTotal);
 
-    cout << "Overall branching factor by list sizes: " << (generated_states / (double) closedListSize) << endl;
+    cout << "Overall branching factor by list sizes: " << ((generated_states + generated_live_branched_states)/ (double) closedListSize) << endl;
     printf("Averaged overall branching factor: ");
     overallBranchingFactor.print();
     printf("Branching factors by open list:\n");

@@ -732,10 +732,7 @@ void BestFirstSearchEngine::insert_ungrounded_successor(const Operator* op, Open
 
         open.push(std::tr1::make_tuple(parent_ptr, op, priority));
         g_analysis.recordOpenPush(parent_ptr, op, openIndex, priority);
-        if(openIndex < 0)
-            search_statistics.countLiveBranch();
-        else
-            search_statistics.countChild(openIndex);
+        search_statistics.countLiveBranch(openIndex);
     } else {
         g_analysis.recordLiveGroundingUngroundedDiscard(parent_ptr, op);
     }
