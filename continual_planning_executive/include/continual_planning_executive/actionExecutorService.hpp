@@ -57,7 +57,7 @@ class ActionExecutorService : public continual_planning_executive::ActionExecuto
        * \param [in, out] current the current planner state to be updated
        */
       virtual void updateState(bool & success, typename Service::Response & response,
-              const DurativeAction & a, SymbolicState & current) {ROS_ASSERT(NULL);}
+              const DurativeAction & a, SymbolicState & current) {ROS_INFO("ActionExecutorService: default implementation without state update.");}
 
       /// can't really do anything here
       virtual void cancelAction() {}
