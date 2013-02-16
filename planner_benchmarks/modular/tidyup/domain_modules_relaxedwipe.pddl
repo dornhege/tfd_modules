@@ -118,7 +118,7 @@
         (and
             (at start (at-base ?l))
             (at start (grasped ?o ?a))
-            (at start ([canPutdown ?o ?a ?s ?l]))
+;            (at start ([canPutdown ?o ?a ?s ?l]))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
             (at start (static-object-at-location ?s ?l))
@@ -127,7 +127,7 @@
         (and
             (at end (not (grasped ?o ?a)))
             (at end (on ?o ?s))
-            (at end ([updatePutdownPose ?o ?a ?s ?l]))
+;            (at end ([updatePutdownPose ?o ?a ?s ?l]))
             (at start (assign (arm-state ?a) arm_unknown))
             (at end (not (searched ?l)))
             (at end (not (recent-detected-objects ?l)))
