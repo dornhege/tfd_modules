@@ -385,28 +385,28 @@
         (exists (?s - static_object) (and (tidy-location ?o ?s) (on ?o ?s)))
     )
 
-    ; 2. There is no tidy location defined for ?o (i.e. we don't need to tidy it)
-    (:derived
-        (tidy ?o - movable_object)
-        ; we don't want it tidy
-        (not (exists (?s - static_object) (tidy-location ?o ?s)))
-    )
-
-    ; 3. There is no way that we can get the object grasped, so we need not bother tidying this
-    (:derived
-        (tidy ?o - movable_object)
-        ; no way to get grasped means none of those:
-        (and
-            ; It is not already grasped
-            (not (exists (?a - arm) (grasped ?o ?a)))
-
-            ; It is not graspable from any location
-            (not (exists (?a - arm)                                     ; there is some arm and
-                (exists (?l - manipulation_location)                           ; some location so that
-                    (graspable-from ?o ?l ?a))                          ; we can somehow grasp the object
-                )
-            )
-        )
-    )
+;    ; 2. There is no tidy location defined for ?o (i.e. we don't need to tidy it)
+;    (:derived
+;        (tidy ?o - movable_object)
+;        ; we don't want it tidy
+;        (not (exists (?s - static_object) (tidy-location ?o ?s)))
+;    )
+;
+;    ; 3. There is no way that we can get the object grasped, so we need not bother tidying this
+;    (:derived
+;        (tidy ?o - movable_object)
+;        ; no way to get grasped means none of those:
+;        (and
+;            ; It is not already grasped
+;            (not (exists (?a - arm) (grasped ?o ?a)))
+;
+;            ; It is not graspable from any location
+;            (not (exists (?a - arm)                                     ; there is some arm and
+;                (exists (?l - manipulation_location)                           ; some location so that
+;                    (graspable-from ?o ?l ?a))                          ; we can somehow grasp the object
+;                )
+;            )
+;        )
+;    )
 )
 
