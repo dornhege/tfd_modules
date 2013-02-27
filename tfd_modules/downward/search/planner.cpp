@@ -139,8 +139,8 @@ int main(int argc, char **argv)
     int plan_number = 1;
 
     SearchEngine::status search_result = SearchEngine::IN_PROGRESS;
+    engine->initialize();
     while(true) {
-        engine->initialize();
         search_result = engine->search();
 
         times(&search_end);
