@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include "timing.h"
 
 class Operator;
 class TimeStampedState;
@@ -33,6 +34,8 @@ class Heuristic
 
         unsigned long num_computations;     ///< For stats, how ofter was compute_heuristic called
 
+        Timing* timing;
+
     protected:
         enum
         {
@@ -58,6 +61,7 @@ class Heuristic
             return true;
         }
         unsigned long get_num_computations() const { return num_computations; }
+        void printTimingStats();
 };
 
 inline void Heuristic::set_waiting_time(double time_increment)

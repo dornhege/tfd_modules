@@ -22,7 +22,7 @@ class Statistics
       T getMin() const { return _min; }
       T getMax() const { return _max; }
 
-      void print(const double factor=1.0) const;
+      void print(const double factor=1.0, const char* unit = "") const;
 
    protected:
       T _sumMeasurements;
@@ -87,12 +87,12 @@ int Statistics<T>::getNumMeasurements() const
 }
 
 template <class T>
-void Statistics<T>::print(const double factor) const
+void Statistics<T>::print(const double factor, const char* unit) const
 {
     if(strlen(_name) == 0)
-        printf("Mean %.2f Std: %.2f (Num: %.0f)\n", getMean()*factor, getStandardDeviation()*factor, _numMeasurements);
+        printf("Mean %.3f %s Std: %.3f %s (Num: %.0f)\n", getMean()*factor, unit, getStandardDeviation()*factor, unit, _numMeasurements);
     else
-        printf("%s: Mean %.2f Std: %.2f (Num: %.0f)\n", _name, getMean()*factor, getStandardDeviation()*factor, _numMeasurements);
+        printf("%s: Mean %.3f %s Std: %.3f %s (Num: %.0f)\n", _name, getMean()*factor, unit, getStandardDeviation()*factor, unit, _numMeasurements);
 }
 
 #endif

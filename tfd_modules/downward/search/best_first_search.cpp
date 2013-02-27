@@ -79,6 +79,11 @@ void BestFirstSearchEngine::statistics(time_t & current_time)
         cout << " " << heur->get_num_computations();
     }
     cout << " Total: " << totalHeuristicComputations << endl;
+    cout << "Heuristic calculation times (per heuristic):" << endl;
+    for(unsigned int i = 0; i < heuristics.size(); ++i) {
+        Heuristic *heur = heuristics[i];
+        heur->printTimingStats();
+    }
     cout << "Best heuristic value: " << best_heuristic_values[0] << endl << endl;
     //    cout << "Best state:" << endl;
     //    const TimeStampedState &state = *best_states[0];

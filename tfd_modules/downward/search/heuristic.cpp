@@ -7,6 +7,7 @@ Heuristic::Heuristic()
 {
     heuristic = NOT_INITIALIZED;
     num_computations = 0;
+    timing = NULL;
 }
 
 Heuristic::~Heuristic()
@@ -31,11 +32,18 @@ void Heuristic::set_preferred(const Operator *op)
 
 double Heuristic::evaluate(const TimeStampedState &state)
 {
-
     if(heuristic == NOT_INITIALIZED)
         initialize();
     preferred_operators.clear();
+
+    if(timing == NULL) {
+        timing = new Timing("");
+    } else {
+        timing->start();
+    }
+
     heuristic = compute_heuristic(state);
+    timing->end();
     num_computations++;
     assert(heuristic == DEAD_END || heuristic >= 0);
 
@@ -80,3 +88,9 @@ void Heuristic::get_preferred_operators(std::vector<const Operator *> &result)
     result.insert(result.end(), preferred_operators.begin(),
             preferred_operators.end());
 }
+
+void Heuristic::printTimingStats()
+{
+    timing->printStats();
+}
+
