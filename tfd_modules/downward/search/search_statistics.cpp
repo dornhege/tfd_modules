@@ -51,21 +51,25 @@ void SearchStatistics::dump(unsigned int closedListSize, time_t & current_time)
 {
     double dt = current_time - lastDumpTime;
     double dTotal = current_time - startTime;
+    if(dt == 0)
+        dt = -1.0;
+    if(dTotal == 0)
+        dTotal = -1.0;
 
     cout << "Expanded Nodes: " << closedListSize << " state(s)." << endl;
     double dClosedList = closedListSize - lastDumpClosedListSize;
-    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dClosedList/dt, dt,
-            double(closedListSize)/dTotal);
+    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dClosedList/dt,
+            (dt > 0 ? dt : 0), double(closedListSize)/dTotal);
 
     cout << "Generated Nodes: " << generated_states << " state(s)." << endl;
     double dGeneratedNodes = generated_states - lastDumpGeneratedStates;
-    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dGeneratedNodes/dt, dt,
-            double(generated_states)/dTotal);
+    printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n", dGeneratedNodes/dt,
+            (dt > 0 ? dt : 0), double(generated_states)/dTotal);
 
     cout << "Generated Nodes due to live branching: " << generated_live_branched_states << " state(s)." << endl;
     double dGenerated_live_branchedNodes = generated_live_branched_states - lastDumpGeneratedLiveBranchedStates;
     printf("Rate: %.1f Nodes/s (over %.1fs) %.1f Nodes/s (total average)\n",
-            dGenerated_live_branchedNodes/dt, dt,
+            dGenerated_live_branchedNodes/dt, (dt > 0 ? dt : 0),
             double(generated_live_branched_states)/dTotal);
 
     cout << "Overall branching factor by list sizes: " << ((generated_states + generated_live_branched_states)/ (double) closedListSize) << endl;
