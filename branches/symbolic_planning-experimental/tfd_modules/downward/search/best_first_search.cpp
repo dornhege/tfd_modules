@@ -57,6 +57,7 @@ void BestFirstSearchEngine::add_heuristic(Heuristic *heuristic,
 
 void BestFirstSearchEngine::initialize()
 {
+    last_stat_time = time(NULL);
     assert(!open_lists.empty());
 }
 
@@ -209,7 +210,6 @@ SearchEngine::status BestFirstSearchEngine::step()
     }
 
     time_t current_time = time(NULL);
-    last_stat_time = current_time;
     if(g_parameters.verbose && current_time - last_stat_time >= g_parameters.verbosePrintTime) {
         statistics(current_time);
         last_stat_time = current_time;
