@@ -89,6 +89,7 @@ set(search_HEADERS
    downward/search/scheduler.h
    downward/search/search_engine.h
    downward/search/search_statistics.h
+   downward/search/timing.h
    downward/search/state.h
    downward/search/successor_generator.h)
    
@@ -111,6 +112,7 @@ set(search_SOURCES
    downward/search/scheduler.cpp
    downward/search/search_engine.cpp
    downward/search/search_statistics.cpp
+   downward/search/timing.cpp
    downward/search/analysis.cpp
    downward/search/state.cpp
    downward/search/successor_generator.cpp)
