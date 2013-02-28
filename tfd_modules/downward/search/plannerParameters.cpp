@@ -47,6 +47,8 @@ PlannerParameters::PlannerParameters()
     makespan_heuristic = false;
     makespan_heuristic_preferred_operators = false;
     no_heuristic = false;
+    greedy_apply_heuristic = false;
+    greedy_apply_heuristic_preferred_operators = false;
 
     cg_heuristic_zero_cost_waiting_transitions = true;
     cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state = false;
@@ -87,7 +89,7 @@ bool PlannerParameters::readParameters(int argc, char** argv)
     ret &= readROSParameters();
     ret &= readCmdLineParameters(argc, argv);
 
-    if(!cyclic_cg_heuristic && !makespan_heuristic && !no_heuristic) {
+    if(!cyclic_cg_heuristic && !makespan_heuristic && !no_heuristic && !greedy_apply_heuristic) {
         if(planMonitorFileName.empty()) {   // for monitoring this is irrelevant
             cerr << "Error: you must select at least one heuristic!" << endl
                 << "If you are unsure, choose options \"yY\" / cyclic_cg_heuristic." << endl;
@@ -179,6 +181,8 @@ void PlannerParameters::dump() const
     cout << "Makespan heuristic: " << (makespan_heuristic ? "Enabled" : "Disabled")
         << " \tPreferred Operators: " << (makespan_heuristic_preferred_operators ? "Enabled" : "Disabled") << endl;
     cout << "No Heuristic: " << (no_heuristic ? "Enabled" : "Disabled") << endl;
+    cout << "Greedy Apply heuristic: " << (greedy_apply_heuristic ? "Enabled" : "Disabled")
+        << " \tPreferred Operators: " << (greedy_apply_heuristic_preferred_operators ? "Enabled" : "Disabled") << endl;
     cout << "Cg Heuristic Zero Cost Waiting Transitions: "
         << (cg_heuristic_zero_cost_waiting_transitions ? "Enabled" : "Disabled") << endl;
     cout << "Cg Heuristic Fire Waiting Transitions Only If Local Problems Matches State: "
@@ -321,6 +325,9 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("makespan_heuristic", makespan_heuristic, makespan_heuristic);
     nhPriv.param("makespan_heuristic_preferred_operators", makespan_heuristic_preferred_operators, 
             makespan_heuristic_preferred_operators);
+    nhPriv.param("greedy_apply_heuristic", greedy_apply_heuristic, greedy_apply_heuristic);
+    nhPriv.param("greedy_apply_heuristic_preferred_operators",
+            greedy_apply_heuristic_preferred_operators, greedy_apply_heuristic_preferred_operators);
     nhPriv.param("no_heuristic", no_heuristic, no_heuristic);
 
     string gMode;

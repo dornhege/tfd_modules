@@ -81,6 +81,8 @@ class PlannerParameters
       bool makespan_heuristic;                     ///< Use makespan heuristic
       bool makespan_heuristic_preferred_operators; ///< Use makespan heuristic preferred operators
       bool no_heuristic;                           ///< Use the no heuristic
+      bool greedy_apply_heuristic;                 ///< Use the greedy apply heuristic
+      bool greedy_apply_heuristic_preferred_operators;  ///< Use greedy apply's preferred operators
 
       bool cg_heuristic_zero_cost_waiting_transitions;  ///< If false, scheduled effects are accounted
       bool cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state;

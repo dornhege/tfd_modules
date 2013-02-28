@@ -84,6 +84,7 @@ set(search_HEADERS
    downward/search/module.h
    downward/search/monitoring.h
    downward/search/no_heuristic.h
+   downward/search/greedy_apply_heuristic.h
    downward/search/operator.h
    downward/search/partial_order_lifter.h
    downward/search/scheduler.h
@@ -92,7 +93,7 @@ set(search_HEADERS
    downward/search/timing.h
    downward/search/state.h
    downward/search/successor_generator.h)
-   
+
 set(search_SOURCES
    downward/search/axioms.cpp
    downward/search/best_first_search.cpp
@@ -106,6 +107,7 @@ set(search_SOURCES
    downward/search/module.cpp
    downward/search/monitoring.cpp
    downward/search/no_heuristic.cpp
+   downward/search/greedy_apply_heuristic.cpp
    downward/search/operator.cpp
    downward/search/partial_order_lifter.cpp
    downward/search/planner.cpp

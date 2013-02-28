@@ -1,6 +1,7 @@
 #include "best_first_search.h"
 #include "cyclic_cg_heuristic.h"
 #include "no_heuristic.h"
+#include "greedy_apply_heuristic.h"
 #include "monitoring.h"
 
 #include "globals.h"
@@ -132,6 +133,10 @@ int main(int argc, char **argv)
             g_parameters.cyclic_cg_preferred_operators);
     if(g_parameters.no_heuristic)
         engine->add_heuristic(new NoHeuristic, g_parameters.no_heuristic, false);
+
+    if(g_parameters.greedy_apply_heuristic || g_parameters.greedy_apply_heuristic_preferred_operators)
+        engine->add_heuristic(new GreedyApplyHeuristic(), g_parameters.greedy_apply_heuristic,
+                g_parameters.greedy_apply_heuristic_preferred_operators);
 
     double best_makespan = REALLYBIG;
     times(&search_start);
