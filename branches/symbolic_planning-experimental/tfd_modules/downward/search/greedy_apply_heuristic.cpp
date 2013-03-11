@@ -32,8 +32,8 @@ double GreedyApplyHeuristic::compute_heuristic(const TimeStampedState &state)
         const Operator* best = NULL;
         double bestCost = HUGE_VAL;
         for(unsigned int i = 0; i < all_operators.size(); i++) {
-            if(all_operators[i]->is_applicable(current, true)) {
-                double cost = all_operators[i]->get_duration(&current, true);
+            if(all_operators[i]->is_applicable(current, 2)) {
+                double cost = all_operators[i]->get_duration(&current, 2);
                 if(cost < bestCost) {
                     bestCost = cost;
                     best = all_operators[i];

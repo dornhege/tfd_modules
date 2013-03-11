@@ -346,7 +346,7 @@ void Operator::dump() const
     cout << endl;
 }
 
-bool Operator::is_applicable(const TimeStampedState & state, bool allowRelaxed,
+bool Operator::is_applicable(const TimeStampedState & state, int allowRelaxed,
         TimedSymbolicStates* timedSymbolicStates, bool use_modules) const
 {
     if(g_parameters.disallow_concurrent_actions && !state.operators.empty())
@@ -528,7 +528,7 @@ bool Operator::writesOnSameVar(const vector<PrePost>& effs1, const vector<
     return false;
 }
 
-double Operator::get_duration(const TimeStampedState* state, bool relaxed, bool allow_module) const
+double Operator::get_duration(const TimeStampedState* state, int relaxed, bool allow_module) const
 {
     assert(duration_var >= 0);
     assert(state != NULL);

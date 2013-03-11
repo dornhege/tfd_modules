@@ -53,7 +53,7 @@ void TimeStampedState::apply_module_effect(string internal_name, const Operator*
 }
 
 TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
-    const Operator &op, bool relaxed) :
+    const Operator &op, int relaxed) :
         state(predecessor.state),
         scheduled_effects(predecessor.scheduled_effects),
         conds_over_all(predecessor.conds_over_all),

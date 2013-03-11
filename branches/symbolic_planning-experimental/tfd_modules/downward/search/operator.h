@@ -121,7 +121,7 @@ class Operator
          * \param [in] allow_module if false and the duration is determined by a module, 
          *      do NOT call the module and return 0.0
          */
-        double get_duration(const TimeStampedState* state, bool relaxed, bool allow_module = true) const;
+        double get_duration(const TimeStampedState* state, int relaxed, bool allow_module = true) const;
 
         /// Compute applicability of this operator in state.
         /**
@@ -129,7 +129,7 @@ class Operator
          * \param [out] timedSymbolicStates if not NULL the timedSymbolicStates will be computed
          * \param [in] use_modules if false, module prevails will not be checked and assumed true
          */
-        bool is_applicable(const TimeStampedState & state, bool allowRelaxed,
+        bool is_applicable(const TimeStampedState & state, int allowRelaxed,
             TimedSymbolicStates* timedSymbolicStates = NULL, bool use_modules = true) const;
 
         bool isDisabledBy(const Operator* other) const;

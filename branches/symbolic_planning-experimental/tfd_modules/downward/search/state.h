@@ -410,7 +410,7 @@ class TimeStampedState
 
         TimeStampedState(istream &in);
         // apply an operator
-        TimeStampedState(const TimeStampedState &predecessor, const Operator &op, bool relaxed);
+        TimeStampedState(const TimeStampedState &predecessor, const Operator &op, int relaxed);
         // let time pass without applying an operator
         TimeStampedState let_time_pass(
             bool go_to_intermediate_between_now_and_next_happening,     // usually false
