@@ -49,6 +49,7 @@ PlannerParameters::PlannerParameters()
     no_heuristic = false;
     greedy_apply_heuristic = false;
     greedy_apply_heuristic_preferred_operators = false;
+    greedy_apply_heuristic_max_depth = 0;
 
     cg_heuristic_zero_cost_waiting_transitions = true;
     cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state = false;
@@ -182,7 +183,7 @@ void PlannerParameters::dump() const
         << " \tPreferred Operators: " << (makespan_heuristic_preferred_operators ? "Enabled" : "Disabled") << endl;
     cout << "No Heuristic: " << (no_heuristic ? "Enabled" : "Disabled") << endl;
     cout << "Greedy Apply heuristic: " << (greedy_apply_heuristic ? "Enabled" : "Disabled")
-        << " \tPreferred Operators: " << (greedy_apply_heuristic_preferred_operators ? "Enabled" : "Disabled") << endl;
+        << " \tPreferred Operators: " << (greedy_apply_heuristic_preferred_operators ? "Enabled" : "Disabled") << " Max Depth: " << greedy_apply_heuristic_max_depth << endl;
     cout << "Cg Heuristic Zero Cost Waiting Transitions: "
         << (cg_heuristic_zero_cost_waiting_transitions ? "Enabled" : "Disabled") << endl;
     cout << "Cg Heuristic Fire Waiting Transitions Only If Local Problems Matches State: "
@@ -328,6 +329,8 @@ bool PlannerParameters::readROSParameters()
     nhPriv.param("greedy_apply_heuristic", greedy_apply_heuristic, greedy_apply_heuristic);
     nhPriv.param("greedy_apply_heuristic_preferred_operators",
             greedy_apply_heuristic_preferred_operators, greedy_apply_heuristic_preferred_operators);
+    nhPriv.param("greedy_apply_heuristic_max_depth",
+            greedy_apply_heuristic_max_depth, greedy_apply_heuristic_max_depth);
     nhPriv.param("no_heuristic", no_heuristic, no_heuristic);
 
     string gMode;

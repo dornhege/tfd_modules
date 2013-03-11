@@ -83,6 +83,7 @@ class PlannerParameters
       bool no_heuristic;                           ///< Use the no heuristic
       bool greedy_apply_heuristic;                 ///< Use the greedy apply heuristic
       bool greedy_apply_heuristic_preferred_operators;  ///< Use greedy apply's preferred operators
+      int greedy_apply_heuristic_max_depth;         ///< Stop with current costs after search this many steps
 
       bool cg_heuristic_zero_cost_waiting_transitions;  ///< If false, scheduled effects are accounted
       bool cg_heuristic_fire_waiting_transitions_only_if_local_problems_matches_state;

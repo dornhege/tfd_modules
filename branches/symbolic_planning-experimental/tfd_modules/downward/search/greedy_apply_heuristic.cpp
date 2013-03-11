@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "operator.h"
 #include "state.h"
+#include "successor_generator.h"
+#include "plannerParameters.h"
 
 using namespace std;
 
@@ -22,18 +24,23 @@ double GreedyApplyHeuristic::compute_heuristic(const TimeStampedState &state)
     // greedily apply the cheapest op
     // the WILL be an infinite loop if there are cycles in the domain!
     bool first = true;
+    unsigned int depth = 0;
     while(true) {
-        Operator* best = NULL;
+        vector<const Operator *> all_operators;
+        g_successor_generator->generate_applicable_ops(current, all_operators);
+
+        const Operator* best = NULL;
         double bestCost = HUGE_VAL;
-        for(unsigned int i = 0; i < g_operators.size(); i++) {
-            if(g_operators[i].is_applicable(current, true)) {
-                double cost = g_operators[i].get_duration(&current, true);
+        for(unsigned int i = 0; i < all_operators.size(); i++) {
+            if(all_operators[i]->is_applicable(current, true)) {
+                double cost = all_operators[i]->get_duration(&current, true);
                 if(cost < bestCost) {
                     bestCost = cost;
-                    best = &g_operators[i];
+                    best = all_operators[i];
                 }
             }
         }
+
         if(best == NULL)    // could not apply any more
             break;
         if(first) {
@@ -41,7 +48,14 @@ double GreedyApplyHeuristic::compute_heuristic(const TimeStampedState &state)
             set_preferred(best);    // the cheapest one is preferred
         }
         totalCost += bestCost;
-        current = TimeStampedState(current, *best, true);
+
+        depth ++;
+        if(g_parameters.greedy_apply_heuristic_max_depth >= 0 &&
+                depth > g_parameters.greedy_apply_heuristic_max_depth) {
+            break;
+        }
+
+        current = TimeStampedState(current, *best, true).let_time_pass(false, true, false);
     }
 
     // cost 0.0 means no operator applicable
