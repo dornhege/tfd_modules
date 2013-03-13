@@ -10,6 +10,7 @@
 #include "ros_printouts.h"
 #include <boost/foreach.hpp>
 #define forEach BOOST_FOREACH
+#include <fstream>
 
 #include <cassert>
 #include <cmath>
@@ -17,6 +18,7 @@
 using namespace std;
 
 static const bool DEBUG_GENERATE_SUCCESSORS = false;
+static const bool RECORD_MEM_USAGE_STATS = true;
 
 OpenListInfo::OpenListInfo(Heuristic *heur, bool only_pref)
 {
@@ -65,6 +67,23 @@ void BestFirstSearchEngine::statistics(time_t & current_time)
 {
     cout << endl;
     cout << "Search Time: " << (current_time - start_time) << " sec." << endl;
+    if(RECORD_MEM_USAGE_STATS) {
+        pid_t pid = getpid();
+        char stat_file[1024];
+        snprintf(stat_file, 1023, "/proc/%d/stat", pid);
+        std::ifstream stat(stat_file, std::ifstream::in);
+        if(stat.good()) {
+            unsigned int VSIZE = 22;
+            std::string tmp;
+            for(unsigned int i = 0; i < VSIZE; i++) {
+                stat >> tmp;
+            }
+            unsigned int vsize;
+            stat >> vsize;
+            cout << "Virtual Memory: " << vsize/1024 << " kb" << endl;
+            stat.close();   // FIXME check for hangs
+        }
+    }
     search_statistics.dump(closed_list.size(), current_time);
     cout << "OpenList sizes:";
     for(unsigned int i = 0; i < open_lists.size(); ++i) {
