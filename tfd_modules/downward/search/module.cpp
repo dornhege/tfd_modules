@@ -260,6 +260,9 @@ FunctionMapping g_func_mapping;
 PredicateList g_pred_constants;
 NumericalFluentList g_func_constants;
 
+PredicateList g_pred_fluents;
+std::map<modules::Predicate*, VarVal> g_pred_all_mapping;
+
 PDDLModuleLoader *g_module_loader;
 
 // global interface functions
@@ -294,7 +297,14 @@ bool getPreds(PredicateList* & predicateList)
 
     if (predicateList == NULL) {
         //printf("creating PL\n");
+        update_predicate_all_mapping();
+        //predicateList = &g_pred_fluents;
+
+        // leave this for now as most modules will delete predicateList from old iface
         predicateList = new PredicateList();
+        *predicateList = g_pred_fluents;
+
+#if 0
         // fill predicate list with subs of all existing predicates
         for (PredicateMapping::iterator it = g_pred_mapping.begin(); it
                 != g_pred_mapping.end(); it++) {
@@ -324,6 +334,7 @@ bool getPreds(PredicateList* & predicateList)
         // constants are NOT grounded during preprocess!!
         predicateList->insert(predicateList->end(), g_pred_constants.begin(),
                 g_pred_constants.end());
+#endif
 
         return true;
     }
@@ -634,6 +645,116 @@ void read_constant_facts(istream& in)
     }
 
     check_magic(in, "end_constant_facts");
+}
+
+void prepare_predicate_all_mapping()
+{
+    // fill predicate list with subs of all existing predicates
+    for (PredicateMapping::iterator it = g_pred_mapping.begin(); it
+            != g_pred_mapping.end(); it++) {
+        string pred = it->first;
+
+        std::string token;
+        std::istringstream iss(pred);
+        string pName;
+        ParameterList params;
+        while (getline(iss, token, ' ')) {
+            if (pName.empty()) {
+                pName = token;
+                continue;
+            }
+            params.push_back(Parameter("", g_objectTypes[token], token));
+            //   std::cout << token << std::endl;
+        }
+        Predicate p(pName, params);
+        p.value = false;
+        g_pred_fluents.push_back(p);
+
+        //cout << "PREDMAP: \"" << pred << endl;
+    }
+    // add all constants to the predicate list. NOTE: only those predicates that are true in the initial state are added, because
+    // constants are NOT grounded during preprocess!!
+    g_pred_fluents.insert(g_pred_fluents.end(), g_pred_constants.begin(),
+            g_pred_constants.end());
+
+    // make the mapping now, when the pointers inside g_pred_fluents are valid and const
+    for (PredicateMapping::iterator it = g_pred_mapping.begin(); it
+            != g_pred_mapping.end(); it++) {
+        string pred = it->first;
+        int var = it->second.first;
+        int val = it->second.second;
+
+        std::string token;
+        std::istringstream iss(pred);
+        string pName;
+        ParameterList params;
+        while (getline(iss, token, ' ')) {
+            if (pName.empty()) {
+                pName = token;
+                continue;
+            }
+            params.push_back(Parameter("", g_objectTypes[token], token));
+            //   std::cout << token << std::endl;
+        }
+        // look for: Predicate p(pName, params); in g_pred_fluents
+        Predicate* matchedPredicate = NULL;
+        for(unsigned int i = 0; i < g_pred_fluents.size(); i++) {
+            Predicate & p = g_pred_fluents[i];
+            if(p.name != pName)
+                continue;
+            if(p.parameters.size() != params.size())
+                continue;
+            bool paramsMatch = true;
+            for(unsigned int i = 0; i < params.size(); i++) {
+                if(p.parameters[i].value != params[i].value) {
+                    paramsMatch = false;
+                    break;
+                }
+            }
+            if(paramsMatch) {
+                matchedPredicate = &p;
+                break;
+            }
+        }
+
+        if(matchedPredicate != NULL) {
+            VarVal vv = std::make_pair(var, val);
+            g_pred_all_mapping[matchedPredicate] = vv;
+        } else {
+            // Predicate(pName, params) must be a constant
+            bool isConstant = false;
+            for(unsigned int i = 0; i < g_pred_constants.size(); i++) {
+                Predicate & p = g_pred_constants[i];
+                if(p.name != pName)
+                    continue;
+                if(p.parameters.size() != params.size())
+                    continue;
+                bool paramsMatch = true;
+                for(unsigned int i = 0; i < params.size(); i++) {
+                    if(p.parameters[i].value != params[i].value) {
+                        paramsMatch = false;
+                        break;
+                    }
+                }
+                if(paramsMatch) {
+                    isConstant = true;
+                    break;
+                }
+            }
+            if(!isConstant) {
+                cout << __func__ << ": Could not match predicate " << pName << " params: " << params << " to anything" << endl;
+            }
+        }
+
+        //cout << "PREDMAP: \"" << pred << "\" var " << var << " val " << val << endl;
+    }
+}
+
+void update_predicate_all_mapping()
+{
+    for(std::map<Predicate*, VarVal>::iterator it = g_pred_all_mapping.begin(); it != g_pred_all_mapping.end(); it++) {
+        it->first->value = ((*g_modulecallback_state)[it->second.first] == it->second.second);
+    }
 }
 
 void read_oplinits(istream &in)

@@ -149,10 +149,15 @@ extern FunctionMapping g_func_mapping;
 extern modules::PredicateList g_pred_constants;
 extern modules::NumericalFluentList g_func_constants;
 
+extern PredicateList g_pred_fluents;
+extern std::map<modules::Predicate*, VarVal> g_pred_all_mapping;
+
 // callback functions
 void g_setModuleCallbackState(const TimeStampedState* currentState);
 bool getPreds(modules::PredicateList* & predicateList); // (*predicateCallbackType)
 bool getFuncs(modules::NumericalFluentList* & fluentList); // (*numericalFluentCallbackType)
+
+void update_predicate_all_mapping();
 
 // Module loader
 extern PDDLModuleLoader *g_module_loader;
@@ -160,6 +165,8 @@ extern PDDLModuleLoader *g_module_loader;
 // Parsing
 void read_pddl_translation(istream &in);
 void read_constant_facts(istream& in);
+void prepare_predicate_all_mapping();
+
 void read_modules(istream &in);
 
 void read_oplinits(istream &in);
