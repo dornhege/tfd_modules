@@ -145,6 +145,8 @@ void read_everything(istream &in)
     read_objects(in);
     read_pddl_translation(in);
     read_constant_facts(in);
+    prepare_predicate_all_mapping();
+
     read_modules(in);
 
     g_initial_state = new TimeStampedState(in);
