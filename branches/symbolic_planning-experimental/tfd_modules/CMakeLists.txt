@@ -162,6 +162,7 @@ ADD_DEFINITIONS(-DQT_NO_KEYWORDS)
 
 rosbuild_add_library(tfdm_interface
     interface/tfdm_interface.cpp
+    interface/tfdm_eval_interface.cpp
     interface/domainParser.cpp
     interface/planParser.cpp)
 target_link_libraries(tfdm_interface ${QT_LIBRARIES})
