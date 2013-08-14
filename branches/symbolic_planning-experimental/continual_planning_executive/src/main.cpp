@@ -399,8 +399,9 @@ int main(int argc, char** argv)
     bool executeDebug = parseOptions(argc, argv, debugAction);
 
     // clear module param cache
-    if(!executeDebug)
-        nh.deleteParam("tfd_modules/module_cache/putdown");
+    if(!executeDebug) {
+        nh.deleteParam("tfd_modules/module_cache");
+    }
 
     s_ContinualPlanning = new ContinualPlanning();
 
