@@ -143,6 +143,10 @@ namespace tfd_modules
             }
         }
 
+        // change out of the nicely set directories to prevent something (like monitoring) over-writing 
+        // data in the current run dir.
+        chdir("/tmp");
+
         return defaultResult;
     }
 
@@ -277,6 +281,9 @@ namespace tfd_modules
             ok = false;
             return ok;
         }
+
+        // this should be the same for all
+        ok &= safeCopy(_problemFileName, "problem.pddl");
 
         // Clean all intermediate data (plan.1/.best/.times), params???, other output files from modules
         // FIXME: done by changing to new dir.
