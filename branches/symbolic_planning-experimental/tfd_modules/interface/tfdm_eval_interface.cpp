@@ -20,6 +20,7 @@ namespace tfd_modules
     {
         // set params for module, etc.
         ros::NodeHandle nh("/tfd_modules");
+        nh.setParam("run_name", "lazy_eval_partial_caching");
         nh.setParam("lazy_state_module_evaluation", 1);
 
         // record all other settings
@@ -31,6 +32,7 @@ namespace tfd_modules
     {
         // set params for module, etc.
         ros::NodeHandle nh("/tfd_modules");
+        nh.setParam("run_name", "eager_eval_partial_caching");
         nh.setParam("lazy_state_module_evaluation", 0);
 
         // record all settings
@@ -58,7 +60,7 @@ namespace tfd_modules
 
         ros::NodeHandle nhConfig("/tfd_modules/eval");
         if(!nhConfig.getParam("eval_dir", evalOutputDir)) {
-            ROS_FATAL("TFDMEvalInterface: /tfd_modules/eval/evalDir was not set!");
+            ROS_FATAL("TFDMEvalInterface: /tfd_modules/eval/eval_dir was not set!");
             evalOutputDir = "/tmp";
         }
 
@@ -74,6 +76,7 @@ namespace tfd_modules
 
         evalOutputDir += buffer;
         ROS_INFO("evalOutputDir is %s", evalOutputDir.c_str());
+        nhConfig.setParam("eval_current_dir", evalOutputDir);
 
         int ret = mkdir(evalOutputDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if(ret != 0) {
