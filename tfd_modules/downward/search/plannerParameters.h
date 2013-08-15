@@ -62,7 +62,7 @@ class PlannerParameters
       bool analyzeDiscardedStatesByReason;
       bool analyzeLinkEqualStates;      ///< Draw a line between states that are equal (besides ts)
 
-      int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically
+      int lazy_state_module_evaluation;    ///< if > 0 evaluate modules lazy, if < 0 determine automatically, 0 evaluate eager
 
       /// if true, is_applicable checks for valid duration from cost modules
       /** if false the cost module for an applicable operator should always provide a valid cost

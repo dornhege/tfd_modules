@@ -27,6 +27,9 @@ namespace tfd_modules
             virtual PlannerResult monitor(const SymbolicState & init, const SymbolicState & goal, const Plan & plan);
  
         protected:
+            virtual PlannerResult callPlanner(const std::string & domain, const std::string & problem,
+                   const std::string & planNamePrefix);
+
             bool setupRuns();
             bool setupRun(const string & runName);
             bool recordRun();
