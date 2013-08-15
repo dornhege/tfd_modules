@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Default start script without parameters. Parameters should be set on param server.
+# Default start script without parameters for logging output. Parameters should be set on param server.
 #
-# Parameters: domain problem other/ros-paramters
+# Parameters: domain problem logfile other/ros-paramters
 #
 # domain problem     should be PDDL files
 
@@ -20,6 +20,11 @@ echo Output Dir $OUTPUT_DIR
 ROS_PARAMS=$*
 echo ROS parameters: $ROS_PARAMS
 echo
+
+if [ -z $OUTPUT_LOG ]; then
+    echo No output logfile defined!
+    exit 1
+fi
 
 
 rosrun tfd_modules translate.py "$DOMAIN" "$PROBLEM" > ${OUTPUT_DIR}/output.sas
@@ -44,7 +49,7 @@ fi
 
 echo
 
-rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output 2>&1 | tee "$OUTPUT_LOG"
+rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output | tee "$OUTPUT_LOG"
 
 # get retval from tfd_search, not from tee (if used)
 RETVAL=${PIPESTATUS[0]}
@@ -55,7 +60,7 @@ if [ $RETVAL != 0 ]; then
       echo "TIMEOUT"
       exit 137
    fi
-   echo "SEARCH UNSUCCESSFULL"
+   echo "SEARCH UNSUCCESSFULL $RETVAL"
    exit 41
 else
 	echo "SEARCH SUCCESSFULL"

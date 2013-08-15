@@ -40,11 +40,11 @@ namespace tfd_modules
             }
 
         protected:
-            bool writeProblem(const SymbolicState & init, const SymbolicState & goal) const;
+            virtual bool writeProblem(const SymbolicState & init, const SymbolicState & goal) const;
 
-            PlannerResult callPlanner(const std::string & domain, const std::string & problem,
+            virtual PlannerResult callPlanner(const std::string & domain, const std::string & problem,
                    const std::string & planNamePrefix);
-            PlannerResult callMonitoring(const std::string & domain, const std::string & problem,
+            virtual PlannerResult callMonitoring(const std::string & domain, const std::string & problem,
                    const std::string & planNamePrefix);
 
         protected:
