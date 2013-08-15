@@ -95,6 +95,10 @@ namespace tfd_modules
             ROS_FATAL("Failed to setup runs.");
         }
 
+        if(!recordProblemData(init)) {
+            ROS_ERROR("Failed to record problem data");
+        }
+
         PlannerResult defaultResult = PR_FAILURE_OTHER;
 
         for(map<string, setupRunFunction>::iterator it = runs.begin(); it != runs.end(); it++) {
@@ -133,10 +137,6 @@ namespace tfd_modules
                         defaultResult = PR_FAILURE_OTHER;
                     }
                 }
-            }
-
-            if(!recordRun()) {
-                ROS_ERROR("Failed to record run data");
             }
         }
 
@@ -246,8 +246,6 @@ namespace tfd_modules
             return ok;
         }
 
-        safeCopy(_problemFileName, "problem.pddl");
-
         return ok;
     }
 
@@ -283,22 +281,43 @@ namespace tfd_modules
         return ok;
     }
 
-    bool TFDMEvalInterface::recordRun()
+    bool TFDMEvalInterface::recordProblemData(const SymbolicState & init)
     {
         bool ok = true;
-        // save all relevant debug data for the run + overall stuff
-        // FIXME: Is this necessary or is all in a dir?
-        // maybe write stuff from the input/goal like num objects.
+
+        ok &= safeCopy(_problemFileName, "problem.pddl");
+
+        // record how many objects there are per type
+        map<string, int> numObjectsMap;
+        // type -> object
+        for(SymbolicState::TypedObjectConstIterator it = init.getTypedObjects().begin();
+                it != init.getTypedObjects().end(); it++) {
+            if(numObjectsMap.find(it->first) == numObjectsMap.end()) {
+                numObjectsMap[it->first] = 1;
+            } else {
+                numObjectsMap[it->first]++;
+            }
+        }
+
+        ofstream probData("problem.data");
+        ok &= probData.good();
+        for(map<string, int>::iterator it = numObjectsMap.begin(); it != numObjectsMap.end(); it++) {
+            probData << it->first << " " << it->second << endl;
+        }
+        probData.close();
+
         return ok;
     }
 
-    void TFDMEvalInterface::safeCopy(const string & from, const string & to)
+    bool TFDMEvalInterface::safeCopy(const string & from, const string & to)
     {
         string cmd = "cp " + from + " " + to;
         int ret = system(cmd.c_str());
         if(ret != 0) {
             ROS_ERROR("%s: Error %d when calling \"%s\".", __func__, ret, cmd.c_str());
+            return false;
         }
+        return true;
     }
 
 };
