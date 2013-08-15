@@ -32,9 +32,10 @@ namespace tfd_modules
 
             bool setupRuns();
             bool setupRun(const string & runName);
-            bool recordRun();
+            bool recordProblemData(const SymbolicState & init);
 
-            void safeCopy(const string & from, const string & to);
+            /// safe as in: will spit out errors on failure
+            bool safeCopy(const string & from, const string & to);
 
         protected:
             int callNumber;
