@@ -2,6 +2,7 @@
 #define PLAN_EXECUTOR_H
 
 #include <set>
+#include <fstream>
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/plan.h"
 #include "continual_planning_executive/actionExecutorInterface.h"
@@ -21,9 +22,15 @@ class PlanExecutor
         void cancelAllActions();
 
     protected:
+        void checkActionTimesFile();
+
+    protected:
         bool _onlyExecuteActionAtZeroTime;    ///< if false any action will be executed that an actionexecutor wants to
 
         deque<continual_planning_executive::ActionExecutorInterface*> _actionExecutors;
+
+        bool _recordActionTimes;
+        std::ofstream _actionTimesFile;
 };
 
 #endif
