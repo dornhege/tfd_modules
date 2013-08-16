@@ -125,6 +125,10 @@ namespace tfd_modules
             ROS_INFO("Performing planner call for: %s", it->first.c_str());
             PlannerResult result = callPlanner(this->_domainFile, _problemFileName, planNamePrefix);
 
+            if(system("rosparam dump planner_params_after_run.yaml /tfd_modules") != 0) {
+                ROS_ERROR("Failed to dump planner_params after run");
+            }
+
             if(it->first == defaultRun) {   // actually use this one for plan + result
                 std::string planName = planNamePrefix + ".best";
 
