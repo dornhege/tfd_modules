@@ -195,6 +195,14 @@ int main(int argc, char **argv)
         }
     }
 
+    // for outputting statistics, etc.
+    ROS_INFO("Forcing exit modules at end with empty plan.");
+    g_setModuleCallbackState(NULL);
+    modules::RawPlan empty_raw_plan;
+    for(vector<ExitModule*>::iterator it = g_exit_modules.begin(); it != g_exit_modules.end(); it++) {
+        (*it)->execExit(empty_raw_plan, plan_number + 1000);
+    }
+
     double search_time_wall = search_end_walltime - search_start_walltime;
     double total_time_wall = search_end_walltime - start_walltime;
 
