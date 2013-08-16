@@ -41,10 +41,16 @@ namespace tfd_modules
         //_domain.dumpTree();
 
         std::stringstream ss;
+        std::stringstream ssExit;
         for(std::vector<std::string>::const_iterator it = options.begin(); it != options.end(); it++) {
-            ss << *it << " ";
+            if(it->find("exit") != string::npos) {
+                ssExit << *it << " ";
+            } else {
+                ss << *it << " ";
+            }
         }
         setModuleOptions(ss.str());
+        setModuleExitOptions(ssExit.str());
     }
 
     bool TFDMInterface::writeProblem(const SymbolicState & init, const SymbolicState & goal) const
@@ -57,6 +63,7 @@ namespace tfd_modules
         f << "(define (problem p01)\n";
         f << "  (:domain " << _domainName << ")\n";
         f << "  (:moduleoptions " << _moduleOptions << ")\n";
+        f << "  (:moduleexitoptions " << _moduleExitOptions<< ")\n";
 
         init.toPDDLProblem(f);
         goal.toPDDLGoal(f);

@@ -38,6 +38,9 @@ namespace tfd_modules
             void setModuleOptions(const std::string & options) {
                 _moduleOptions = options;
             }
+            void setModuleExitOptions(const std::string & options) {
+                _moduleExitOptions = options;
+            }
 
         protected:
             virtual bool writeProblem(const SymbolicState & init, const SymbolicState & goal) const;
@@ -52,6 +55,7 @@ namespace tfd_modules
             std::string _domainName;
             std::string _problemFileName;
             std::string _moduleOptions;
+            std::string _moduleExitOptions;
     };
 
 };
