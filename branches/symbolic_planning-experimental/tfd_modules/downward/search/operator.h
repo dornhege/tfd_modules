@@ -105,6 +105,10 @@ class Operator
          * \param [in, out] parameters if grounding added parameters to the operator's name
          *      those are added to parameters. It should be the case that all parameters
          *      up to that point are the same in parameters and the operator's name.
+         *      FIXME: Must this be true at all or is it sufficient to just add the grounded
+         *      parameter. Maybe a module wants other params like a subset or different order.
+         *      Maybe a module wants to ignore the grounded param? Better add ?grounding tag in
+         *      param descriptions?
          */
         void addGroundParameters(modules::ParameterList & parameters) const;
 

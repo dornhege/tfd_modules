@@ -258,6 +258,9 @@ int Operator::getNumBranches(const TimeStampedState* state) const
 
 void Operator::addGroundParameters(modules::ParameterList & parameters) const
 {
+    if(grounding_parent == NULL)    // this op was never partially grounded -> no need to add params
+        return;
+
     // add grounding param from op name
     std::string name = get_name();     // drive loc1 loc2
     std::vector<string> parts = StringUtil::split(name, " ");
