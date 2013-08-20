@@ -27,7 +27,7 @@
         (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
             (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
             effect updatePutdownPose@libputdown_modules.so)
-        (wipePointFree ?w - wipe_point ?g - manipulation_location conditionchecker wipePointFree@libputdown_modules.so)
+        (wipePointFree ?w - wipe_point ?g - manipulation_location ?s - static_object conditionchecker wipePointFree@libputdown_modules.so)
     )
 
     (:constants
@@ -142,7 +142,7 @@
         (and
             (at start (at-base ?l))
             ;(at start (static-object-clear ?s))
-            (at start ([wipePointFree ?w ?l]))
+            (at start ([wipePointFree ?w ?l ?s]))
             (at start (grasped-sponge ?a))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
