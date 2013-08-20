@@ -27,6 +27,7 @@
         (updatePutdownPose ?o - movable_object ?a - arm ?s - static_object ?g - manipulation_location
             (x ?o) (y ?o) (z ?o) (qx ?o) (qy ?o) (qz ?o) (qw ?o)
             effect updatePutdownPose@libputdown_modules.so)
+        (wipePointFree ?w - wipe_point ?g - manipulation_location conditionchecker wipePointFree@libputdown_modules.so)
     )
 
     (:constants
@@ -60,6 +61,7 @@
         ; wipe 
         (wipe-point-on ?w - wipe_point ?o - static_object)
         (wiped ?w - wipe_point)
+        (wipe-point-blocked ?w - wipe_point ?o - movable_object)
     )
 
     (:functions
@@ -139,7 +141,8 @@
         :condition
         (and
             (at start (at-base ?l))
-            (at start (static-object-clear ?s))
+            ;(at start (static-object-clear ?s))
+            (at start ([wipePointFree ?w ?l]))
             (at start (grasped-sponge ?a))
             (at start (recent-detected-objects ?l))
             (at start (arms-drive-pose))
@@ -382,28 +385,28 @@
         (exists (?s - static_object) (and (tidy-location ?o ?s) (on ?o ?s)))
     )
 
-    ; 2. There is no tidy location defined for ?o (i.e. we don't need to tidy it)
-    (:derived
-        (tidy ?o - movable_object)
-        ; we don't want it tidy
-        (not (exists (?s - static_object) (tidy-location ?o ?s)))
-    )
-
-    ; 3. There is no way that we can get the object grasped, so we need not bother tidying this
-    (:derived
-        (tidy ?o - movable_object)
-        ; no way to get grasped means none of those:
-        (and
-            ; It is not already grasped
-            (not (exists (?a - arm) (grasped ?o ?a)))
-
-            ; It is not graspable from any location
-            (not (exists (?a - arm)                                     ; there is some arm and
-                (exists (?l - manipulation_location)                           ; some location so that
-                    (graspable-from ?o ?l ?a))                          ; we can somehow grasp the object
-                )
-            )
-        )
-    )
+;    ; 2. There is no tidy location defined for ?o (i.e. we don't need to tidy it)
+;    (:derived
+;        (tidy ?o - movable_object)
+;        ; we don't want it tidy
+;        (not (exists (?s - static_object) (tidy-location ?o ?s)))
+;    )
+;
+;    ; 3. There is no way that we can get the object grasped, so we need not bother tidying this
+;    (:derived
+;        (tidy ?o - movable_object)
+;        ; no way to get grasped means none of those:
+;        (and
+;            ; It is not already grasped
+;            (not (exists (?a - arm) (grasped ?o ?a)))
+;
+;            ; It is not graspable from any location
+;            (not (exists (?a - arm)                                     ; there is some arm and
+;                (exists (?l - manipulation_location)                           ; some location so that
+;                    (graspable-from ?o ?l ?a))                          ; we can somehow grasp the object
+;                )
+;            )
+;        )
+;    )
 )
 
