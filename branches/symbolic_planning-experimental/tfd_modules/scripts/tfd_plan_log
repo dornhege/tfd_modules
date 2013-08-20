@@ -49,7 +49,7 @@ fi
 
 echo
 
-rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output | tee "$OUTPUT_LOG"
+rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output 2>&1 | tee "$OUTPUT_LOG"
 
 # get retval from tfd_search, not from tee (if used)
 RETVAL=${PIPESTATUS[0]}
