@@ -98,6 +98,19 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
     }
 
+    // Update start module effects before logical effects to
+    // give the module the correct logical predecessor for callbacks
+    // TODO better give the predecessor as module_callback state and apply to this
+    // Same goes for scheduled effects and let_time_pass
+    for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
+        const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
+        assert(mod_eff.cond_end.size() == 0);
+        if(mod_eff.does_fire(predecessor, &op, relaxed)) {
+            printf("START apply_module_effect\n");
+            apply_module_effect(mod_eff.module->internal_name, &op, relaxed);
+        }
+    }
+
     // Update values affected by an at-start effect of the operator.
     for(int i = 0; i < op.get_pre_post_start().size(); i++) {
         const PrePost &pre_post = op.get_pre_post_start()[i];
@@ -111,20 +124,29 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
     }
 
-    // Update start module effects
-    for(int i = 0; i < op.get_mod_effs_start().size(); ++i) {
-        const ModuleEffect &mod_eff = op.get_mod_effs_start()[i];
-        assert(mod_eff.cond_end.size() == 0);
-        if(mod_eff.does_fire(predecessor, &op, relaxed)) {
-            apply_module_effect(mod_eff.module->internal_name, &op, relaxed);
-        }
-    }
-
     g_axiom_evaluator->evaluate(*this);
 
     // The values of the new state are obtained by applying all
     // effects scheduled in the predecessor state until the new time
     // stamp and subsequently applying axioms
+
+    // Again apply module effects first
+    for(int i = 0; i < scheduled_module_effects.size(); i++) {
+        ScheduledModuleEffect &eff = scheduled_module_effects[i];
+        if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
+                         satisfies(eff.cond_end, eff.parent_op, relaxed)) {
+            printf("Scheduled apply_module_effect\n");
+            apply_module_effect(eff.module->internal_name, eff.parent_op, relaxed);
+        }
+        if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
+            scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
+            i--;
+        } else {
+            eff.time_increment -= sep;
+        }
+    }
+
+    // and add logical ones
     for(int i = 0; i < scheduled_effects.size(); i++) {
         ScheduledEffect &eff = scheduled_effects[i];
         if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
@@ -133,21 +155,6 @@ TimeStampedState::TimeStampedState(const TimeStampedState &predecessor,
         }
         if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
             scheduled_effects.erase(scheduled_effects.begin() + i);
-            i--;
-        } else {
-            eff.time_increment -= sep;
-        }
-    }
-
-    // same for module effects
-    for(int i = 0; i < scheduled_module_effects.size(); i++) {
-        ScheduledModuleEffect &eff = scheduled_module_effects[i];
-        if((eff.time_increment + g_parameters.epsTimeComparison < sep) &&
-                         satisfies(eff.cond_end, eff.parent_op, relaxed)) {
-            apply_module_effect(eff.module->internal_name, eff.parent_op, relaxed);
-        }
-        if(eff.time_increment + g_parameters.epsTimeComparison < sep) {
-            scheduled_module_effects.erase(scheduled_module_effects.begin() + i);
             i--;
         } else {
             eff.time_increment -= sep;
@@ -246,20 +253,22 @@ TimeStampedState TimeStampedState::let_time_pass(
         // The values of the new state are obtained by applying all
         // effects scheduled in the predecessor state for the new time
         // stamp and subsequently applying axioms
-        for(int i = 0; i < scheduled_effects.size(); i++) {
-            const ScheduledEffect &eff = scheduled_effects[i];
-            if((eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
-                succ.satisfies(eff.cond_end, eff.parent_op, relaxed)) {
-                succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
-            }
-        }
 
-        // Apply module effects as well!
+        // Apply module effects before
         for(int i = 0; i < scheduled_module_effects.size(); i++) {
             const ScheduledModuleEffect &mod_eff = scheduled_module_effects[i];
             if((mod_eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
                     succ.satisfies(mod_eff.cond_end, mod_eff.parent_op, relaxed)) {
                 succ.apply_module_effect(mod_eff.module->internal_name, mod_eff.parent_op, relaxed);
+            }
+        }
+
+        // Apply logical effects as well!
+        for(int i = 0; i < scheduled_effects.size(); i++) {
+            const ScheduledEffect &eff = scheduled_effects[i];
+            if((eff.time_increment < time_diff + g_parameters.epsTimeComparison) &&
+                succ.satisfies(eff.cond_end, eff.parent_op, relaxed)) {
+                succ.apply_effect(eff.var, eff.fop, eff.var_post, eff.post);
             }
         }
 
