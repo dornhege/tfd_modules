@@ -132,6 +132,7 @@
             (at end (not (searched ?l)))
             (at end (not (recent-detected-objects ?l)))
             (at end (graspable-from ?o ?l ?a))
+            (forall (?_a - arm) (at end (graspable-from ?o ?l ?_a)))
         )
     )
 
