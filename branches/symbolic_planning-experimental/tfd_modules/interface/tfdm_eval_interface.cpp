@@ -149,7 +149,9 @@ namespace tfd_modules
 
         // change out of the nicely set directories to prevent something (like monitoring) over-writing 
         // data in the current run dir.
-        chdir("/tmp");
+        if(chdir("/tmp") != 0) {
+            ROS_WARN("%s: changing to /tmp failed.", __func__);
+        }
 
         return defaultResult;
     }
