@@ -650,7 +650,10 @@ void BestFirstSearchEngine::insert_successor(const Operator* op, OpenListInfo& o
         tssPtr = &timedSymbolicStates;
 
     if(DEBUG_GENERATE_SUCCESSORS) cout << "Checking applicability..." << endl;
-    if(betterMakespan && op->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr) &&
+    // use_modules here only, when lazy_state_module_eval is off
+    // otherwise we get problems in effect application
+    if(betterMakespan && op->is_applicable(*parent_ptr, lazy_state_module_eval, tssPtr,
+                lazy_state_module_eval == 0) &&
             (!knownByLogicalStateOnly(logical_state_closed_list, timedSymbolicStates))) {
         if(DEBUG_GENERATE_SUCCESSORS) cout << "Applicable" << endl;
         // non lazy eval = compute priority by child
