@@ -168,8 +168,10 @@ bool MonitorEngine::validatePlan(const std::vector< std::vector<PlanStep> > & pl
     deque< FullPlanTrace > currentTraces;
     // seed with init.
     currentTraces.push_back(FullPlanTrace(*g_initial_state));
+    TssEquals stateEquals;
 
     for(int i = 0; i < plan.size(); i++) {
+        ROS_INFO("Monitoring planstep %d, I have %zd active trace(s)", i, currentTraces.size());
         //printf("CURRENT STATES ARE:\n");
         /*for(deque<FullPlanTrace>::iterator it = currentTraces.begin(); it != currentTraces.end(); it++) {
         // it->dumpLastState();
@@ -198,12 +200,36 @@ bool MonitorEngine::validatePlan(const std::vector< std::vector<PlanStep> > & pl
                     stepOpsIt != plan[i].end(); stepOpsIt++) {
                 if(curTrace.isApplicable(stepOpsIt->op)) {
                     FullPlanTrace nextTrace = curTrace.applyOperator(stepOpsIt->op);
-                    nextTraces.push_back(nextTrace);
 
-                    // for every state in the queue produce as many versions of let_time_pass
-                    // as possible and construct the next queue from those
-                    while(nextTraces.back().canLetTimePass()) {
+                    if(g_parameters.disallow_concurrent_actions) {
+                      while(nextTrace.canLetTimePass()) {
+                        nextTrace = nextTrace.letTimePass();
+                      }
+                      const TimeStampedState* myState = nextTrace.getLastState();
+                      // check if we already have such a trace
+                      // FIXME It should be sufficient to end in the right state as we don't care
+                      // about costs and plan length, only applying ops
+                      bool equalFound = false;
+                      if(myState != NULL) {
+                        for(deque<FullPlanTrace>::iterator nsIt = nextTraces.begin(); nsIt != nextTraces.end(); nsIt++) {
+                          const TimeStampedState* tss = nsIt->getLastState();
+                          if(tss == NULL)
+                            continue;
+                          if(stateEquals(*myState, *tss)) {
+                            equalFound = true;
+                            break;
+                          }
+                        }
+                      }
+                      if(!equalFound)
+                        nextTraces.push_back(nextTrace);
+                    } else {
+                      nextTraces.push_back(nextTrace);
+                      // for every state in the queue produce as many versions of let_time_pass
+                      // as possible and construct the next queue from those
+                      while(nextTraces.back().canLetTimePass()) {
                         nextTraces.push_back(nextTraces.back().letTimePass());
+                      }
                     }
                 }
             }
@@ -314,6 +340,13 @@ FullPlanTrace::FullPlanTrace(const TimeStampedState & s)
     // pred s is only dummy
     FullPlanStep fps(s, NULL, s);
     plan.push_back(fps);
+}
+
+const TimeStampedState* FullPlanTrace::getLastState() const
+{
+  if(plan.empty())
+    return NULL;
+  return &(plan.back().state);
 }
 
 bool FullPlanTrace::isApplicable(const Operator* op) const
