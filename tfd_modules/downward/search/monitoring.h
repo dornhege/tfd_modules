@@ -30,6 +30,8 @@ class FullPlanTrace
             TimeStampedState state;
       };
 
+      const TimeStampedState* getLastState() const;
+
       /// is op applicable to the last state in plan.
       bool isApplicable(const Operator* op) const;
 
