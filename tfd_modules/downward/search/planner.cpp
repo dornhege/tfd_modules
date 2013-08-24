@@ -117,6 +117,15 @@ int main(int argc, char **argv)
     if (!g_parameters.planMonitorFileName.empty()) {
         bool ret = MonitorEngine::validatePlan(g_parameters.planMonitorFileName);
         ROS_INFO_STREAM("Monitoring: Plan is valid: " << ret);
+
+        // for outputting statistics, etc.
+        ROS_INFO("Forcing exit modules at end of monitoring with empty plan.");
+        g_setModuleCallbackState(NULL);
+        modules::RawPlan empty_raw_plan;
+        for(vector<ExitModule*>::iterator it = g_exit_modules.begin(); it != g_exit_modules.end(); it++) {
+          (*it)->execExit(empty_raw_plan, 2042);
+        }
+
         if(ret)
             exit(0);
         exit(1);
