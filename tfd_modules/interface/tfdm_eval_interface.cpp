@@ -116,18 +116,18 @@ namespace tfd_modules
                 continue;
             }
 
-            if(system("rosparam dump planner_params.yaml /tfd_modules") != 0) {
-                ROS_ERROR("Failed to dump planner_params");
-            }
+            //if(system("rosparam dump planner_params.yaml /tfd_modules") != 0) {
+            //    ROS_ERROR("Failed to dump planner_params");
+            //}
 
             // perfrom the planner call
             std::string planNamePrefix = "plan";
             ROS_INFO("Performing planner call for: %s", it->first.c_str());
             PlannerResult result = callPlanner(this->_domainFile, _problemFileName, planNamePrefix);
 
-            if(system("rosparam dump planner_params_after_run.yaml /tfd_modules") != 0) {
-                ROS_ERROR("Failed to dump planner_params after run");
-            }
+            //if(system("rosparam dump planner_params_after_run.yaml /tfd_modules") != 0) {
+            //    ROS_ERROR("Failed to dump planner_params after run");
+            //}
 
             if(it->first == defaultRun) {   // actually use this one for plan + result
                 std::string planName = planNamePrefix + ".best";
@@ -183,6 +183,10 @@ namespace tfd_modules
         else
             ret %= 256;
         ROS_INFO_STREAM("Planner returned: " << ret);
+        //if(ret == 134) {
+        //  ROS_INFO("BAD EXIT CODE");
+        //  abort();
+        //}
 
         bool plannerError = false;
         bool plannerTimeout = false;
