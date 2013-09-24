@@ -322,7 +322,7 @@ class SASGroundingModule:
     print >> stream, "%s %d" % (self.modulecall, len(self.parameters)),
     for param in self.parameters:
       print >> stream, "%s %s %s" % (param[0], param[1], param[2]),
-    print >> stream, "gm-%d" % self.grounding_num,
+    print >> stream, "gm-%d" % self.grounding_num
 
 class SASEffectModule:
   def __init__(self, modulecall, parameters, effect_num, effect_vars):
