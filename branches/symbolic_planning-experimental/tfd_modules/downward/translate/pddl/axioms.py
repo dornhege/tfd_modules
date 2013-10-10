@@ -46,6 +46,8 @@ class PropositionalAxiom:
     self.effect = effect
   def clone(self):
     return PropositionalAxiom(self.name, list(self.condition), self.effect)
+  def __str__(self):
+    return "%s: %s(%s) -> %s" %(self.__class__.__name__, self.name, ", ".join(map(str, self.condition)), self.effect)
   def dump(self):
     if self.effect.negated:
       print "not",

@@ -46,6 +46,8 @@ def strips_to_sas_dictionary(groups, num_axioms, num_axiom_map, num_fluents, mod
 
     redundant_axioms = []
     num_ax_count = 0
+    num_axioms = list(num_axioms)
+    num_axioms.sort(lambda x,y: cmp(str(x), str(y)))
     for axiom in num_axioms:
         if axiom.effect in num_axiom_map:
             redundant_axioms.append(axiom.effect)
@@ -892,9 +894,17 @@ def pddl_to_sas(task):
         init_constant_predicates, init_constant_numerics,
         reachable_action_params) = instantiate.explore(task)
 
+    # make order deterministic
+    init_constant_predicates = list(init_constant_predicates)
+    init_constant_predicates.sort(lambda x,y: cmp(str(x), str(y)))
+    init_constant_numerics = list(init_constant_numerics)
+    init_constant_numerics.sort(lambda x,y: cmp(str(x), str(y)))
+
     if not relaxed_reachable:
         return unsolvable_sas_task("No relaxed solution")
 
+    axioms = list(axioms)
+    axioms.sort(lambda x,y: cmp(str(x), str(y)))
     num_axioms = list(num_axioms)
     num_axioms.sort(lambda x,y: cmp(x.name,y.name))
 
