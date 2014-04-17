@@ -312,6 +312,11 @@ bool getPreds(PredicateList* & predicateList)
             int var = it->second.first;
             int val = it->second.second;
 
+            if (var < 0){
+              ROS_WARN("var for pred %s was %d: Removing pred(is this constant?)", pred.c_str(), var);
+              continue;
+            }
+
             std::string token;
             std::istringstream iss(pred);
             string pName;
@@ -653,6 +658,11 @@ void prepare_predicate_all_mapping()
     for (PredicateMapping::iterator it = g_pred_mapping.begin(); it
             != g_pred_mapping.end(); it++) {
         string pred = it->first;
+        int var = it->second.first;
+        if (var < 0){
+          ROS_WARN("var for pred %s was %d: Removing pred(is this constant?)", pred.c_str(), var);
+          continue;
+        }
 
         std::string token;
         std::istringstream iss(pred);
