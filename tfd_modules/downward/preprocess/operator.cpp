@@ -328,6 +328,7 @@ void Operator::strip_unimportant_effects() {
 
 bool Operator::is_redundant() const {
     return (pre_post_start.empty() && pre_post_end.empty()
+            && module_effs_start.empty() && module_effs_end.empty() && groundingCalls.empty()
             && numerical_effs_start.empty() && numerical_effs_end.empty());//FIXME: Is this correct?
 }
 
