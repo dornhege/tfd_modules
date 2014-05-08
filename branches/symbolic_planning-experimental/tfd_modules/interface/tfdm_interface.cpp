@@ -35,7 +35,8 @@ namespace tfd_modules
         _domainFile = domainFile;
 
         DomainParser _domain;
-        ROS_ASSERT(_domain.parse(_domainFile));
+        bool result = _domain.parse(_domainFile);
+        ROS_ASSERT(result);
 
         _domainName = _domain.getName();
         //_domain.dumpTree();
