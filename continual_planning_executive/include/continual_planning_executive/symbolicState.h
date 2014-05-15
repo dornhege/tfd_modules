@@ -93,6 +93,17 @@ class SymbolicState
         /// Get a map from type -> objects of that type.
         const multimap<string, string> & getTypedObjects() const { return _typedObjects; }
 
+        /// Get the map of Boolean predicates
+        const map<Predicate, bool> & getBooleanPredicates() const { return _booleanPredicates; }
+
+        /// Get the map of numerical fluents
+        const map<Predicate, double> & getNumericalFluents() const { return _numericalFluents; }
+
+        /// Get the map of object fluents
+        const map<Predicate, string> & getObjectFluents() const { return _objectFluents; }
+
+
+
 
         /// Set a boolean predicate in the state. If it does not exist it will be created.
         void setBooleanPredicate(string name, vector<string> parameters, bool value);
