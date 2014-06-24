@@ -207,12 +207,12 @@ std::ostream & operator<<(std::ostream & os, const NumericalFluentList & nl);
 
 } // namespace modules
 
-#define VERIFY_INIT_MODULE_DEF(name) moduleInitType name##_def_check = name
-#define VERIFY_EXIT_MODULE_DEF(name) moduleExitType name##_def_check = name
-#define VERIFY_GROUNDINGMODULE_DEF(name) groundingModuleType name##_def_check = name
-#define VERIFY_CONDITIONCHECKER_DEF(name) conditionCheckerType name##_def_check = name
-#define VERIFY_APPLYEFFECT_DEF(name) applyEffectType name##_def_check = name
-#define VERIFY_SUBPLANGENERATOR_DEF(name) subplanGeneratorType name##_def_check = name
+#define VERIFY_INIT_MODULE_DEF(name) modules::moduleInitType name##_def_check = name
+#define VERIFY_EXIT_MODULE_DEF(name) modules::moduleExitType name##_def_check = name
+#define VERIFY_GROUNDINGMODULE_DEF(name) modules::groundingModuleType name##_def_check = name
+#define VERIFY_CONDITIONCHECKER_DEF(name) modules::conditionCheckerType name##_def_check = name
+#define VERIFY_APPLYEFFECT_DEF(name) modules::applyEffectType name##_def_check = name
+#define VERIFY_SUBPLANGENERATOR_DEF(name) modules::subplanGeneratorType name##_def_check = name
 
 #endif
 
