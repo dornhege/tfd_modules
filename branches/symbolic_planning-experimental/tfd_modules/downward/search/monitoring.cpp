@@ -16,6 +16,7 @@
 #include <deque>
 #include <algorithm>
 #include <fstream>
+#include "tfd_modules/opl/stringutil.h"
 
 using namespace std;
 
@@ -118,9 +119,44 @@ bool MonitorEngine::validatePlan(vector<string>& plan)
                 opFound = true;
             }
         }
+
+        if (!opFound){
+          for (std::set<Operator>::iterator opIt = g_grounded_operators.begin(); opIt != g_grounded_operators.end(); ++opIt){
+            if (opIt->get_name() == name){
+              p.back().push_back(PlanStep(start,duration,&(*opIt), NULL));
+              opFound = true;
+              break;
+            }
+          }
+        }
+
         if(!opFound) {
-            ROS_FATAL("%s: Could not find matching operator for plan step: \"%s\"", __func__, name.c_str());
-            return false;
+            // Look for ungrounded ops for this live grounded op
+            for(unsigned int j = 0; j < g_operators.size(); j++) {
+              if(g_operators[j].isGrounded()){
+                continue;
+              }
+
+              if (StringUtil::startsWith(name, g_operators[j].get_name())){
+                bool couldGround = false;
+                std::vector<string> parts = StringUtil::split(name, " ");
+                assert(!parts.empty());
+                std::string groundParam = parts.back();
+                Operator opGround = g_operators[j].groundManually(groundParam , couldGround);
+                assert(couldGround);
+
+                pair<set<Operator>::iterator, bool> ret = g_grounded_operators.insert(opGround);
+
+                p.back().push_back(PlanStep(start,duration,&(*(ret.first)), NULL));
+                opFound = true;
+                break;
+              }
+            }
+
+            if (!opFound){
+              ROS_FATAL("%s: Could not find matching operator for plan step: \"%s\"", __func__, name.c_str());
+              return false;
+            }
         }
         ROS_ASSERT(!p.back().empty());
     }
