@@ -244,6 +244,31 @@ Operator Operator::ground(const TimeStampedState & state, bool relaxed, bool & o
     return ret;
 }
 
+
+Operator Operator::groundManually(const std::string& groundParam, bool & ok) const
+{
+    Operator ret(*this);
+    ret.grounding_parent = this;
+
+    if(isGrounded()) {
+        ok = false;
+        return ret;
+    }
+
+    if(groundParam.empty()) {
+        ok = false;
+        return ret;
+    }
+
+    // created a grounded operator from that.
+    ok = true;
+
+    ret.name += " " + groundParam;
+    ret.mod_groundings.clear();
+
+    return ret;
+}
+
 int Operator::getNumBranches(const TimeStampedState* state) const
 {
     if(g_parameters.grounding_number_depends_on_state) {

@@ -99,6 +99,9 @@ class Operator
          */
         Operator ground(const TimeStampedState & state, bool relaxed, bool & ok) const;
 
+        /// Ground manually for monitoring
+        Operator groundManually(const std::string& groundParam, bool & ok) const;
+
         /// Add additional ground parameters from a grounded operators name
         /// to the partially grounded parameters of a module call.
         /**
