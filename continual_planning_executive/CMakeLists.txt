@@ -37,7 +37,9 @@ rosbuild_add_boost_directories()
 
 #common commands for building c++ executables and libraries
 rosbuild_add_executable(${PROJECT_NAME} ${planner_executive_SRCS} src/main.cpp src/statusPublisher.cpp)
+rosbuild_add_executable(continual_planning_server ${planner_executive_SRCS} src/action_server_main.cpp src/statusPublisher.cpp src/goalCreatorFromString.cpp)
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+target_link_libraries(continual_planning_server ${QT_LIBRARIES})
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})

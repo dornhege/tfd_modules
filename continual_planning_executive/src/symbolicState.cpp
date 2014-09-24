@@ -351,7 +351,14 @@ void SymbolicState::setAllObjectFluents(string name, string value)
 
 void SymbolicState::setForEachGoalStatement(string objectType, string predicateName, bool value)
 {
+    _directGoalStatement = "";
     _forEachGoalStatements.insert(pair<string, pair<string, bool> >(objectType, pair<string, bool>(predicateName, value)));
+}
+
+void SymbolicState::setStringGoalStatement(string goalStatement)
+{
+    _forEachGoalStatements.clear();
+    _directGoalStatement = goalStatement;
 }
 
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
@@ -557,6 +564,13 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
 
 void SymbolicState::toPDDLGoal(std::ostream & os) const
 {
+    if(_directGoalStatement != "")
+    {
+        os << "  (:goal " << std::endl;
+        os << "    " << _directGoalStatement << std::endl;
+        os << "  )" << std::endl;
+        return;
+    }
     // prevent empty conjunction in goal
     if(_booleanPredicates.empty() && _numericalFluents.empty() && _forEachGoalStatements.empty()) {
         os << "  (:goal " << std::endl;
