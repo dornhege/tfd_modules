@@ -1,0 +1,19 @@
+<package>
+  <description brief="continual_planning_msgs">
+
+     continual_planning_msgs
+
+  </description>
+  <author>Andreas Hertle</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/continual_planning_msgs</url>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="arm_navigation_msgs"/>
+  <depend package="std_msgs"/>
+  <depend package="actionlib_msgs"/>
+
+</package>
+
+

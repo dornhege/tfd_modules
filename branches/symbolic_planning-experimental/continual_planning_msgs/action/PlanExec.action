@@ -1,0 +1,8 @@
+arm_navigation_msgs/PlanningScene scene
+string goal
+---
+bool   success
+string errmsg
+---
+float32  completed
+
