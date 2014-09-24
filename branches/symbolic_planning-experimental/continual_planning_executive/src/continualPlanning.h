@@ -32,6 +32,7 @@
 class ContinualPlanning
 {
     public:
+        friend bool loadFromStringGoalCreator(const std::string& goal_statement);
         friend bool loadStateCreators(ros::NodeHandle & nh);
         friend bool loadGoalCreators(ros::NodeHandle & nh);
         friend bool loadActionExecutors(ros::NodeHandle & nh);

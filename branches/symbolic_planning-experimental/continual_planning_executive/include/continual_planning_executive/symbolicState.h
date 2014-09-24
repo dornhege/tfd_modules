@@ -133,6 +133,9 @@ class SymbolicState
         /// Create a forall statement for a object type with the specified predicate and value.
         /// Useful for goal conditions.
         void setForEachGoalStatement(string objectType, string predicateName, bool value);
+        /// set the goal condition directly.
+        /// mutually exclusive with forall goals.
+        void setStringGoalStatement(string goalStatement);
 
         /// Determine if this state has the given predicate.
         /**
@@ -204,6 +207,7 @@ class SymbolicState
         // foreach statements
         typedef multimap<string, pair<string, bool> > ForEachGoalStatements;
         ForEachGoalStatements _forEachGoalStatements;
+        string _directGoalStatement;
 
         typedef map<Predicate, bool>::value_type BooleanPredicateEntry;
         typedef map<Predicate, double>::value_type NumericalFluentEntry;
