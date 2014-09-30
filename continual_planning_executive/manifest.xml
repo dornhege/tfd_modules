@@ -11,10 +11,9 @@
   <depend package="rospy"/>
   <depend package="pluginlib"/>
   <depend package="actionlib"/>
-  <depend package="continual_planning_msgs"/>
-
+  
   <export>
-    <cpp cflags="-I${prefix}/include" />
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -lcontinual_planning"/>
   </export>
 
 </package>

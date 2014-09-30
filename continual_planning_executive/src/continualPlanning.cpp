@@ -1,21 +1,51 @@
-#include "continualPlanning.h"
+#include "continual_planning_executive/continualPlanning.h"
 #include <ros/ros.h>
 #include <iomanip>
 #include <iostream>
 
-ContinualPlanning::ContinualPlanning() : _planner(NULL)
+ContinualPlanning::ContinualPlanning()
 {
     _replanningTrigger = ReplanByMonitoring;
     _allowDirectGoalCheck = false;      // OK, we do this via monitoring
     _forceReplan = true;
+    _initialStateEstimated = false;
 }
 
 ContinualPlanning::~ContinualPlanning()
 {
 }
 
+void ContinualPlanning::addGoalCreator(boost::shared_ptr<continual_planning_executive::GoalCreator> gc)
+{
+    _goalCreators.push_back(gc);
+}
+
+void ContinualPlanning::addStateCreator(boost::shared_ptr<continual_planning_executive::StateCreator> sc)
+{
+    _stateCreators.push_back(sc);
+}
+
+void ContinualPlanning::addActionExecutor(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae)
+{
+    _planExecutor.addActionExecutor(ae);
+}
+
+void ContinualPlanning::setPlanner(boost::shared_ptr<continual_planning_executive::PlannerInterface> pi)
+{
+    _planner = pi;
+}
+
+
 ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
 {
+    if (! _initialStateEstimated)
+    {
+        if (! estimateInitialStateAndGoal())
+        {
+            ROS_WARN("Initial state estimation failed.");
+            return Running;
+        }
+    }
     if(!estimateCurrentState()) {
         ROS_WARN("State estimation failed.");     // FIXME: continue execution until this works.
         return Running;
@@ -102,13 +132,24 @@ bool ContinualPlanning::isGoalFulfilled() const
     return _goal.isFulfilledBy(_currentState);
 }
 
+bool ContinualPlanning::estimateInitialStateAndGoal()
+{
+    ROS_INFO("Estimating initial state and setting goal condition.");
+    _initialStateEstimated = true;
+    forEach(boost::shared_ptr<continual_planning_executive::GoalCreator> gc, _goalCreators)
+    {
+        _initialStateEstimated &= gc->fillStateAndGoal(_currentState, _goal);
+    }
+    return _initialStateEstimated;
+}
+
 bool ContinualPlanning::estimateCurrentState()
 {
     _status.startedStateEstimation();
     bool ret = true;
-    for(std::vector<continual_planning_executive::StateCreator*>::iterator it = _stateCreators.begin();
-            it != _stateCreators.end(); it++) {
-        ret &= (*it)->fillState(_currentState);
+    forEach(boost::shared_ptr<continual_planning_executive::StateCreator> sc, _stateCreators)
+    {
+        ret &= sc->fillState(_currentState);
     }
     ROS_INFO_STREAM("Current state is: " << _currentState << std::endl);
     _status.finishedStateEstimation(ret, _currentState);

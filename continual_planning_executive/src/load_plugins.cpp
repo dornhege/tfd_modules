@@ -1,41 +1,25 @@
 #include <stdio.h>
 #include <ros/ros.h>
 #include <vector>
-#include <deque>
 #include <string>
-#include <sstream>
-#include <signal.h>
 
 #include "continual_planning_executive/symbolicState.h"
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
-#include "continual_planning_executive/SetContinualPlanningControl.h"
-#include "continual_planning_executive/goalCreatorFromString.h"
-#include "planExecutor.h"
-#include "continualPlanning.h"
+#include "continual_planning_executive/continualPlanning.h"
+#include "continual_planning_executive/load_plugins.h"
 #include <pluginlib/class_loader.h>
-#include <actionlib/server/simple_action_server.h>
-#include <continual_planning_msgs/PlanExecAction.h>
-#include <continual_planning_msgs/PlanExecGoal.h>
-#include <continual_planning_msgs/PlanExecResult.h>
-#include <continual_planning_msgs/PlanExecFeedback.h>
 
 #include <QString>
 #include <ros/package.h>
 
-static ContinualPlanning* s_ContinualPlanning = NULL;
+ContinualPlanning* s_ContinualPlanning = NULL;
 
 static pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>* s_PlannerLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::GoalCreator>* s_GoalCreatorLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::ActionExecutorInterface>* s_ActionExecutorLoader = NULL;
-
-static int s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::RUN;
-
-actionlib::SimpleActionServer<continual_planning_msgs::PlanExecAction>* planningServer;
-continual_planning_msgs::PlanExecFeedback planningFeedback;
-continual_planning_msgs::PlanExecResult planningResult;
 
 std::deque<std::string> splitString(const std::string & s, const char* delim)
 {
@@ -82,6 +66,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
         ROS_ERROR("state_creators list is empty.");
         return false;
     }
+    bool result = false;
     for (int i = 0; i < xmlRpc.size(); i++)
     {
         if (xmlRpc[i].getType() != XmlRpc::XmlRpcValue::TypeString)
@@ -99,9 +84,10 @@ bool loadStateCreators(ros::NodeHandle & nh)
         ROS_INFO("Loading state creator %s", state_creator_name.c_str());
         try
         {
-            continual_planning_executive::StateCreator* sc = s_StateCreatorLoader->createClassInstance(state_creator_name);
+            boost::shared_ptr<continual_planning_executive::StateCreator> sc = s_StateCreatorLoader->createInstance(state_creator_name);
             sc->initialize(state_creator_entry);
-            s_ContinualPlanning->_stateCreators.push_back(sc);
+            s_ContinualPlanning->addStateCreator(sc);
+            result = true;
         } catch (pluginlib::PluginlibException & ex)
         {
             ROS_ERROR("Failed to load StateCreator instance for: %s. Error: %s.", state_creator_name.c_str(), ex.what());
@@ -109,21 +95,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
         }
     }
 
-    return !s_ContinualPlanning->_stateCreators.empty();
-}
-
-bool loadFromStringGoalCreator(const std::string& goal_statement)
-{
-    continual_planning_executive::GoalCreatorFromString gc;
-    std::deque<std::string> arguments;
-    arguments.push_back(goal_statement);
-    gc.initialize(arguments);
-    if (!gc.fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal))
-    {
-        ROS_ERROR("Filling state and goal failed for goal_creator_from_string.");
-        return false;
-    }
-    return true;
+    return result;
 }
 
 bool loadGoalCreators(ros::NodeHandle & nh)
@@ -172,13 +144,16 @@ bool loadGoalCreators(ros::NodeHandle & nh)
         ROS_INFO("Loading goal creator %s", goal_creator_name.c_str());
         try
         {
-            continual_planning_executive::GoalCreator* gc = s_GoalCreatorLoader->createClassInstance(goal_creator_name);
+            boost::shared_ptr<continual_planning_executive::GoalCreator> gc = s_GoalCreatorLoader->createInstance(goal_creator_name);
+            s_ContinualPlanning->addGoalCreator(gc);
             gc->initialize(goal_creator_entry);
-            if (!gc->fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal))
-            {
-                ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
-                return false;
-            }
+            // FIXME: move to continual planning
+//            if (!gc->fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal))
+//            {
+//                ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
+//                return false;
+//            }
+//            ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning->_goal);
         } catch (pluginlib::PluginlibException & ex)
         {
             ROS_ERROR("Failed to load GoalCreator instance for: %s. Error: %s.", goal_creator_name.c_str(), ex.what());
@@ -186,7 +161,6 @@ bool loadGoalCreators(ros::NodeHandle & nh)
         }
     }
 
-    ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning->_goal);
     return true;
 }
 
@@ -236,9 +210,9 @@ bool loadActionExecutors(ros::NodeHandle & nh)
         ROS_INFO("Loading action_executor %s", action_executor_name.c_str());
         try
         {
-            continual_planning_executive::ActionExecutorInterface* ae = s_ActionExecutorLoader->createClassInstance(action_executor_name);
+            boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae = s_ActionExecutorLoader->createInstance(action_executor_name);
             ae->initialize(action_executor_entry);
-            s_ContinualPlanning->_planExecutor.addActionExecutor(ae);
+            s_ContinualPlanning->addActionExecutor(ae);
         } catch (pluginlib::PluginlibException & ex)
         {
             ROS_ERROR("Failed to load ActionExecutor instance for: %s. Error: %s.", action_executor_name.c_str(), ex.what());
@@ -269,9 +243,10 @@ bool loadPlanner(ros::NodeHandle & nh)
         return false;
     }
     ROS_INFO("Loading planner %s", planner_name.c_str());
+    boost::shared_ptr<continual_planning_executive::PlannerInterface> pi;
     try
     {
-        s_ContinualPlanning->_planner = s_PlannerLoader->createClassInstance(planner_name);
+        pi = s_PlannerLoader->createInstance(planner_name);
     } catch (pluginlib::PluginlibException & ex)
     {
         ROS_ERROR("Failed to load Planner instance for: %s. Error: %s.", planner_name.c_str(), ex.what());
@@ -323,14 +298,16 @@ bool loadPlanner(ros::NodeHandle & nh)
     ROS_INFO_STREAM("domain file: " << domainFile);
 
     // init planner
-    s_ContinualPlanning->_planner->initialize(domainFile, plannerOptions);
+    pi->initialize(domainFile, plannerOptions);
+    s_ContinualPlanning->setPlanner(pi);
 
-    return s_ContinualPlanning->_planner != NULL;
+    return true;
 }
 
-bool init()
+bool load_plugins(ContinualPlanning* cp)
 {
     ros::NodeHandle nhPriv("~");
+    s_ContinualPlanning = cp;
 
     // planner
     if (!loadPlanner(nhPriv))
@@ -343,10 +320,8 @@ bool init()
     ROS_INFO("Loaded state creators.");
 
     // goal
-    // here we set the goal statement from string, so no other goal creators are loaded
-//    if (!loadGoalCreators(nhPriv))
-//        return false;
-
+    if (!loadGoalCreators(nhPriv))
+        return false;
     ROS_INFO("Loaded goal creators.");
 
     // actions
@@ -355,153 +330,5 @@ bool init()
     ROS_INFO("Loaded action executors.");
 
     return true;
-}
-
-bool setControlHandler(continual_planning_executive::SetContinualPlanningControl::Request & req, continual_planning_executive::SetContinualPlanningControl::Response & resp)
-{
-    switch (req.command)
-    {
-    case continual_planning_executive::SetContinualPlanningControl::Request::RUN:
-    case continual_planning_executive::SetContinualPlanningControl::Request::PAUSE:
-    case continual_planning_executive::SetContinualPlanningControl::Request::STEP:
-        if (s_ContinualPlanningMode != req.command)
-        {
-            ROS_INFO("Setting ContinualPlanningMode to %d", req.command);
-        }
-        s_ContinualPlanningMode = req.command;
-        resp.command = s_ContinualPlanningMode;
-        break;
-    case continual_planning_executive::SetContinualPlanningControl::Request::FORCE_REPLANNING:
-        s_ContinualPlanning->forceReplanning();
-        resp.command = req.command;
-        break;
-    case continual_planning_executive::SetContinualPlanningControl::Request::REESTIMATE_STATE:
-        if (!s_ContinualPlanning->estimateCurrentState())
-        {
-            ROS_WARN("SetContinualPlanningControl: State estimation failed.");
-            return false;
-        }
-        resp.command = req.command;
-        break;
-    default:
-        ROS_ERROR("Invalid command in continual_planning_executive::SetContinualPlanningControl: %d", req.command);
-        return false;
-    }
-    return true;
-}
-
-void planning_cb(const continual_planning_msgs::PlanExecGoalConstPtr &goal)
-{
-    s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::RUN;
-    ros::Rate loopSleep(5);
-    ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
-
-    s_ContinualPlanning = new ContinualPlanning();
-    if (!init())
-    {
-        ROS_FATAL("Init failed.");
-        planningResult.success = false;
-        planningResult.errmsg = "Failed to initialize continual planning.";
-        planningServer->setAborted(planningResult);
-        return;
-    }
-
-    if (! loadFromStringGoalCreator(goal->goal))
-    {
-        planningResult.success = false;
-        planningResult.errmsg = "Filling state and goal failed for goal_creator_from_string.";
-        planningServer->setAborted(planningResult);
-        return;
-    }
-    while (ros::ok() && cpState == ContinualPlanning::Running && !planningServer->isPreemptRequested())
-    {
-        ros::spinOnce();
-        cpState = s_ContinualPlanning->loop();
-        // TODO: send feedback
-        planningFeedback.completed = 0.5;
-        planningServer->publishFeedback(planningFeedback);
-        loopSleep.sleep();
-    }
-    if (s_ContinualPlanning->isGoalFulfilled() || cpState == ContinualPlanning::FinishedAtGoal)
-    {
-        std::stringstream ss2;
-        ss2 << "\n\nContinual planning ended.\n";
-        if (s_ContinualPlanning->isGoalFulfilled())
-            ss2 << "GOAL REACHED by agent!\n";
-        if (cpState == ContinualPlanning::FinishedAtGoal)
-            ss2 << "ContinualPlanningState: FinishedAtGoal!\n";
-        ss2 << "\n";
-        if (ros::ok())
-            ROS_INFO("%s", ss2.str().c_str());
-        else
-            printf("%s", ss2.str().c_str());
-        planningResult.success = true;
-        planningServer->setSucceeded(planningResult);
-    }
-    else
-    {
-        if (ros::ok())
-            ROS_ERROR("\n\nContinual planning ended.\nGOAL was NOT REACHED.\n\n");
-        else
-            printf("\n\nContinual planning ended.\nGOAL was NOT REACHED.\n\n\n");
-        planningResult.success = false;
-        // TODO: send error message
-//        planningResult.errmsg = s_ContinualPlanning->
-        planningServer->setAborted(planningResult);
-    }
-    delete s_ContinualPlanning;
-    s_ContinualPlanning = NULL;
-}
-
-void signal_handler(int signal)
-{
-    if (signal != SIGINT)
-    {
-        raise(signal);
-        return;
-    }
-
-    ROS_INFO("SIGINT received - canceling all running actions.");
-    s_ContinualPlanning->_planExecutor.cancelAllActions();
-
-    ROS_INFO("shutting down...");
-    ros::shutdown();
-}
-
-/// Parse options for this node:
-/**
- * If an action is given only this action is executed for debugging, e.g.:
- * drive-base robot_location door_kitchen_room1
- * arm-to-side left_arm
- *
- * \returns true, if the DurativeAction was filled and thus we should execute this action
- * instead of full continual planning
- */
-bool parseOptions(int argc, char** argv, DurativeAction & a)
-{
-    if (argc < 2)
-        return false;
-
-    a.name = argv[1];
-    for (int i = 2; i < argc; i++)
-        a.parameters.push_back(argv[i]);
-    return true;
-}
-
-int main(int argc, char** argv)
-{
-    ROS_INFO("Continual Planning Executive started.");
-
-    unsigned int initOps = ros::init_options::NoSigintHandler;
-    ros::init(argc, argv, "continual_planning_server", initOps);
-    signal(SIGINT, signal_handler);
-
-    ros::NodeHandle nh;
-
-    planningServer = new actionlib::SimpleActionServer<continual_planning_msgs::PlanExecAction>(nh, "set_planning_goal", planning_cb, true);
-    ros::spin();
-
-
-    return 0;
 }
 

@@ -8,7 +8,7 @@
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
 #include "continual_planning_executive/statusPublisher.h"
-#include "planExecutor.h"
+#include "continual_planning_executive/planExecutor.h"
 
 // constantly do the following:
 // estimate current state
@@ -32,11 +32,6 @@
 class ContinualPlanning
 {
     public:
-        friend bool loadFromStringGoalCreator(const std::string& goal_statement);
-        friend bool loadStateCreators(ros::NodeHandle & nh);
-        friend bool loadGoalCreators(ros::NodeHandle & nh);
-        friend bool loadActionExecutors(ros::NodeHandle & nh);
-        friend bool loadPlanner(ros::NodeHandle & nh);
         friend void signal_handler(int);
 
         enum ContinualPlanningState {
@@ -61,6 +56,7 @@ class ContinualPlanning
         ContinualPlanningState loop();
 
         /// Update _currentState from the world.
+        bool estimateInitialStateAndGoal();
         bool estimateCurrentState();
 
         /// Does _currentState match _goal?
@@ -72,6 +68,11 @@ class ContinualPlanning
 
         /// Force replanning in the next loop.
         void forceReplanning() { _forceReplan = true; }
+
+        void addGoalCreator(boost::shared_ptr<continual_planning_executive::GoalCreator> gc);
+        void addStateCreator(boost::shared_ptr<continual_planning_executive::StateCreator> sc);
+        void addActionExecutor(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae);
+        void setPlanner(boost::shared_ptr<continual_planning_executive::PlannerInterface> pi);
 
     protected:
         /// Return a plan that reaches the goal.
@@ -91,8 +92,9 @@ class ContinualPlanning
         bool needReplanning(bool & atGoal) const;
 
     protected:
-        std::vector<continual_planning_executive::StateCreator*> _stateCreators;
-        continual_planning_executive::PlannerInterface* _planner;
+        std::vector<boost::shared_ptr<continual_planning_executive::StateCreator> > _stateCreators;
+        std::vector<boost::shared_ptr<continual_planning_executive::GoalCreator> > _goalCreators;
+        boost::shared_ptr<continual_planning_executive::PlannerInterface> _planner;
         PlanExecutor _planExecutor;
 
         SymbolicState _currentState;
@@ -103,6 +105,7 @@ class ContinualPlanning
         ReplanningTriggerMethod _replanningTrigger;
 
         bool _allowDirectGoalCheck;     ///< Allow to check reached goal by using the _goal instead of monitoring
+        bool _initialStateEstimated;
 
         StatusPublisher _status;
 };

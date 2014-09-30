@@ -13,7 +13,7 @@ class PlanExecutor
         PlanExecutor();
         ~PlanExecutor();
 
-        void addActionExecutor(continual_planning_executive::ActionExecutorInterface* ae);
+        void addActionExecutor(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae);
 
         virtual bool executeBlocking(const Plan & p, SymbolicState & currentState,
                 std::set<DurativeAction> & executedActions);
@@ -27,7 +27,7 @@ class PlanExecutor
     protected:
         bool _onlyExecuteActionAtZeroTime;    ///< if false any action will be executed that an actionexecutor wants to
 
-        deque<continual_planning_executive::ActionExecutorInterface*> _actionExecutors;
+        deque<boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> > _actionExecutors;
 
         bool _recordActionTimes;
         std::ofstream _actionTimesFile;
