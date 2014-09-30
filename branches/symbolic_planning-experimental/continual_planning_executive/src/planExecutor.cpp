@@ -1,4 +1,4 @@
-#include "planExecutor.h"
+#include "continual_planning_executive/planExecutor.h"
 #include <ros/ros.h>
 #include <iostream>
 
@@ -36,7 +36,7 @@ void PlanExecutor::checkActionTimesFile()
     }
 }
 
-void PlanExecutor::addActionExecutor(continual_planning_executive::ActionExecutorInterface* ae)
+void PlanExecutor::addActionExecutor(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae)
 {
     _actionExecutors.push_back(ae);
 }
@@ -52,7 +52,7 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
             continue;
 
         bool count = 0;
-        forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+        forEach(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ai, _actionExecutors) {
             if(ai->canExecute(da, currentState))
                 count++;
         }
@@ -62,7 +62,7 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
         if(count > 1) {
             std::cerr << "WARNING: " << count << " ActionExecutors for action: " << da << std::endl;
         }
-        forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+        forEach(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ai, _actionExecutors) {
             if(ai->canExecute(da, currentState)) {
                 ROS_INFO_STREAM("Trying to execute action: \"" << da << "\"");
 
@@ -99,7 +99,7 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
 
 void PlanExecutor::cancelAllActions()
 {
-    forEach(continual_planning_executive::ActionExecutorInterface* ai, _actionExecutors) {
+    forEach(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ai, _actionExecutors) {
         ai->cancelAction();
     }
 }
