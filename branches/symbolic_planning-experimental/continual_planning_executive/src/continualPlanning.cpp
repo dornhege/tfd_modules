@@ -35,6 +35,13 @@ void ContinualPlanning::setPlanner(boost::shared_ptr<continual_planning_executiv
     _planner = pi;
 }
 
+void ContinualPlanning::reset()
+{
+    _planExecutor.cancelAllActions();
+    _initialStateEstimated = false;
+    _currentState = SymbolicState();
+    _goal = SymbolicState();
+}
 
 ContinualPlanning::ContinualPlanningState ContinualPlanning::loop()
 {
