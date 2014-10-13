@@ -74,6 +74,8 @@ class ContinualPlanning
         void addActionExecutor(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae);
         void setPlanner(boost::shared_ptr<continual_planning_executive::PlannerInterface> pi);
 
+        void reset();
+
     protected:
         /// Return a plan that reaches the goal.
         /**

@@ -14,7 +14,7 @@
 #include <QString>
 #include <ros/package.h>
 
-ContinualPlanning* s_ContinualPlanning = NULL;
+ContinualPlanning* continualPlanning = NULL;
 
 static pluginlib::ClassLoader<continual_planning_executive::PlannerInterface>* s_PlannerLoader = NULL;
 static pluginlib::ClassLoader<continual_planning_executive::StateCreator>* s_StateCreatorLoader = NULL;
@@ -86,7 +86,7 @@ bool loadStateCreators(ros::NodeHandle & nh)
         {
             boost::shared_ptr<continual_planning_executive::StateCreator> sc = s_StateCreatorLoader->createInstance(state_creator_name);
             sc->initialize(state_creator_entry);
-            s_ContinualPlanning->addStateCreator(sc);
+            continualPlanning->addStateCreator(sc);
             result = true;
         } catch (pluginlib::PluginlibException & ex)
         {
@@ -145,7 +145,7 @@ bool loadGoalCreators(ros::NodeHandle & nh)
         try
         {
             boost::shared_ptr<continual_planning_executive::GoalCreator> gc = s_GoalCreatorLoader->createInstance(goal_creator_name);
-            s_ContinualPlanning->addGoalCreator(gc);
+            continualPlanning->addGoalCreator(gc);
             gc->initialize(goal_creator_entry);
             // FIXME: move to continual planning
 //            if (!gc->fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal))
@@ -212,7 +212,7 @@ bool loadActionExecutors(ros::NodeHandle & nh)
         {
             boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ae = s_ActionExecutorLoader->createInstance(action_executor_name);
             ae->initialize(action_executor_entry);
-            s_ContinualPlanning->addActionExecutor(ae);
+            continualPlanning->addActionExecutor(ae);
         } catch (pluginlib::PluginlibException & ex)
         {
             ROS_ERROR("Failed to load ActionExecutor instance for: %s. Error: %s.", action_executor_name.c_str(), ex.what());
@@ -299,7 +299,7 @@ bool loadPlanner(ros::NodeHandle & nh)
 
     // init planner
     pi->initialize(domainFile, plannerOptions);
-    s_ContinualPlanning->setPlanner(pi);
+    continualPlanning->setPlanner(pi);
 
     return true;
 }
@@ -307,7 +307,7 @@ bool loadPlanner(ros::NodeHandle & nh)
 bool load_plugins(ContinualPlanning* cp)
 {
     ros::NodeHandle nhPriv("~");
-    s_ContinualPlanning = cp;
+    continualPlanning = cp;
 
     // planner
     if (!loadPlanner(nhPriv))
