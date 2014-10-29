@@ -13,7 +13,7 @@ class StatusPublisher
       ~StatusPublisher();
 
       void startedStateEstimation();
-      void finishedStateEstimation(bool success, const SymbolicState & state);
+      void finishedStateEstimation(bool success, const SymbolicState & state, const SymbolicState & goal);
 
       void startedMonitoring();
       void finishedMonitoring(bool success);
