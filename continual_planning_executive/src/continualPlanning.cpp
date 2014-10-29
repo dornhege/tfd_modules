@@ -159,7 +159,7 @@ bool ContinualPlanning::estimateCurrentState()
         ret &= sc->fillState(_currentState);
     }
     ROS_INFO_STREAM("Current state is: " << _currentState << std::endl);
-    _status.finishedStateEstimation(ret, _currentState);
+    _status.finishedStateEstimation(ret, _currentState, _goal);
     return ret;
 }
 

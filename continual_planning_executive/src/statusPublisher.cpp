@@ -20,10 +20,12 @@ void StatusPublisher::startedStateEstimation()
     publishStatus(ContinualPlanningStatus::STATE_ESTIMATION, ContinualPlanningStatus::ACTIVE, "");
 }
 
-void StatusPublisher::finishedStateEstimation(bool success, const SymbolicState & state)
+void StatusPublisher::finishedStateEstimation(bool success, const SymbolicState & state, const SymbolicState & goal)
 {
     SymbolicState::OStreamMode::forceNewlines = true;
     stringstream ss;
+    ss << "Goal:" << std::endl;
+    goal.toPDDLGoal(ss);
     ss << state;
     SymbolicState::OStreamMode::forceNewlines = false;
     publishStatus(ContinualPlanningStatus::STATE_ESTIMATION,
