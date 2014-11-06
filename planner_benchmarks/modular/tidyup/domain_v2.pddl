@@ -92,6 +92,7 @@
             (at start (assign (arm-state ?a) arm_unknown))
             ; force re-detect objects after grasp
             (at end (not (searched ?l)))
+            (at end (not (recent-detected-objects ?l)))
             ; the object has been removed, therefore not graspable from any location or with any arm
             (at end (not (on ?o ?s)))
             (forall (?_a - arm) (forall (?_l - manipulation_location) (at end (not (graspable-from ?o ?_l ?_a))))) 
@@ -233,7 +234,7 @@
 
     (:durative-action drive-base
         :parameters (?s - location ?g - location)
-        :duration (= ?duration 1000.0)
+        :duration (= ?duration 100.0)
         :condition
         (and
             (at start (at-base ?s))
