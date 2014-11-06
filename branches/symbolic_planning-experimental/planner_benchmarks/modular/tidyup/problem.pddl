@@ -88,7 +88,7 @@
     (forall (?o - arm) (hand-free ?o))
     (forall (?o - manipulation_location) (searched ?o))
     (forall (?o - movable_object) (tidy ?o))
-    (forall (?w - wipe_point) (wiped ?w))
+    ;(forall (?w - wipe_point) (wiped ?w))
     ;(grasped-sponge right_arm)
     ;(wiped wipe_1)
     ;(wiped wipe_2)
