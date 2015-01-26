@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Parameters: domain problem plan_to_monitor other/ros-paramters
+#
+# domain problem     should be PDDL files
+# plan_to_monitor    a plan file as output from this planner
+
+DOMAIN=$1
+PROBLEM=$2
+MONITOR_PLAN=$3
+
+shift
+shift
+shift
+
+OUTPUT_DIR="."
+echo Output Dir $OUTPUT_DIR
+
+ROS_PARAMS=$*
+echo ROS parameters: $ROS_PARAMS
+echo
+
+
+rosrun tfd_modules translate.py "$DOMAIN" "$PROBLEM" > ${OUTPUT_DIR}/output.sas
+
+if [ $? != 0 ]; then
+	echo "ERROR IN TRANSLATE"
+	exit 1
+else 
+	echo "TRANSLATE SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_preprocess < ${OUTPUT_DIR}/output.sas > ${OUTPUT_DIR}/output
+
+if [ $? != 0 ]; then
+	echo "ERROR IN PREPROCESS"
+	exit 1
+else
+	echo "PREPROCESS SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_search m ${MONITOR_PLAN} $ROS_PARAMS < ${OUTPUT_DIR}/output
+
+# get retval from tfd_search, not from tee (if used)
+RETVAL=${PIPESTATUS[0]}
+
+if [ $RETVAL != 0 ]; then
+   echo "MONITORING RETURNED $RETVAL"
+   if [ $RETVAL == 137 ]; then
+      echo "TIMEOUT"
+      exit 137
+   fi
+   echo "MONITORING UNSUCCESSFULL"
+   exit 1
+else
+   echo "MONITORING SUCCESSFULL"
+fi
+
+exit 0

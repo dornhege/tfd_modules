@@ -1,0 +1,38 @@
+
+#ifndef <[Namespace]>_STATE_H_
+#define <[Namespace]>_STATE_H_
+
+#include "tfd_modules/opl/AbstractState.h"
+<[Include]>
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+class State : public opl::interface::AbstractState
+{
+private:
+<[TypeLists]>
+<[Variables]>
+
+public:
+    static State* stateInstance;
+    State();
+    virtual ~State();
+
+    void initialize();
+<[TypeListGetters]>
+<[FluentDeclaration]>
+
+friend class StateFactory;
+private:
+    std::string getObjectID() const {return "";}
+};
+
+}
+
+}
+
+#endif /* <[Namespace]>_STATE_H_ */

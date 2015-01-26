@@ -1,0 +1,56 @@
+Problem CrewPlanning_2crew_1day_40utilization(Domain CrewPlanningOpl)
+{
+    Day d0
+    {
+        next(d1);
+    }
+    Day d1
+    {
+        next(d2);
+        initiated;
+    }
+    Day d2
+    {
+    }
+    CrewMember c1
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    CrewMember c2
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    MedicalState ms1;
+    MedicalState ms2;
+    FilterState spaceshipFilter;
+    RPCM rpcm1;
+    ExerEquipment e1
+    {
+        unused;
+    }
+    PayloadAct pa1_1;
+    PayloadAct pa1_2;
+    PayloadAct pa1_3;
+    PayloadAct pa1_4;
+    PayloadAct pa1_5;
+    PayloadAct pa1_6;
+    
+    Goal
+    {
+		and (
+		    c1.doneSleep(d1), 
+            c2.doneSleep(d1), 
+            ms2.finished(d1),
+		    d2.initiated,
+            pa1_1.completed(d1),
+            pa1_2.completed(d1),
+            pa1_3.completed(d1),
+            pa1_4.completed(d1),
+            pa1_5.completed(d1),
+            pa1_6.completed(d1));
+    }
+}

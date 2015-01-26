@@ -1,0 +1,6 @@
+216a217,218
+> 		    (at start (switch-available ?sw))
+> ; Note ipc2008 domains do not have the switch-available condition here
+240a243,244
+> 		    (at start (switch-available ?sw))
+> ; Note ipc2008 domains do not have the switch-available condition here

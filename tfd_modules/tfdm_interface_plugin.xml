@@ -1,0 +1,8 @@
+<library path="lib/libtfdm_interface">
+    <class name="tfd_modules/tfdm_interface" type="tfd_modules::TFDMInterface" base_class_type="continual_planning_executive::PlannerInterface">
+        <description>Interface for calling TFD/M</description>
+    </class>
+    <class name="tfd_modules/tfdm_eval_interface" type="tfd_modules::TFDMEvalInterface" base_class_type="continual_planning_executive::PlannerInterface">
+        <description>Interface for calling TFD/M with different configurations.</description>
+    </class>
+</library>

@@ -1,0 +1,46 @@
+Running evaluation runs:
+run_all.sh
+run_eval.py
+
+Evaluation the results:
+eval.py:
+    - Read in and evaluate data from a directory structure
+    - dirs may contain different runs
+    - For each directory A/B/C that contains files containing "pddl" it is assumed that
+        - C is the domain
+        - A/B describes the run configuration
+    - there need to exist a plan.p03.pddl.best and times.p03.pddl files for a valid problem
+
+Usage:
+    - There are three modes for running eval.py
+    1) Evaluate one run: Only pass in evaluation data
+        Will write output.tex with absolute data for each of the runs in evaluation data dir.
+        Creates makespan and runtime tables.
+
+    2) Quality assessment for one/multiple runs: Pass in evaluation data and reference data
+        For evaluating quality.
+
+        For each domain it will compare each run to the reference makespans.
+        Instead of computing absolute makespans, relative quality scores are computed.
+        Provided ref-data should be used.
+
+        Alternately one run can be used as ref-data to compare two runs.
+        
+    3) Unit test: Compare two evaluation runs, one with reference plans (-c)
+        For unit testing changes in the planner that should not change the behavior.
+
+        Works like 2) but will check if plans from each run are identical to those in the reference
+
+Helper scripts:
+
+convert_ref_data.py:
+    - convert ref data in a specific format to the same data gained from executing the planner
+    - mainly can read in a plan and retrieve the makespan from it
+
+create_problems_simple.sh:
+    - For creating problem sets input
+    - Create a problems input from a directory
+    - Assumption there is exaclty one file domain...pddl and N x p...pddl files
+
+generate_times.sh:
+    - generates fake times... files and plans from manually inputting the makespan for a problem

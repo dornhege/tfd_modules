@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Start script with default planner parameters.
+#
+# Parameters: domain problem other/ros-paramters
+#
+# domain problem     should be PDDL files
+
+DOMAIN=$1
+PROBLEM=$2
+
+shift
+shift
+
+ROS_PARAMS=
+
+PLAN_NAME="plan"
+echo Plan-Name $PLAN_NAME
+
+TIMEOUT="60"
+echo Timeout: $TIMEOUT
+
+OUTPUT_DIR="."
+echo Output Dir $OUTPUT_DIR
+
+TIMESTEP="x"
+echo Time: $TIMESTEP
+
+OUTPUT_LOG=
+echo Output-Log $OUTPUT_LOG
+
+ROS_PARAMS=$*
+echo ROS parameters: $ROS_PARAMS
+echo
+
+
+rosrun tfd_modules translate.py "$DOMAIN" "$PROBLEM" > ${OUTPUT_DIR}/output.${TIMESTEP}.sas
+
+if [ $? != 0 ]; then
+	echo "ERROR IN TRANSLATE"
+	exit 1
+else 
+	echo "TRANSLATE SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_preprocess < ${OUTPUT_DIR}/output.${TIMESTEP}.sas > ${OUTPUT_DIR}/output.${TIMESTEP}
+
+if [ $? != 0 ]; then
+	echo "ERROR IN PREPROCESS"
+	exit 1
+else
+	echo "PREPROCESS SUCCESSFULL"
+fi
+
+echo
+
+if [ ! -z $OUTPUT_LOG ]; then
+   rosrun tfd_modules tfd_search ayYe G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP} 2>&1 | tee "$OUTPUT_LOG"
+else
+   rosrun tfd_modules tfd_search ayYe G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP}
+fi
+
+# get retval from tfd_search, not from tee
+RETVAL=${PIPESTATUS[0]}
+
+if [ $RETVAL != 0 ]; then
+   echo "SEARCH RETURNED $RETVAL"
+   if [ $RETVAL == 137 ]; then
+      echo "TIMEOUT"
+      exit 137
+   fi
+	echo "SEARCH UNSUCCESSFULL $RETVAL"
+	exit 41
+else
+	echo "SEARCH SUCCESSFULL"
+fi
+
+exit 0

@@ -1,0 +1,30 @@
+<package>
+  <name>continual_planning_executive</name>
+  <version>0.0.0</version>
+  <description>
+      An executive for continual planning, i.e. an execution, planning, monitoring cycle.
+  </description>
+  <maintainer email="dornhege@informatik.uni-freiburg.de">Maintained by Christian Dornhege (see AUTHORS file).</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/continual_planning_executive</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>continual_planning_msgs</build_depend>
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>continual_planning_msgs</run_depend>
+  
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -lcontinual_planning"/>
+  </export>
+
+</package>
+

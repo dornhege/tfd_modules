@@ -1,0 +1,164 @@
+Problem transport_p01_10_city_5nodes_1000size_3degree_100mindistance_2vs_2pspercity_2008seed(Domain Transport)
+{
+    Location l1
+    {
+        hasPetrolStation;
+    }  
+    Location l2;    
+    Location l3;    
+    Location l4;    
+    Location l5;
+    Location l6;    
+    Location l7;    
+    Location l8;    
+    Location l9;
+    Location l10;
+    Vehicle v1
+    {
+        at(l1);
+        readyLoading;
+        capacity = 100;
+        fuelLeft = 441;
+        fuelMax = 441;
+    }    
+    Vehicle v2
+    {
+        at(l7);
+        readyLoading;
+        capacity = 100;
+        fuelLeft = 441;
+        fuelMax = 441;
+    }    
+    Package p1
+    {
+        at(l7);
+        size = 63;
+    }    
+    Package p2
+    {
+        at(l2);
+        size = 65;
+    }    
+    Package p3
+    {
+        at(l10);
+        size = 92;
+    }    
+    Package p4
+    {
+        at(l10);
+        size = 26;
+    }    
+    
+    road(l3, l1);
+    roadLength(l3, l1) = 22;
+    fuelDemand(l3, l1) = 43;
+    road(l1, l3);
+    roadLength(l1, l3) = 22;
+    fuelDemand(l1, l3) = 43;
+    road(l4, l1);
+    roadLength(l4, l1) = 26;
+    fuelDemand(l4, l1) = 52;
+    road(l1, l4);
+    roadLength(l1, l4) = 26;
+    fuelDemand(l1, l4) = 52;
+    road(l5, l1);
+    roadLength(l5, l1) = 37;
+    fuelDemand(l5, l1) = 74;
+    road(l1, l5);
+    roadLength(l1, l5) = 37;
+    fuelDemand(l1, l5) = 74;
+    road(l5, l4);
+    roadLength(l5, l4) = 12;
+    fuelDemand(l5, l4) = 24;
+    road(l4, l5);
+    roadLength(l4, l5) = 12;
+    fuelDemand(l4, l5) = 24;
+    road(l6, l2);
+    roadLength(l6, l2) = 19;
+    fuelDemand(l6, l2) = 38;
+    road(l2, l6);
+    roadLength(l2, l6) = 19;
+    fuelDemand(l2, l6) = 38;
+    road(l3, l6);
+    roadLength(l3, l6) = 34;
+    fuelDemand(l3, l6) = 67;
+    road(l6, l3);
+    roadLength(l6, l3) = 34;
+    fuelDemand(l6, l3) = 67;
+    road(l7, l1);
+    roadLength(l7, l1) = 15;
+    fuelDemand(l7, l1) = 30;
+    road(l1, l7);
+    roadLength(l1, l7) = 15;
+    fuelDemand(l1, l7) = 30;
+    road(l7, l3);
+    roadLength(l7, l3) = 16;
+    fuelDemand(l7, l3) = 32;
+    road(l3, l7);
+    roadLength(l3, l7) = 16;
+    fuelDemand(l3, l7) = 32;
+    road(l7, l4);
+    roadLength(l7, l4) = 31;
+    fuelDemand(l7, l4) = 62;
+    road(l4, l7);
+    roadLength(l4, l7) = 31;
+    fuelDemand(l4, l7) = 62;
+    road(l8, l7);
+    roadLength(l8, l7) = 30;
+    fuelDemand(l8, l7) = 60;
+    road(l7, l8);
+    roadLength(l7, l8) = 30;
+    fuelDemand(l7, l8) = 60;
+    road(l9, l6);
+    roadLength(l9, l6) = 28;
+    fuelDemand(l9, l6) = 55;
+    road(l6, l9);
+    roadLength(l6, l9) = 28;
+    fuelDemand(l6, l9) = 55;
+    road(l10, l1);
+    roadLength(l10, l1) = 33;
+    fuelDemand(l10, l1) = 65;
+    road(l1, l10);
+    roadLength(l1, l10) = 33;
+    fuelDemand(l1, l10) = 65;
+    road(l10, l3);
+    roadLength(l10, l3) = 25;
+    fuelDemand(l10, l3) = 50;
+    road(l3, l10);
+    roadLength(l3, l10) = 25;
+    fuelDemand(l3, l10) = 50;
+    road(l10, l6);
+    roadLength(l10, l6) = 35;
+    fuelDemand(l10, l6) = 70;
+    road(l6, l10);
+    roadLength(l6, l10) = 35;
+    fuelDemand(l6, l10) = 70;
+    road(l10, l7);
+    roadLength(l10, l7) = 18;
+    fuelDemand(l10, l7) = 36;
+    road(l7, l10);
+    roadLength(l7, l10) = 18;
+    fuelDemand(l7, l10) = 36;
+    road(l10, l8);
+    roadLength(l10, l8) = 24;
+    fuelDemand(l10, l8) = 47;
+    road(l8, l10);
+    roadLength(l8, l10) = 24;
+    fuelDemand(l8, l10) = 47;
+    road(l10, l9);
+    roadLength(l10, l9) = 32;
+    fuelDemand(l10, l9) = 64;
+    road(l9, l10);
+    roadLength(l9, l10) = 32;
+    fuelDemand(l9, l10) = 64;
+
+    Goal
+    {
+		and (
+		    p1.at(l9), 
+            p2.at(l9), 
+            p3.at(l3), 
+		    p4.at(l6));
+    }
+}

@@ -1,0 +1,83 @@
+Problem CrewPlanning_1crew_3day_100utilization(Domain CrewPlanningOpl)
+{
+    Day d0
+    {
+        next(d1);
+    }
+    Day d1
+    {
+        next(d2);
+        initiated;
+    }
+    Day d2
+    {
+        next(d3);
+    }
+    Day d3
+    {
+        next(d4);
+    }
+    Day d4;
+    CrewMember c1
+    {
+        currentDay(d0);
+        doneSleep(d0);
+        available;
+    }
+    MedicalState ms1;
+    FilterState spaceshipFilter;
+    RPCM rpcm3;
+    ExerEquipment e1
+    {
+        unused;
+    }
+    PayloadAct pa1_1;
+    PayloadAct pa1_2;
+    PayloadAct pa1_3;
+    PayloadAct pa1_4;
+    PayloadAct pa1_5;
+    PayloadAct pa1_6;
+    PayloadAct pa1_7;
+    PayloadAct pa2_1;
+    PayloadAct pa2_2;
+    PayloadAct pa2_3;
+    PayloadAct pa2_4;
+    PayloadAct pa2_5;
+    PayloadAct pa2_6;
+    PayloadAct pa2_7;
+    PayloadAct pa3_1;
+    PayloadAct pa3_2;
+    
+    Goal
+    {
+		and (
+		    c1.doneSleep(d1), 
+            c1.doneSleep(d2), 
+            c1.doneSleep(d3), 
+            d4.initiated,
+            
+            ms1.finished(d2),
+
+            spaceshipFilter.changed(d1),
+            spaceshipFilter.changed(d2),
+            
+            rpcm3.done(d3),
+            
+            pa1_2.completed(d1),
+            pa1_3.completed(d1),
+            pa1_4.completed(d1),
+            pa1_5.completed(d1),
+            pa1_6.completed(d1),
+            pa1_7.completed(d1),
+            pa2_1.completed(d2),
+            pa2_2.completed(d2),
+            pa2_3.completed(d2),
+            pa2_4.completed(d2),
+            pa2_5.completed(d2),
+            pa2_6.completed(d2),
+            pa2_7.completed(d2),
+            pa3_1.completed(d3),
+            pa3_2.completed(d3),
+            pa1_1.completed(d1));
+    }
+}

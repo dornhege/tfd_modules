@@ -1,0 +1,28 @@
+
+#include "<[ObjectType]>.h"
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+<[ObjectType]>::<[ObjectType]>(const std::string& name)
+: <[SuperType]>(name)
+{
+}
+
+<[ObjectType]>::~<[ObjectType]>()
+{
+}
+
+void <[ObjectType]>::initialize()
+{
+    <[SuperType]>::initialize();
+<[Initialization]>
+}
+
+<[FluentImplementation]>
+}
+
+}

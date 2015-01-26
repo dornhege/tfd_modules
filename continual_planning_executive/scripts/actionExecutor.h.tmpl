@@ -1,0 +1,26 @@
+\#ifndef ACTION_EXECUTOR_${ACTION_CAPS}_H
+\#define ACTION_EXECUTOR_${ACTION_CAPS}_H
+
+\#include "continual_planning_executive/actionExecutorActionlib.hpp"
+\#include "continual_planning_executive/symbolicState.h"
+\#include <$PACKAGE/${ACTION}Action.h>
+
+namespace $NAMESPACE
+{
+
+    class ActionExecutor$ACTION : public ActionExecutorActionlib<$PACKAGE::${ACTION}Action,
+                                                    $PACKAGE::${ACTION}Goal, $PACKAGE::${ACTION}Result>
+    {
+        public:
+            virtual bool fillGoal($PACKAGE::${ACTION}Goal & goal,
+                    const DurativeAction & a, const SymbolicState & current);
+
+            virtual void updateState(const actionlib::SimpleClientGoalState & actionReturnState,
+                    const $PACKAGE::${ACTION}Result & result,
+                    const DurativeAction & a, SymbolicState & current);
+    };
+
+};
+
+\#endif
+

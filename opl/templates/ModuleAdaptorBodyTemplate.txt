@@ -1,0 +1,21 @@
+
+#include <assert.h>
+#include "State.h"
+#include "<[Type]><[Name]>_plannerCall.h"
+#include "<[Type]><[Name]>.h"
+
+double <[Type]><[Name]>_plannerCall(const modules::ParameterList & parameterList,
+        modules::predicateCallbackType predicateCallback,
+        modules::numericalFluentCallbackType numericalFluentCallback,
+        int relaxed)
+{
+    assert(parameterList.size() == <[ArgumentCount]>);
+    // look up parameters in state
+    opl::<[Namespace]>::State* state = opl::<[Namespace]>::State::stateInstance;
+<[ArgumentLookups]>
+    // call lib interface
+    <[ReturnType]> value = opl::<[Namespace]>::<[Type]><[Name]>(state, <[ArgumentNames]>relaxed);
+<[ReturnValueConversion]>
+}
+
+

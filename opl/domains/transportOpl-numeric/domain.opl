@@ -1,0 +1,99 @@
+// OPL conversion of Transport domain
+
+Domain Transport
+{
+    Type Target;
+    Type Location
+    {
+        boolean hasPetrolStation;
+    }
+    Type Locatable
+    {
+        boolean at(Location l);
+    }
+    Type Vehicle : Locatable
+    {
+        boolean readyLoading;
+        float capacity;
+        float fuelLeft;
+        float fuelMax;
+        DurativeAction drive(Location l1, Location l2)
+        {
+            Duration {roadLength(l1, l2);}
+            Condition
+            {
+                and(atStart(this.at(l1)), 
+                atStart(road(l1, l2)),
+                atStart(greaterEqual(this.fuelLeft, fuelDemand(l1, l2))));
+            }
+            Effect
+            {
+                and(atStart(not(this.at(l1))), 
+                atEnd(this.at(l2)), 
+                atStart(decrease(this.fuelLeft, fuelDemand(l1, l2))));
+            }
+        }
+        DurativeAction pickUp(Location l, Package p)
+        {
+            Duration {1;}
+            Condition
+            {
+                and(atStart(this.at(l)), 
+                overall(this.at(l)),
+                atStart(p.at(l)),
+                atStart(greaterEqual(this.capacity, p.size)),
+                atStart(this.readyLoading));
+            }
+            Effect
+            {
+                and(atStart(not(p.at(l))), 
+                atEnd(p.in(this)), 
+                atStart(decrease(this.capacity, p.size)),
+                atStart(not(this.readyLoading)),
+                atEnd(this.readyLoading));
+            }
+        }
+        DurativeAction drop(Location l, Package p)
+        {
+            Duration {1;}
+            Condition
+            {
+                and(atStart(this.at(l)), 
+                overall(this.at(l)),
+                atStart(p.in(this)),
+                atStart(this.readyLoading));
+            }
+            Effect
+            {
+                and(atStart(not(p.in(this))), 
+                atEnd(p.at(l)), 
+                atStart(increase(this.capacity, p.size)),
+                atStart(not(this.readyLoading)),
+                atEnd(this.readyLoading));
+            }
+        }
+        DurativeAction refuel(Location l)
+        {
+            Duration {10;}
+            Condition
+            {
+                and(atStart(this.at(l)), 
+                overall(this.at(l)),
+                atStart(l.hasPetrolStation));
+            }
+            Effect
+            {
+                and(atEnd(assign(this.fuelLeft, this.fuelMax)));
+            }
+        }
+    }
+    Type Package : Locatable
+    {
+        boolean in(Vehicle v);
+        float size;
+    }
+    boolean road(Location l1, Location l2);
+    float roadLength(Location l1, Location l2);
+    float fuelDemand(Location l1, Location l2);
+}
+

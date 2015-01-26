@@ -1,0 +1,30 @@
+
+#ifndef <[Namespace]>_<[ObjectType]>_H_
+#define <[Namespace]>_<[ObjectType]>_H_
+
+#include "tfd_modules/opl/oplObject.h"
+<[Include]>
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+class <[ObjectType]> : public <[SuperType]>
+{
+private:
+<[Variables]>
+    
+public:
+    <[ObjectType]>(const std::string& name);
+    virtual ~<[ObjectType]>();
+    virtual void initialize();
+<[FluentDeclaration]>
+};
+
+}
+
+}
+
+#endif
+

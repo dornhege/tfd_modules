@@ -1,0 +1,17 @@
+Problem exploreTargets (Domain RoomScanning)
+{
+    Pose startPose
+    {
+        x = 0;
+        y = 0;
+        z = 0;
+    }
+    Robot pr2
+    {
+        currentPose = startPose;
+    }
+    Goal
+    {
+		and (target0.explored, target1.explored, target2.explored, target3.explored);
+    }
+}

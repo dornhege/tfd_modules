@@ -1,0 +1,121 @@
+Domain RoomScanning
+{
+    boolean inRange(Pose p1, Pose p2);
+    
+    Type Pose
+    {
+        float x;
+        float y;
+        float z;
+        float qx;
+        float qy;
+        float qz;
+        float qw;
+        ConditionModule isReachableFrom(Pose origin)
+        {
+            isReachableFrom@libtfd_opl_RoomScanning.so;
+        }
+    }
+
+    Type Target : Pose
+    {
+        boolean explored;
+    }
+    
+    Type Door
+    {
+        Pose approachPose;
+        boolean open;
+    }
+
+    Type Robot
+    {
+        Pose currentPose;
+        boolean busy;
+        Pose middle(Pose p1, Pose p2);
+        CostModule driveDuration(Pose destination)
+        {
+            // FIXME: when converting to pddl, add "this" parameter
+            this.driveDuration@libtfd_opl_RoomScanning.so;
+        }
+        
+
+        DurativeAction drive(Pose destination)
+        {
+            Duration {10;}
+            Condition
+            {
+                and (atStart (not( equals(this.currentPose, destination))), 
+                    atStart (not (this.busy)));
+            }
+            Effect
+            {
+                and (atStart (this.busy),
+                    atEnd (assign (this.currentPose, destination)),
+                    atEnd (not (this.busy)));
+            }
+        }
+
+        DurativeAction openDoor(Door door1)
+        {
+            Duration {100.0;} // TODO: cost module?
+            Condition
+            {
+                and (atStart (not (this.busy)),
+//                    atStart (equals (this.middle (this.currentPose, door1.approachPose), door1.approachPose)),
+                    atStart (inRange (this.currentPose, door1.approachPose)),
+                    atStart (not (door1.open)));
+            }
+            Effect
+            {
+                and (
+                    atStart (this.busy),
+                    atEnd (not (this.busy)),
+                    atEnd (door1.open));
+            }
+        }
+        
+        DurativeAction scan(Target poi)
+        {
+            Duration{20.0;} // TODO: cost module?
+            Condition
+            {
+                and (atStart (not (this.busy)),
+                    atStart (equals(this.currentPose, poi)),
+                    atStart (not (poi.explored)));
+            }
+            Effect
+            {
+                and (atStart (this.busy),
+                    atEnd (not (this.busy)),
+                    atEnd (poi.explored));
+            }
+        }
+    }
+    
+    DurativeAction setInRange(Pose a, Door d)
+    {
+        Duration {1;}
+        Condition
+        {
+            and (atStart(not(d.open)));
+        }
+        Effect
+        {
+            and (atEnd (inRange (a, d.approachPose)));
+        }
+    }
+    DurativeAction setApproachPose(Pose a, Door d)
+    {
+        Duration {1;}
+        Condition
+        {
+            and (atStart(not(d.open)));
+        }
+        Effect
+        {
+            and (atEnd (assign (d.approachPose, a)));
+        }
+    }
+}
+

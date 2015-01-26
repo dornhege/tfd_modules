@@ -1,0 +1,45 @@
+
+#ifndef <[Namespace]>_StateFactory_H_
+#define <[Namespace]>_StateFactory_H_
+
+#include "tfd_modules/opl/AbstractStateFactory.h"
+#include "State.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+opl::interface::OplCallbackInterface* initCallbackInterface(
+        const modules::ObjectTypeMap& objects,
+        const modules::PredicateMapping& predicateMapping,
+        const modules::FunctionMapping& functionMapping,
+        const modules::PredicateList& predicateConstants,
+        const modules::NumericalFluentList& numericConstants);
+
+#ifdef __cplusplus
+}
+#endif
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+class StateFactory : public opl::interface::AbstractStateFactory
+{
+public:
+    StateFactory();
+    virtual ~StateFactory();
+
+    opl::interface::AbstractState* instantiateState(const modules::ObjectTypeMap& objects);
+
+private:
+    void createObject(State* state, const std::pair<std::string, std::string>& objectString);
+};
+
+}
+
+}
+
+#endif

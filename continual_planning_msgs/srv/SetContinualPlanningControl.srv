@@ -1,0 +1,9 @@
+int32 RUN=0
+int32 PAUSE=1
+int32 STEP=2
+int32 FORCE_REPLANNING=3
+int32 REESTIMATE_STATE=4
+
+int32 command
+---
+int32 command

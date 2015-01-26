@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Eval script for multiple planner calls
+#
+# Parameters: domain problem planName timeout dirForOutputFiles Timestep plannerPrintouts 
+#
+# domain problem     should be PDDL files
+# planName           the prefix for the filename that plans are written to - default: "plan"
+# timeout            search timeout in second - default: 60
+# dirForOutputFiles  a directory that the intermediate SAS+ files will be written to - default: "."
+# Timestep           a unique identifier appended to the output files - default: "x"
+# plannerPrintouts   if given, the printouts of the search will be written to this file
+
+DOMAIN=$1
+PROBLEM=$2
+
+shift
+shift
+
+ROS_PARAMS=
+
+ros_param_match=":="
+
+# Remove ros parameters - will be passed to the search part correctly
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+PLAN_NAME="plan"
+if [ $# -gt 0 ]; then
+   PLAN_NAME="$1"
+   shift
+fi
+echo Plan-Name $PLAN_NAME
+
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+TIMEOUT="60"
+if [ $# -gt 0 ]; then
+   TIMEOUT="$1"
+   shift
+fi
+echo Timeout: $TIMEOUT
+
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+OUTPUT_DIR="."
+if [ $# -gt 0 ]; then
+   OUTPUT_DIR="$1"
+   shift
+fi
+echo Output Dir $OUTPUT_DIR
+
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+TIMESTEP="x"
+if [ $# -gt 0 ]; then
+   TIMESTEP="$1"
+   shift
+fi
+echo Time: $TIMESTEP
+
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+OUTPUT_LOG=
+if [ $# -gt 0 ]; then
+   OUTPUT_LOG="$1"
+   shift
+fi
+echo Output-Log $OUTPUT_LOG
+
+while [[ $1 =~ $ros_param_match ]]; do
+   ROS_PARAMS="$ROS_PARAMS $1"
+   shift
+done
+
+echo ROS parameters: $ROS_PARAMS
+echo
+
+
+rosrun tfd_modules translate.py "$DOMAIN" "$PROBLEM" > ${OUTPUT_DIR}/output.${TIMESTEP}.sas
+
+if [ $? != 0 ]; then
+	echo "ERROR IN TRANSLATE"
+	exit 1
+else 
+	echo "TRANSLATE SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_preprocess < ${OUTPUT_DIR}/output.${TIMESTEP}.sas > ${OUTPUT_DIR}/output.${TIMESTEP}
+
+if [ $? != 0 ]; then
+	echo "ERROR IN PREPROCESS"
+	exit 1
+else
+	echo "PREPROCESS SUCCESSFULL"
+fi
+
+echo
+
+if [ ! -z $OUTPUT_LOG ]; then
+   rosrun tfd_modules tfd_search ayYe G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP} 2>&1 | tee "$OUTPUT_LOG"
+else
+   rosrun tfd_modules tfd_search ayYe G t t $TIMEOUT p "$PLAN_NAME" $ROS_PARAMS < ${OUTPUT_DIR}/output.${TIMESTEP}
+fi
+
+# get retval from tfd_search, not from tee
+RETVAL=${PIPESTATUS[0]}
+
+if [ $RETVAL != 0 ]; then
+   echo "SEARCH RETURNED $RETVAL"
+   if [ $RETVAL == 137 ]; then
+      echo "TIMEOUT"
+      exit 137
+   fi
+	echo "SEARCH UNSUCCESSFULL $RETVAL"
+	exit 41
+else
+	echo "SEARCH SUCCESSFULL"
+fi
+
+exit 0

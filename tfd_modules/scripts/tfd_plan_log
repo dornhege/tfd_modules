@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Default start script without parameters for logging output. Parameters should be set on param server.
+#
+# Parameters: domain problem logfile other/ros-paramters
+#
+# domain problem     should be PDDL files
+
+DOMAIN=$1
+PROBLEM=$2
+OUTPUT_LOG=$3
+
+shift
+shift
+shift
+
+OUTPUT_DIR="."
+echo Output Dir $OUTPUT_DIR
+
+ROS_PARAMS=$*
+echo ROS parameters: $ROS_PARAMS
+echo
+
+if [ -z $OUTPUT_LOG ]; then
+    echo No output logfile defined!
+    exit 1
+fi
+
+
+rosrun tfd_modules translate.py "$DOMAIN" "$PROBLEM" > ${OUTPUT_DIR}/output.sas
+
+if [ $? != 0 ]; then
+	echo "ERROR IN TRANSLATE"
+	exit 1
+else 
+	echo "TRANSLATE SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_preprocess < ${OUTPUT_DIR}/output.sas > ${OUTPUT_DIR}/output
+
+if [ $? != 0 ]; then
+	echo "ERROR IN PREPROCESS"
+	exit 1
+else
+	echo "PREPROCESS SUCCESSFULL"
+fi
+
+echo
+
+rosrun tfd_modules tfd_search $ROS_PARAMS < ${OUTPUT_DIR}/output 2>&1 | tee "$OUTPUT_LOG"
+
+# get retval from tfd_search, not from tee (if used)
+RETVAL=${PIPESTATUS[0]}
+
+if [ $RETVAL != 0 ]; then
+	echo "SEARCH RETURNED $RETVAL"
+   if [ $RETVAL == 137 ]; then
+      echo "TIMEOUT"
+      exit 137
+   fi
+   echo "SEARCH UNSUCCESSFULL $RETVAL"
+   exit 41
+else
+	echo "SEARCH SUCCESSFULL"
+fi
+
+exit 0

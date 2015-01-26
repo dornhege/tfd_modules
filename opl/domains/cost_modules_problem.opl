@@ -1,0 +1,152 @@
+Problem exploreTargets (Domain RobotExploration)
+{
+    Location location0
+    {
+        x = 1;
+        y = 5;
+        blocked;
+    }
+
+    Location location1
+    {
+        x = 1;
+        y = 1;
+        blocked;
+    }
+
+    Location location2
+    {
+        x = 3;
+        y = 3;
+    }
+
+    Location location3
+    {
+        x = 3.5;
+        y = 3;
+        blocked;
+    }
+
+    Location location4
+    {
+        x = 4;
+        y = 3;
+    }
+
+    Location location5
+    {
+        x = 6;
+        y = 1;
+    }
+
+    Location location6
+    {
+        x = 6;
+        y = 5;
+    }
+
+    Location location7
+    {
+        x = 8;
+        y = 3;
+    }
+
+    Location location8
+    {
+        x = 8.5;
+        y = 3;
+        blocked;
+    }
+
+    Location location9
+    {
+        x = 9;
+        y = 3;
+    }
+
+    Location location10
+    {
+        x = 11;
+        y = 3;
+    }
+
+    Location location11
+    {
+        x = 11;
+        y = 1;
+    }
+
+    Target target0
+    {
+        currentLocation = location1;
+    }
+
+    Target target1
+    {
+        currentLocation = location6;
+    }
+
+    Target target2
+    {
+        currentLocation = location10;
+    }
+
+    Target target3
+    {
+        currentLocation = location11;
+    }
+
+    Robot robot0
+    {
+        currentLocation = location0;
+    }
+
+    Robot robot1
+    {
+        currentLocation = location1;
+    }
+
+    Door door0
+    {
+        currentLocation = location3;
+    }
+
+    Door door1
+    {
+        currentLocation = location8;
+    }
+    
+    isReachable(location0, location1);
+    isReachable(location1, location0);
+    isReachable(location0, location2);
+    isReachable(location2, location0);
+    isReachable(location2, location1);
+    isReachable(location1, location2);
+    isReachable(location2, location3);
+    isReachable(location3, location2);
+    isReachable(location4, location3);
+    isReachable(location3, location4);
+    isReachable(location4, location5);
+    isReachable(location5, location4);
+    isReachable(location4, location6);
+    isReachable(location6, location4);
+    isReachable(location5, location6);
+    isReachable(location6, location5);
+    isReachable(location5, location7);
+    isReachable(location7, location5);
+    isReachable(location7, location6);
+    isReachable(location6, location7);
+    isReachable(location7, location8);
+    isReachable(location8, location7);
+    isReachable(location9, location8);
+    isReachable(location8, location9);
+    isReachable(location9, location10);
+    isReachable(location10, location9);
+    isReachable(location5, location11);
+    isReachable(location11, location5);
+    
+    Goal
+    {
+		and (target0.explored(), target1.explored(), target2.explored(), target3.explored());
+    }
+}

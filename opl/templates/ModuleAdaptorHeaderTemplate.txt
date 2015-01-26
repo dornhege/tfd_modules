@@ -1,0 +1,18 @@
+
+#ifndef <[Namespace]>_<[Type]><[Name]>_H_
+#define <[Namespace]>_<[Type]><[Name]>_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double <[Type]><[Name]>_plannerCall(const modules::ParameterList & parameterList,
+        modules::predicateCallbackType predicateCallback,
+        modules::numericalFluentCallbackType numericalFluentCallback,
+        int relaxed);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif 

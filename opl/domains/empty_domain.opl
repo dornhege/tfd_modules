@@ -1,0 +1,69 @@
+Domain RobotExploration
+{
+    Type Robot
+    {
+        Location currentLocation;
+        boolean isBusy;
+        
+        Action drive(Location destination)
+        {
+            Cost 
+            {
+                2.5;
+            }
+            
+            AtStartCondition
+            {
+                and ( 
+                    not (equals(this.currentLocation, destination)), 
+                    not (this.isBusy)
+                );
+            }
+            
+            OverAllCondition
+            {
+                isReachable(this.currentLocation, destination);
+            }
+            
+            AtStartEffect
+            {
+                this.isBusy;
+            }
+            
+            AtEndEffect
+            {
+                and ( 
+                    assign (this.currentLocation, destination),
+                    not (this.isBusy)
+                );
+            }
+        }
+    }
+    Type Location
+    {
+        float x;
+        float y;
+        
+        boolean isNear(Location other);
+    }
+    
+    Type Target
+    {
+        Location currentLocation;
+        boolean explored;
+    }
+    
+    Type Movable
+    {
+        Location currentLocation;
+    }
+    
+    Type Door : Movable
+    {
+        boolean isOpen;
+    }
+    boolean isReachable(Location origin, Location destination);
+    Robot activeRobot;
+    float missionTime(Robot aRobot);
+}
+

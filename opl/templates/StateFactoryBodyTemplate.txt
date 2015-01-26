@@ -1,0 +1,61 @@
+
+#include <assert.h>
+#include <iostream>
+#include "tfd_modules/opl/stringutil.h"
+#include "StateFactory.h"
+
+opl::interface::OplCallbackInterface* initCallbackInterface(
+        const modules::ObjectTypeMap& objects,
+        const modules::PredicateMapping& predicateMapping,
+        const modules::FunctionMapping& functionMapping,
+        const modules::PredicateList& predicateConstants,
+        const modules::NumericalFluentList& numericConstants)
+{
+    opl::interface::AbstractStateFactory* factory = new opl::<[Namespace]>::StateFactory();
+    return factory->createState(objects, predicateMapping, functionMapping, predicateConstants, numericConstants);
+}
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+
+StateFactory::StateFactory()
+{
+}
+
+StateFactory::~StateFactory()
+{
+}
+
+opl::interface::AbstractState* StateFactory::instantiateState(const modules::ObjectTypeMap& objects)
+{
+    State* state = new State();
+
+    // create objects
+    for (modules::ObjectTypeMap::const_iterator objectIterator = objects.begin(); objectIterator != objects.end(); objectIterator++)
+    {
+        createObject(state, *objectIterator);
+    }
+
+    return state;
+}
+
+void StateFactory::createObject(State* state, const std::pair<std::string, std::string>& objectString)
+{
+    <[ObjectFactories]> if (objectString.first == "object")
+    {
+        std::cout << "ERROR: can not allocate abstact type: object" << std::endl;
+        assert(0);
+    }
+    else
+    {
+        std::cout << "Unknown object type: " << objectString.first << std::endl;
+        assert(0);
+    }
+}
+
+}
+
+}

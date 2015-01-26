@@ -1,0 +1,10 @@
+<package>
+  <description brief="domains">
+      A collection of PDDL, PDDL/M domains and problems mainly from the International Planning Competition (IPC).
+  </description>
+  <author>Multiple</author>
+  <license></license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.ros.org/wiki/planner_benchmarks</url>
+</package>
+

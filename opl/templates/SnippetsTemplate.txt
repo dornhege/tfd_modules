@@ -1,0 +1,50 @@
+Include:>
+#include "<[Type]>.h"<:
+FluentDeclaration:>
+    <[Type]> <[FluentName]>(<[Arguments]>) const;<:
+FluentImplementation:><[Type]> <[ObjectType]>::<[FluentName]>(<[Arguments]>) const
+{
+<[FluentLookup]><[Function]>
+}
+
+<:
+FluentVariable:>    const opl::interface::FluentMapping* <[FluentName]>Variable;
+<:
+FluentLookup:>    std::vector<std::string> <[FluentName]>Arguments;
+    <[FluentName]>Arguments.push_back(getObjectID());
+<[Key]>
+    std::string <[FluentName]>Key = opl::interface::ObjectLookupTable::instance->createKey("<[ObjectTypePrefix]><[FluentName]>", <[FluentName]>Arguments);
+    <[FluentName]>Variable = opl::interface::ObjectLookupTable::instance->getVariable(<[FluentName]>Key);
+<:
+BooleanFunction:>    return opl::interface::ObjectLookupTable::instance->getPredicateValue(<[FluentName]>Variable);<:
+DoubleFunction:>    return opl::interface::ObjectLookupTable::instance->getNumericValue(<[FluentName]>Variable);<:
+ObjectFunction:>    return dynamic_cast<<[Type]>>(opl::interface::ObjectLookupTable::instance->getObject(<[FluentName]>Variable));<:
+ConstTypePointer:>const opl::<[Namespace]>::<[Type]>*<:
+TypeList:>
+    std::map<std::string, <[Type]>*> <[Name]>;<:
+TypeListGetter:>
+    const std::map<std::string, <[Type]>*>& get<[Type]>s() const {return <[Name]>;}<:
+HeaderFile:>
+    src/<[FileName]>.h<:
+SourceFile:>
+    src/<[FileName]>.cpp<:
+DirectAccessVariable:>    const opl::interface::FluentMapping* <[FluentName]>Pointer;
+<:
+Argument:><[Type]> <[Name]>, <:
+KeyFragment:>    <[FluentName]>Arguments.push_back(<[ArgumentName]>->getObjectID());
+<:
+ArgumentLookup:>    <[ConstTypePointer]> <[Name]> = state->get<[Type]>s().find(parameterList.at(<[ArgumentIndex]>).value)->second;
+<:
+ConditionModuleReturnConversion:>    return (value ? 0.0 : modules::INFINITE_COST);<:
+CostModuleReturnConversion:>    return value;<:
+DefaultConditionReturn:>    return false;<:
+DefaultCostReturn:>    return modules::INFINITE_COST;<:
+ObjectFactory:>if (objectString.first == "<[LowerCaseType]>")
+    {
+        <[Type]>* object = new <[Type]>(objectString.second);<[ObjectTablePlacements]>
+    }
+    else <:
+ObjectTablePlacement:>
+        state-><[lowerCaseType]>s.insert(make_pair(objectString.second, object));<:
+
+

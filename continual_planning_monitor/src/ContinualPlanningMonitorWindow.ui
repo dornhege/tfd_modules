@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ContinualPlanningMonitorWindow</class>
+ <widget class="QMainWindow" name="ContinualPlanningMonitorWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1183</width>
+    <height>807</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Continual Planning Monitor</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QGroupBox {
+     border: 2px solid black;
+     border-radius: 0px;
+     margin-top: 1ex; /* leave space at the top for the title */
+	 font-weight: bold;
+}
+
+QGroupBox::title {
+     subcontrol-origin: margin;
+     subcontrol-position: top center; /* position at the top center */
+     padding: 0 3px;
+}
+
+QGroupBox[status=&quot;inactive&quot;] {
+    border-width: 5px;
+	border-color: gray;
+}
+
+QGroupBox[status=&quot;active&quot;] {
+    border-width: 5px;
+	border-color: blue;
+}
+
+QGroupBox[status=&quot;failed&quot;] {
+    border-width: 5px;
+	border-color: red;
+}
+
+QGroupBox#monitoringGrp[status=&quot;failed&quot;] {
+    border-width: 5px;
+	border-color: orange;
+}
+QGroupBox#monitoringGrp {
+	border-bottom: 0px;
+}
+
+QGroupBox[status=&quot;succeeded&quot;] {
+    border-width: 5px;
+	border-color: green;
+}
+
+QListWidget::item::selected {
+	background-color: lightblue
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
+     <widget class="QSplitter" name="splitter_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QGroupBox" name="stateEstimationGrp">
+        <property name="title">
+         <string>State Estimation</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Current State:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTextEdit" name="stateTxt">
+           <property name="documentTitle">
+            <string/>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="html">
+            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="acceptRichText">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QGroupBox" name="monitoringGrp">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="title">
+            <string>Monitoring</string>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="planningGrp">
+           <property name="title">
+            <string>Planning</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Last Plan:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="lastPlanList"/>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="frame_2">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="executionGrp">
+          <property name="title">
+           <string>Action Execution</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Current Action:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="currentActionTxt">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Current Plan</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QListWidget" name="currentPlanList"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="resultGrp">
+          <property name="title">
+           <string>Result</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Goal Reached: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="goalReachedTxt">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1183</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionReset"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuExecution">
+    <property name="title">
+     <string>&amp;Execution</string>
+    </property>
+    <addaction name="actionRun"/>
+    <addaction name="actionPause"/>
+    <addaction name="actionStep"/>
+    <addaction name="separator"/>
+    <addaction name="actionReestimate_State"/>
+    <addaction name="actionForce_Replanning"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_Action"/>
+    <addaction name="actionExecute_Action"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuExecution"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Q</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>&amp;Run</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>&amp;Pause</string>
+   </property>
+  </action>
+  <action name="actionExecute_Action">
+   <property name="text">
+    <string>&amp;Execute Action...</string>
+   </property>
+  </action>
+  <action name="actionForce_Replanning">
+   <property name="text">
+    <string>&amp;Force Replanning</string>
+   </property>
+  </action>
+  <action name="actionReesimate_State">
+   <property name="text">
+    <string>Reesimate State</string>
+   </property>
+  </action>
+  <action name="actionReestimate_State">
+   <property name="text">
+    <string>Reestimate &amp;State</string>
+   </property>
+  </action>
+  <action name="actionStep">
+   <property name="text">
+    <string>Step</string>
+   </property>
+  </action>
+  <action name="actionAdd_Action">
+   <property name="text">
+    <string>Add Action...</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

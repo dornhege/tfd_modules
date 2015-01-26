@@ -1,0 +1,22 @@
+anytime_search: false
+timeout_if_plan_found: 0
+# 0 - no timeout, search until a plan is found
+timeout_while_no_plan_found: 30
+greedy: true
+lazy_evaluation: true
+cyclic_cg_heuristic: true
+cyclic_cg_heuristic_preferred_operators: true
+makespan_heuristic: false
+makespan_heuristic_preferred_operators: false
+no_heuristic: false
+g_values: timestamp
+#g_values: makespan
+#g_values: cost
+#g_values: weighted
+#g_weight: 0.3
+queue_management_mode: priority_based
+#queue_management_mode: round_robin
+#queue_management_mode: hierarchical
+use_known_by_logical_state_only: false
+plan_name: plan
+monitoring_verify_timestamps: false

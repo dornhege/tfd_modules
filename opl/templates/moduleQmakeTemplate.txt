@@ -1,0 +1,26 @@
+CONFIG+=mylib
+include($(TFD_HOME)/downward/opl/global.pri)
+
+CONFIG -= qt
+CONFIG += release
+CONFIG -= debug
+
+TEMPLATE=lib
+TARGET=$${LIB_PREFIX}_opl_<[Namespace]>
+DESTDIR=$(TFD_HOME)/module_api/lib
+QT -= opengl xml
+
+INCLUDEPATH += $(TFD_HOME)/module_api/include 
+INCLUDEPATH += $(TFD_HOME)/module_api/tools/moduleLoader 
+INCLUDEPATH += $(TFD_HOME)/downward/opl/src 
+
+LIBS += -L$(TFD_HOME)/module_api/lib -ltfd_opl_common 	
+
+HEADERS += \<[HeaderFiles]>
+   
+   
+SOURCES += \<[SourceFiles]>
+
+   
+   
+

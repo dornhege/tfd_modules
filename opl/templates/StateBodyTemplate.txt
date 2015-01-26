@@ -1,0 +1,29 @@
+
+#include "State.h"
+
+namespace opl
+{
+
+namespace <[Namespace]>
+{
+    
+State* State::stateInstance = NULL;
+
+State::State()
+{
+    State::stateInstance = this;
+}
+
+State::~State()
+{
+}
+
+void State::initialize()
+{
+<[Initialization]>
+}
+
+<[FluentImplementation]>
+}
+
+}

@@ -1,0 +1,93 @@
+Domain RobotExploration
+{
+    Type Robot
+    {
+        Location currentLocation();
+        boolean isBusy();
+        
+        DurativeAction drive(Location destination)
+        {
+            Duration 
+            {
+                2.5;
+            }
+            
+            Condition
+            {
+                and ( 
+                    atStart( not( equals(this.currentLocation(), destination))), 
+                    atStart (not (this.isBusy())),
+                    overall (isReachable (this.currentLocation(), destination))
+                );
+            }
+            
+            Effect
+            {
+                and ( 
+                    atStart (this.isBusy()),
+                    atEnd (assign (this.currentLocation(), destination)),
+                    atEnd (not (this.isBusy()))
+                );
+            }
+        }
+
+        DurativeAction openDoor(Door door1)
+        {
+            Duration 
+            {
+                1.0;
+            }
+            
+            Condition
+            {
+                and ( 
+                    atStart (not (this.isBusy())),
+                    atStart (this.currentLocation().isNear(door1.currentLocation())),
+                    atStart (not (door1.isOpen()))
+                );
+            }
+            
+            Effect
+            {
+                and (
+                    atStart (this.isBusy()),
+                    atEnd (not (this.isBusy())),
+                    atEnd (door1.isOpen())
+                );
+            }
+        }
+    }
+    
+    Type Location
+    {
+        float x();
+        float y();
+        
+        ConditionModule isNear(Location other)
+        {
+            isNear@libtfd_opl_RobotExploration.so;
+        }
+    }
+    
+    Type Target
+    {
+        Location currentLocation();
+        boolean explored();
+    }
+    
+    Type Movable
+    {
+        Location currentLocation();
+    }
+    
+    Type Door : Movable
+    {
+        boolean isOpen();
+    }
+
+	// global predicates and fluents
+    boolean isReachable(Location origin, Location destination);
+	Robot activeRobot();
+	float missionTime(Robot aRobot);
+}
+

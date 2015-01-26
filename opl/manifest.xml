@@ -1,0 +1,19 @@
+<package>
+  <description brief="opl">
+
+     opl
+
+  </description>
+  <author>Andreas Hertle</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/opl</url>
+
+  <depend package="roscpp" />
+  <!-- depend package="rospy" /-->
+  <!--rosdep name="simpleparse" /-->
+  <depend package="tfd_modules" />
+
+</package>
+
+
