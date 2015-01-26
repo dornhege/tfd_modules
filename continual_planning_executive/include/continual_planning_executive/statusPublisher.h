@@ -1,7 +1,7 @@
 #ifndef STATUS_PUBLISHER_H
 #define STATUS_PUBLISHER_H
 
-#include "continual_planning_executive/ContinualPlanningStatus.h"
+#include "continual_planning_msgs/ContinualPlanningStatus.h"
 #include "continual_planning_executive/plan.h"
 #include "continual_planning_executive/symbolicState.h"
 #include <ros/ros.h>

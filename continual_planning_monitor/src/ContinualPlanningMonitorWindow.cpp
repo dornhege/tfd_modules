@@ -4,7 +4,7 @@
 #include <QList>
 #include <boost/thread.hpp>
 #include "ContinualPlanningMonitorWindow.h"
-#include "continual_planning_executive/TemporalAction.h"
+#include "continual_planning_msgs/TemporalAction.h"
 
 extern bool g_Quit;
 
@@ -92,19 +92,19 @@ void ContinualPlanningMonitorWindow::on_actionReset_activated()
 void ContinualPlanningMonitorWindow::on_actionRun_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningControl::Request::RUN);
+            continual_planning_msgs::SetContinualPlanningControl::Request::RUN);
 }
 
 void ContinualPlanningMonitorWindow::on_actionPause_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningControl::Request::PAUSE);
+            continual_planning_msgs::SetContinualPlanningControl::Request::PAUSE);
 }
 
 void ContinualPlanningMonitorWindow::on_actionStep_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningControl::Request::STEP);
+            continual_planning_msgs::SetContinualPlanningControl::Request::STEP);
 }
 
 void ContinualPlanningMonitorWindow::on_actionExecute_Action_activated()
@@ -150,13 +150,13 @@ void ContinualPlanningMonitorWindow::executeAction(QString actionTxt)
 void ContinualPlanningMonitorWindow::on_actionForce_Replanning_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningControl::Request::FORCE_REPLANNING);
+            continual_planning_msgs::SetContinualPlanningControl::Request::FORCE_REPLANNING);
 }
 
 void ContinualPlanningMonitorWindow::on_actionReestimate_State_activated()
 {
     _continualPlanningControlThread.setContinualPlanningControl(
-            continual_planning_executive::SetContinualPlanningControl::Request::REESTIMATE_STATE);
+            continual_planning_msgs::SetContinualPlanningControl::Request::REESTIMATE_STATE);
 }
 
 QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
@@ -174,34 +174,34 @@ QString ContinualPlanningMonitorWindow::getActionDescription(QString action)
 }
 
 void ContinualPlanningMonitorWindow::statusCallback(
-        const continual_planning_executive::ContinualPlanningStatus & status)
+        const continual_planning_msgs::ContinualPlanningStatus & status)
 {
     QGroupBox* grp = NULL;
     QTextDocument* doc = NULL;
     QLineEdit* lineEdit = NULL;
     QListWidget* list = NULL;
     switch(status.component) {
-        case continual_planning_executive::ContinualPlanningStatus::STATE_ESTIMATION:
+        case continual_planning_msgs::ContinualPlanningStatus::STATE_ESTIMATION:
             grp = stateEstimationGrp;
             doc = stateTxt->document();
             break;
-        case continual_planning_executive::ContinualPlanningStatus::MONITORING:
+        case continual_planning_msgs::ContinualPlanningStatus::MONITORING:
             grp = monitoringGrp;
             // no txt to update
             break;
-        case continual_planning_executive::ContinualPlanningStatus::PLANNING:
+        case continual_planning_msgs::ContinualPlanningStatus::PLANNING:
             grp = planningGrp;
             list = lastPlanList;
             break;
-        case continual_planning_executive::ContinualPlanningStatus::EXECUTION:
+        case continual_planning_msgs::ContinualPlanningStatus::EXECUTION:
             grp = executionGrp;
             lineEdit = currentActionTxt;
             break;
-        case continual_planning_executive::ContinualPlanningStatus::CURRENT_PLAN:
+        case continual_planning_msgs::ContinualPlanningStatus::CURRENT_PLAN:
             // do not set status for CURRENT_PLAN
             list = currentPlanList;
             break;
-        case continual_planning_executive::ContinualPlanningStatus::CONTINUAL_PLANNING_FINISHED:
+        case continual_planning_msgs::ContinualPlanningStatus::CONTINUAL_PLANNING_FINISHED:
             grp = resultGrp;
             lineEdit = goalReachedTxt;
             break;
@@ -211,16 +211,16 @@ void ContinualPlanningMonitorWindow::statusCallback(
     }
     if(grp != NULL) {
         switch(status.status) {
-            case continual_planning_executive::ContinualPlanningStatus::INACTIVE:
+            case continual_planning_msgs::ContinualPlanningStatus::INACTIVE:
                 grp->setProperty("status", "inactive");
                 break;
-            case continual_planning_executive::ContinualPlanningStatus::ACTIVE:
+            case continual_planning_msgs::ContinualPlanningStatus::ACTIVE:
                 grp->setProperty("status", "active");
                 break;
-            case continual_planning_executive::ContinualPlanningStatus::SUCCESS:
+            case continual_planning_msgs::ContinualPlanningStatus::SUCCESS:
                 grp->setProperty("status", "succeeded");
                 break;
-            case continual_planning_executive::ContinualPlanningStatus::FAILURE:
+            case continual_planning_msgs::ContinualPlanningStatus::FAILURE:
                 grp->setProperty("status", "failed");
                 break;
             default:
@@ -244,7 +244,7 @@ void ContinualPlanningMonitorWindow::statusCallback(
             }
         }
         // execution can also update the current action in the currentPlanList
-        if(status.component == continual_planning_executive::ContinualPlanningStatus::EXECUTION) {
+        if(status.component == continual_planning_msgs::ContinualPlanningStatus::EXECUTION) {
             currentPlanList->setCurrentRow(-1);
             int itemRow = -1;
             for(int i = 0; i < currentPlanList->count(); i++) {
@@ -369,7 +369,7 @@ ExecuteActionThread::ExecuteActionThread()
     ros::NodeHandle nh;
 
     _serviceExecuteActionDirectly =
-        nh.serviceClient<continual_planning_executive::ExecuteActionDirectly>("execute_action_directly");
+        nh.serviceClient<continual_planning_msgs::ExecuteActionDirectly>("execute_action_directly");
 }
 
 void ExecuteActionThread::executeAction(QString actionTxt)
@@ -385,7 +385,7 @@ void ExecuteActionThread::executeAction(QString actionTxt)
     if(actionTxt.length() <= 0)
         return;
 
-    continual_planning_executive::TemporalAction temporalAction;
+    continual_planning_msgs::TemporalAction temporalAction;
     QStringList parts = actionTxt.split(" ", QString::SkipEmptyParts);
     if(parts.size() < 1) {
         ROS_ERROR("Empty parts for action: %s", qPrintable(actionTxt));
@@ -423,7 +423,7 @@ ContinualPlanningControlThread::ContinualPlanningControlThread()
     ros::NodeHandle nh;
 
     _serviceContinualPlanningControl =
-        nh.serviceClient<continual_planning_executive::SetContinualPlanningControl>
+        nh.serviceClient<continual_planning_msgs::SetContinualPlanningControl>
         ("set_continual_planning_control");
 }
 
@@ -451,7 +451,7 @@ void ContinualPlanningControlThread::run()
                 QString("Setting ContinualPlanningControl to %1 failed.").arg(_srv.request.command));
     } else {
         // don't send for RUN, etc. we'll see that because it's running now
-        if(_srv.response.command == continual_planning_executive::SetContinualPlanningControl::Request::PAUSE)
+        if(_srv.response.command == continual_planning_msgs::SetContinualPlanningControl::Request::PAUSE)
             Q_EMIT controlCommandSet(true, "Set ContinualPlanningControl",
                     "ContinualPlanningControl paused successfully.");
     }

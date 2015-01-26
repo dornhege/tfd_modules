@@ -6,9 +6,9 @@
 #include <QSignalMapper>
 #include <QSettings>
 #include "ui_ContinualPlanningMonitorWindow.h"
-#include "continual_planning_executive/ContinualPlanningStatus.h"
-#include "continual_planning_executive/SetContinualPlanningControl.h"
-#include "continual_planning_executive/ExecuteActionDirectly.h"
+#include "continual_planning_msgs/ContinualPlanningStatus.h"
+#include "continual_planning_msgs/SetContinualPlanningControl.h"
+#include "continual_planning_msgs/ExecuteActionDirectly.h"
 #include <ros/ros.h>
 
 class ExecuteActionThread : public QThread
@@ -28,7 +28,7 @@ class ExecuteActionThread : public QThread
         void run();
 
         QString _actionTxt;
-        continual_planning_executive::ExecuteActionDirectly _srv;
+        continual_planning_msgs::ExecuteActionDirectly _srv;
         ros::ServiceClient _serviceExecuteActionDirectly;
 };
 
@@ -48,7 +48,7 @@ class ContinualPlanningControlThread : public QThread
     protected:
         void run();
 
-        continual_planning_executive::SetContinualPlanningControl _srv;
+        continual_planning_msgs::SetContinualPlanningControl _srv;
         ros::ServiceClient _serviceContinualPlanningControl;
 };
 
@@ -82,7 +82,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         /// restyle the dynamically styled widgets
         void restyle();
 
-        void statusCallback(const continual_planning_executive::ContinualPlanningStatus & status);
+        void statusCallback(const continual_planning_msgs::ContinualPlanningStatus & status);
 
         /// Extract "detect-object table1_loc1_room1" from 1.00: (detect-objects table1_loc1_room1) [1.00]
         QString getActionDescription(QString action);
@@ -98,7 +98,7 @@ class ContinualPlanningMonitorWindow : public QMainWindow, protected Ui::Continu
         QString queryActionText(QString actionTxt);
 
     private:
-        continual_planning_executive::ContinualPlanningStatus st;
+        continual_planning_msgs::ContinualPlanningStatus st;
         ros::Subscriber _subStatus;
 
         ContinualPlanningControlThread _continualPlanningControlThread;

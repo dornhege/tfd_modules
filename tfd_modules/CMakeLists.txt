@@ -1,24 +1,27 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(tfd_modules)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
-
-rosbuild_init()
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
+roscpp
+pluginlib
+continual_planning_executive
+)
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+#set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+#set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-include_directories(include module_api)
+include_directories(include module_api ${catkin_INCLUDE_DIRS})
 
 add_definitions(-DROS_BUILD)
+
+catkin_package(
+CATKIN_DEPENDS continual_planning_executive
+INCLUDE_DIRS include module_api)
 
 set(module_api_SOURCES
    module_api/moduleLoader.cpp
@@ -127,31 +130,25 @@ set(opl_interface_SOURCES
    downward/opl/interface/FluentMapping.cpp
    downward/opl/interface/stringutil.cpp)
    
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
 #common commands for building c++ executables and libraries
-rosbuild_add_library(tfd_module_api ${module_api_SOURCES})
-rosbuild_add_library(tfd_opl_interface ${opl_interface_SOURCES})
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(tfd_preprocess ${preprocess_SOURCES})
-rosbuild_add_executable(tfd_search ${search_SOURCES})
-target_link_libraries(tfd_search tfd_module_api tfd_opl_interface dl)
-#rosbuild_add_library(tfd_opl ${opl_SOURCES})
-#rosbuild_add_executable(opl_translate_domain downward/opl/opl_translate_domain.cpp)
+#add_library(tfd_module_api ${module_api_SOURCES})
+#add_library(tfd_opl_interface ${opl_interface_SOURCES})
+#add_executable(tfd_preprocess ${preprocess_SOURCES})
+#add_executable(tfd_search ${search_SOURCES})
+#target_link_libraries(tfd_search ${catkin_LIBRARIES} tfd_module_api tfd_opl_interface dl)
+
+#add_library(tfd_opl ${opl_SOURCES})
+#add_executable(opl_translate_domain downward/opl/opl_translate_domain.cpp)
 #target_link_libraries(opl_translate_domain tfd_opl dl)
 
-rosbuild_add_compile_flags(tfd_preprocess "-Wno-sign-compare -ansi -pedantic")
-rosbuild_add_compile_flags(tfd_search "-Wno-sign-compare -ansi ")
+set (CMAKE_CXX_FLAGS "-Wno-sign-compare -ansi -O3")
+#add_compile_flags(tfd_preprocess "-Wno-sign-compare -ansi -pedantic")
+#add_compile_flags(tfd_search "-Wno-sign-compare -ansi ")
 
-IF(${ROS_BUILD_TYPE} MATCHES Rel)
-   rosbuild_add_compile_flags(tfd_preprocess "-O3")
-   rosbuild_add_compile_flags(tfd_search "-O3")
-ENDIF(${ROS_BUILD_TYPE} MATCHES Rel)
+#IF(${ROS_BUILD_TYPE} MATCHES Rel)
+#   add_compile_flags(tfd_preprocess "-O3")
+#   add_compile_flags(tfd_search "-O3")
+#ENDIF(${ROS_BUILD_TYPE} MATCHES Rel)
 
 
 find_package(Qt4 REQUIRED)
@@ -159,11 +156,12 @@ include(${QT_USE_FILE})
 
 # needed: otherwise boost signals name clash
 ADD_DEFINITIONS(-DQT_NO_KEYWORDS)
-
-rosbuild_add_library(tfdm_interface
+set(tfdm_interface_SOURCES
     interface/tfdm_interface.cpp
     interface/tfdm_eval_interface.cpp
     interface/domainParser.cpp
-    interface/planParser.cpp)
-target_link_libraries(tfdm_interface ${QT_LIBRARIES})
+    interface/planParser.cpp
+)
+add_library(tfdm_interface ${tfdm_interface_SOURCES})
+target_link_libraries(tfdm_interface ${catkin_LIBRARIES} ${QT_LIBRARIES})
 

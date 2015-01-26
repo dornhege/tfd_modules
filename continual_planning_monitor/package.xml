@@ -1,0 +1,23 @@
+<package>
+  <name>continual_planning_monitor</name>
+  <version>0.0.0</version>
+  <description>
+      continual_planning_monitor contains a GUI to monitor and control the progress
+      of the continual_planning_executive.
+  </description>
+  <maintainer email="dornhege@informatik.uni-freiburg.de">Maintained by Christian Dornhege.</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/continual_planning_monitor</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>continual_planning_executive</build_depend>
+  <build_depend>libqt4-dev</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>continual_planning_executive</run_depend>
+  <run_depend>libqt4-dev</run_depend>
+</package>
+
+

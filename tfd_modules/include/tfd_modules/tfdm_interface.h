@@ -2,7 +2,7 @@
 #define TFDM_INTERFACE_H
 
 #include <string>
-#include "continual_planning_executive/plannerInterface.h"
+#include <continual_planning_executive/plannerInterface.h>
 
 namespace tfd_modules
 {

@@ -1,7 +1,7 @@
 #include "continual_planning_executive/statusPublisher.h"
 #include <sstream>
 using std::stringstream;
-using namespace continual_planning_executive;
+using namespace continual_planning_msgs;
 
 StatusPublisher::StatusPublisher()
 {

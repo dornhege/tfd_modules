@@ -52,7 +52,7 @@ bool DurativeAction::operator==(const DurativeAction & a) const
     return true;
 }
 
-DurativeAction::DurativeAction(const continual_planning_executive::TemporalAction & msg)
+DurativeAction::DurativeAction(const continual_planning_msgs::TemporalAction & msg)
 {
     this->startTime = msg.start_time;
     this->duration = msg.duration;

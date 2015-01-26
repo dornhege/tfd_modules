@@ -2,7 +2,7 @@
 #define TFDM_EVAL_INTERFACE_H
 
 #include <string>
-#include "continual_planning_executive/plannerInterface.h"
+#include <continual_planning_executive/plannerInterface.h>
 #include "tfd_modules/tfdm_interface.h"
 #include <map>
 

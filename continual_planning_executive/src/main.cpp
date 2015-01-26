@@ -10,8 +10,8 @@
 #include "continual_planning_executive/stateCreator.h"
 #include "continual_planning_executive/goalCreator.h"
 #include "continual_planning_executive/plannerInterface.h"
-#include "continual_planning_executive/SetContinualPlanningControl.h"
-#include "continual_planning_executive/ExecuteActionDirectly.h"
+#include "continual_planning_msgs/SetContinualPlanningControl.h"
+#include "continual_planning_msgs/ExecuteActionDirectly.h"
 #include "continual_planning_executive/load_plugins.h"
 #include "continual_planning_executive/planExecutor.h"
 #include "continual_planning_executive/continualPlanning.h"
@@ -21,26 +21,26 @@
 
 static ContinualPlanning* s_ContinualPlanning = NULL;
 
-static int s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::RUN;
+static int s_ContinualPlanningMode = continual_planning_msgs::SetContinualPlanningControl::Request::RUN;
 
-bool setControlHandler(continual_planning_executive::SetContinualPlanningControl::Request & req,
-        continual_planning_executive::SetContinualPlanningControl::Response & resp)
+bool setControlHandler(continual_planning_msgs::SetContinualPlanningControl::Request & req,
+        continual_planning_msgs::SetContinualPlanningControl::Response & resp)
 {
     switch(req.command) {
-        case continual_planning_executive::SetContinualPlanningControl::Request::RUN:
-        case continual_planning_executive::SetContinualPlanningControl::Request::PAUSE:
-        case continual_planning_executive::SetContinualPlanningControl::Request::STEP:
+        case continual_planning_msgs::SetContinualPlanningControl::Request::RUN:
+        case continual_planning_msgs::SetContinualPlanningControl::Request::PAUSE:
+        case continual_planning_msgs::SetContinualPlanningControl::Request::STEP:
             if(s_ContinualPlanningMode != req.command) {
                 ROS_INFO("Setting ContinualPlanningMode to %d", req.command);
             }
             s_ContinualPlanningMode = req.command;
             resp.command = s_ContinualPlanningMode;
             break;
-        case continual_planning_executive::SetContinualPlanningControl::Request::FORCE_REPLANNING:
+        case continual_planning_msgs::SetContinualPlanningControl::Request::FORCE_REPLANNING:
             s_ContinualPlanning->forceReplanning();
             resp.command = req.command;
             break;
-        case continual_planning_executive::SetContinualPlanningControl::Request::REESTIMATE_STATE:
+        case continual_planning_msgs::SetContinualPlanningControl::Request::REESTIMATE_STATE:
             if(!s_ContinualPlanning->estimateCurrentState()) {
                 ROS_WARN("SetContinualPlanningControl: State estimation failed.");
                 return false;
@@ -48,17 +48,17 @@ bool setControlHandler(continual_planning_executive::SetContinualPlanningControl
             resp.command = req.command;
             break;
         default:
-            ROS_ERROR("Invalid command in continual_planning_executive::SetContinualPlanningControl: %d",
+            ROS_ERROR("Invalid command in continual_planning_msgs::SetContinualPlanningControl: %d",
                     req.command);
             return false;
     }
     return true;
 }
 
-bool executeActionDirectlyHandler(continual_planning_executive::ExecuteActionDirectly::Request & req,
-        continual_planning_executive::ExecuteActionDirectly::Response & resp)
+bool executeActionDirectlyHandler(continual_planning_msgs::ExecuteActionDirectly::Request & req,
+        continual_planning_msgs::ExecuteActionDirectly::Response & resp)
 {
-    if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN) {
+    if(s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::RUN) {
         ROS_WARN("Recevied executeActionDirectly request during RUN - ignoring, PAUSE first.");
         return false;
     }
@@ -148,22 +148,22 @@ int main(int argc, char** argv)
     bool paused = false;
     nhPriv.param("start_paused", paused, false);
     if(paused)
-        s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::PAUSE;
+        s_ContinualPlanningMode = continual_planning_msgs::SetContinualPlanningControl::Request::PAUSE;
 
     ros::Rate loopSleep(5);
     ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
     while(ros::ok()) {
         ros::spinOnce();
 
-        if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::RUN
-            || s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::STEP) {
+        if(s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::RUN
+            || s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::STEP) {
             cpState = s_ContinualPlanning->loop();
             if(cpState != ContinualPlanning::Running) {
                 break;
             }
             // STEP means RUN once.
-            if(s_ContinualPlanningMode == continual_planning_executive::SetContinualPlanningControl::Request::STEP)
-                s_ContinualPlanningMode = continual_planning_executive::SetContinualPlanningControl::Request::PAUSE;
+            if(s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::STEP)
+                s_ContinualPlanningMode = continual_planning_msgs::SetContinualPlanningControl::Request::PAUSE;
         }
 
         loopSleep.sleep();

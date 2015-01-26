@@ -168,8 +168,8 @@ Plan ContinualPlanning::monitorAndReplan(bool & atGoal)
     _status.startedMonitoring();
     if(!needReplanning(atGoal)) {
         _status.finishedMonitoring(true);
-        _status.publishStatus(continual_planning_executive::ContinualPlanningStatus::PLANNING,
-                continual_planning_executive::ContinualPlanningStatus::INACTIVE, "-");
+        _status.publishStatus(continual_planning_msgs::ContinualPlanningStatus::PLANNING,
+                continual_planning_msgs::ContinualPlanningStatus::INACTIVE, "-");
         return _currentPlan;
     }
     _status.finishedMonitoring(false);  // need replanning -> monitoring false
