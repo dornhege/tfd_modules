@@ -17,7 +17,5 @@
 
   <run_depend>roscpp</run_depend>
   <run_depend>continual_planning_executive</run_depend>
-  <run_depend>libqt4-dev</run_depend>
+  <run_depend>libqt4</run_depend>
 </package>
-
-
