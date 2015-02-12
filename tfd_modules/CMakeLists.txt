@@ -131,11 +131,11 @@ set(opl_interface_SOURCES
    downward/opl/interface/stringutil.cpp)
    
 #common commands for building c++ executables and libraries
-#add_library(tfd_module_api ${module_api_SOURCES})
-#add_library(tfd_opl_interface ${opl_interface_SOURCES})
-#add_executable(tfd_preprocess ${preprocess_SOURCES})
-#add_executable(tfd_search ${search_SOURCES})
-#target_link_libraries(tfd_search ${catkin_LIBRARIES} tfd_module_api tfd_opl_interface dl)
+add_library(tfd_module_api ${module_api_SOURCES})
+add_library(tfd_opl_interface ${opl_interface_SOURCES})
+add_executable(tfd_preprocess ${preprocess_SOURCES})
+add_executable(tfd_search ${search_SOURCES})
+target_link_libraries(tfd_search ${catkin_LIBRARIES} tfd_module_api tfd_opl_interface dl)
 
 #add_library(tfd_opl ${opl_SOURCES})
 #add_executable(opl_translate_domain downward/opl/opl_translate_domain.cpp)
