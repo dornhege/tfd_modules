@@ -28,7 +28,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # include this for ui_h
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${catkin_INCLUDE_DIRS})
 
 set(qt_srcs
       src/ContinualPlanningMonitorWindow.cpp)
@@ -40,5 +40,10 @@ QT4_WRAP_CPP(qt_moc_srcs ${qt_hdrs})
 
 
 add_executable(${PROJECT_NAME} src/main.cpp ${uis_h} ${qt_srcs} ${qt_moc_srcs})
+
+## Add cmake target dependencies of the executable/library
+## as an example, message headers may need to be generated before nodes
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} continual_planning_msgs_generate_messages_cpp)
+
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES} boost_system)
 
