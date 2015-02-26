@@ -47,6 +47,7 @@ set(planner_executive_SRCS
 #common commands for building c++ executables and libraries
 add_library(continual_planning ${planner_executive_SRCS})
 add_executable(${PROJECT_NAME} src/main.cpp )
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(continual_planning ${catkin_EXPORTED_TARGETS})
@@ -55,6 +56,8 @@ add_dependencies(${PROJECT_NAME} continual_planning_msgs_generate_messages_cpp)
 
 target_link_libraries(continual_planning ${catkin_LIBRARIES} ${QT_LIBRARIES} )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} continual_planning)
+
+
 #rosbuild_add_executable(continual_planning_server ${planner_executive_SRCS} src/action_server_main.cpp src/statusPublisher.cpp)
 #target_link_libraries(continual_planning_server ${QT_LIBRARIES})
 #rosbuild_link_boost(${PROJECT_NAME} thread)
