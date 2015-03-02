@@ -152,8 +152,10 @@ int main(int argc, char** argv)
 
     ros::Rate loopSleep(5);
     ContinualPlanning::ContinualPlanningState cpState = ContinualPlanning::Running;
+    ros::AsyncSpinner spinner(4); // Use 4 threads
+    spinner.start();
     while(ros::ok()) {
-        ros::spinOnce();
+//        ros::spinOnce();
 
         if(s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::RUN
             || s_ContinualPlanningMode == continual_planning_msgs::SetContinualPlanningControl::Request::STEP) {
