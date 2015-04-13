@@ -278,6 +278,26 @@ void SymbolicState::removeObject(string obj, bool removePredicates)
             }
         }
     }
+    // the same for object fluents
+    removedSomething = true;
+    while(removedSomething) {
+        removedSomething = false;
+        for(map<Predicate, string>::iterator it = _objectFluents.begin(); it != _objectFluents.end(); it++) {
+            bool foundObj = false;
+            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
+                    paramIt != it->first.parameters.end(); paramIt++) {
+                if(obj == *paramIt) {
+                    foundObj = true;
+                    break;
+                }
+            }
+            if(foundObj) {
+            	_objectFluents.erase(it);    // it invalid
+                removedSomething = true;
+                break;
+            }
+        }
+    }
 }
 
 void SymbolicState::setBooleanPredicate(string name, vector<string> parameters, bool value)
