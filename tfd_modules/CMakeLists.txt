@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 roscpp
 pluginlib
 continual_planning_executive
+continual_planning_msgs
 )
 
 #set the default path for built executables to the "bin" directory
@@ -135,6 +136,7 @@ add_library(tfd_module_api ${module_api_SOURCES})
 add_library(tfd_opl_interface ${opl_interface_SOURCES})
 add_executable(tfd_preprocess ${preprocess_SOURCES})
 add_executable(tfd_search ${search_SOURCES})
+add_dependencies(tfd_search continual_planning_msgs_generate_messages_cpp)
 target_link_libraries(tfd_search ${catkin_LIBRARIES} tfd_module_api tfd_opl_interface dl)
 
 #add_library(tfd_opl ${opl_SOURCES})
