@@ -105,7 +105,12 @@ namespace tfd_modules
 
     continual_planning_executive::PlannerInterface::PlannerResult TFDMInterface::callPlanner(const std::string & domain, const std::string & problem, const std::string & planNamePrefix)
     {
-        const bool failOnPlannerError = false;  // default: switch off
+        // first delete all grounded data on param server
+    	// For monitoring, this data is needed otherwise it will be computed again,
+    	// but for planning, we want to create new data
+    	ros::param::del("grounding");
+
+    	const bool failOnPlannerError = false;  // default: switch off
 
         string curPlan = planNamePrefix + ".best";
         remove(curPlan.c_str());
