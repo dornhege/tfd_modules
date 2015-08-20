@@ -9,8 +9,7 @@
 #include "domainParser.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(tfd_modules, tfdm_interface,
-        tfd_modules::TFDMInterface, continual_planning_executive::PlannerInterface)
+PLUGINLIB_EXPORT_CLASS(tfd_modules::TFDMInterface, continual_planning_executive::PlannerInterface)
 
 namespace tfd_modules
 {
