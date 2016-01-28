@@ -15,13 +15,13 @@
   <build_depend>continual_planning_executive</build_depend>
   <build_depend>continual_planning_msgs</build_depend>
   <build_depend>libqt4-dev</build_depend>
-  
+
   <run_depend>roscpp</run_depend>
   <run_depend>pluginlib</run_depend>
   <run_depend>continual_planning_executive</run_depend>
   <run_depend>continual_planning_msgs</run_depend>
   <run_depend>libqt4-dev</run_depend>
-  
+
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/downward/opl/interface" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltfd_module_api -ldl -ltfd_opl_interface" />
     <continual_planning_executive plugin="${prefix}/tfdm_interface_plugin.xml" />
