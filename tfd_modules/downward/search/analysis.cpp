@@ -96,9 +96,9 @@ void Analysis::recordClosingStep(const TimeStampedState* pred, const Operator* o
 
     currentEventNumber++;
     if(pred == NULL)
-        ROS_DEBUG_NAMED("analyze", "%s: %d INIT", __func__, currentEventNumber);
+        ROS_DEBUG("analyze: %s: %d INIT", __func__, currentEventNumber);
     else
-        ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+        ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
                 pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(closedRecords.find(make_pair(pred, op)) != closedRecords.end()) {
@@ -139,7 +139,7 @@ void Analysis::recordDiscardingStep(const TimeStampedState* pred, const Operator
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(discardRecords.find(make_pair(pred, op)) != discardRecords.end()) {
@@ -179,7 +179,7 @@ void Analysis::recordModuleRelaxedDiscardingStep(const TimeStampedState* pred, c
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(moduleRelaxedDiscardRecords.find(make_pair(pred, op)) != moduleRelaxedDiscardRecords.end()) {
@@ -203,7 +203,7 @@ void Analysis::recordGoal(const TimeStampedState & goalState)
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s", __func__, currentEventNumber,
             goalState.toPDDL(true, true, true).c_str());
 
     const TimeStampedState* goal = findOrReplicateMatchingState(goalState);
@@ -222,7 +222,7 @@ void Analysis::recordOpenPush(const TimeStampedState* parent, const Operator* op
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             parent->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     OpenRecordMap::iterator openRecordIt = openRecords.find(make_pair(parent, op));
@@ -265,7 +265,7 @@ void Analysis::recordLiveGroundingDiscard(const TimeStampedState* pred, const Op
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(liveGroundingDiscardRecords.find(make_pair(pred, op)) != liveGroundingDiscardRecords.end()) {
@@ -289,7 +289,7 @@ void Analysis::recordLiveGroundingGroundedOut(const TimeStampedState* pred, cons
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
 
@@ -314,7 +314,7 @@ void Analysis::recordLiveGroundingUngroundedDiscard(const TimeStampedState* pred
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(ungroundedOpDiscardRecords.find(make_pair(pred, op)) != ungroundedOpDiscardRecords.end()) {
@@ -338,7 +338,7 @@ void Analysis::recordLiveGrounding(const TimeStampedState* pred, const Operator*
         return;
 
     currentEventNumber++;
-    ROS_DEBUG_NAMED("analyze", "%s: %d for %s\n%s", __func__, currentEventNumber,
+    ROS_DEBUG("analyze: %s: %d for %s\n%s", __func__, currentEventNumber,
             pred->toPDDL(true, true, true).c_str(), op->get_name().c_str());
 
     if(operatorGroundingRecords.find(make_pair(pred, op)) != operatorGroundingRecords.end()) {

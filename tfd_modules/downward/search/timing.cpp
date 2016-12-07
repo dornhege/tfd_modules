@@ -44,8 +44,8 @@ void Timing::start()
 		 //TODO: MG how to get usert time in windows?
 			_startTime = ros::WallTime::now().toSec();
 #endif
-   } else {
-      _startTime = ros::WallTime::now().toSec();
+//   } else {
+//      _startTime = ros::WallTime::now().toSec();
    }
    _ended = false;
 }
@@ -61,9 +61,10 @@ void Timing::end()
          _endTime = (double)timeS.tms_utime/((double)clocks_per_sec);
 #else
 				_endTime = ros::WallTime::now().toSec();
+
 #endif
-      } else {
-         _endTime = ros::WallTime::now().toSec();
+//      } else {
+//         _endTime = ros::WallTime::now().toSec();
       }
       _stats->addMeasurement(_endTime - _startTime);
    }
@@ -83,8 +84,8 @@ double Timing::peekDiff()
 #else
             endTime = ros::WallTime::now().toSec();
 #endif
-        } else {
-            endTime = ros::WallTime::now().toSec();
+//        } else {
+//            endTime = ros::WallTime::now().toSec();
         }
         return endTime - _startTime;
     } else {
