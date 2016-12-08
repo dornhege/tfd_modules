@@ -1,4 +1,5 @@
 #include "timing.h"
+#include "ros_printouts.h"
 #ifndef _WIN32
 #include <unistd.h>
 #include <sys/times.h>

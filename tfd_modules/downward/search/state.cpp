@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <cassert>
 using namespace std;
 
