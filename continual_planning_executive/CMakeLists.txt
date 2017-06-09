@@ -57,8 +57,27 @@ add_dependencies(${PROJECT_NAME} continual_planning_msgs_generate_messages_cpp)
 target_link_libraries(continual_planning ${catkin_LIBRARIES} ${QT_LIBRARIES} )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} continual_planning)
 
+install(PROGRAMS
+  scripts/create_action_executor.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-#rosbuild_add_executable(continual_planning_server ${planner_executive_SRCS} src/action_server_main.cpp src/statusPublisher.cpp)
-#target_link_libraries(continual_planning_server ${QT_LIBRARIES})
-#rosbuild_link_boost(${PROJECT_NAME} thread)
+# Mark executables and/or libraries for installation
+install(TARGETS ${PROJECT_NAME} continual_planning
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+install(DIRECTORY scripts
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  FILES_MATCHING PATTERN "*.tmpl"
+)
 

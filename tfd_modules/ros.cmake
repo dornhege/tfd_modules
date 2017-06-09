@@ -11,10 +11,10 @@ continual_planning_executive
 continual_planning_msgs
 )
 
-#set the default path for built executables to the "bin" directory
-#set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-#set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+## Uncomment this if the package has a setup.py. This macro ensures
+## modules and global scripts declared therein get installed
+## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+catkin_python_setup()
 
 include_directories(include module_api ${catkin_INCLUDE_DIRS})
 
@@ -166,3 +166,54 @@ set(tfdm_interface_SOURCES
 )
 add_library(tfdm_interface ${tfdm_interface_SOURCES})
 target_link_libraries(tfdm_interface ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+
+## INSTALL
+install(PROGRAMS
+  scripts/tfd_monitor
+  scripts/tfd_plan
+  scripts/tfd_eval
+  scripts/tfd_plan_log
+  scripts/tfd_plan_params
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(PROGRAMS
+  scripts/tfd_monitor
+  scripts/tfd_plan
+  scripts/tfd_eval
+  scripts/tfd_plan_log
+  scripts/tfd_plan_params
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark executables and/or libraries for installation
+install(TARGETS tfdm_interface tfd_module_api tfd_opl_interface tfd_preprocess tfd_search
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/module_api
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/opl
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+install(DIRECTORY scripts
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  FILES_MATCHING PATTERN "*.tmpl"
+)
+
