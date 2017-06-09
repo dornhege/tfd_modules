@@ -180,7 +180,7 @@ install(PROGRAMS
 install(PROGRAMS
   scripts/tfd_monitor
   scripts/tfd_plan
-  scripts/tfd_eval
+  scripts/tfd_plan_eval
   scripts/tfd_plan_log
   scripts/tfd_plan_params
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
