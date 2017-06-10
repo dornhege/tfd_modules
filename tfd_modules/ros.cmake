@@ -172,17 +172,32 @@ target_link_libraries(tfdm_interface ${catkin_LIBRARIES} ${QT_LIBRARIES})
 install(PROGRAMS
   scripts/tfd_monitor
   scripts/tfd_plan
-  scripts/tfd_eval
+  scripts/tfd_plan_eval
   scripts/tfd_plan_log
   scripts/tfd_plan_params
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
 install(PROGRAMS
-  scripts/tfd_monitor
-  scripts/tfd_plan
-  scripts/tfd_plan_eval
-  scripts/tfd_plan_log
-  scripts/tfd_plan_params
+  downward/translate/axiom_rules.py
+  downward/translate/build_model.py
+  downward/translate/constraints.py
+  downward/translate/fact_groups.py
+  downward/translate/graph.py
+  downward/translate/greedy_join.py
+  downward/translate/instantiate.py
+  downward/translate/invariant_finder.py
+  downward/translate/invariants.py
+  downward/translate/normalize.py
+  downward/translate/numeric_axiom_rules.py
+  downward/translate/open.py
+  downward/translate/pddl_to_prolog.py
+  downward/translate/sas_tasks.py
+  downward/translate/simplify.py
+  downward/translate/split_rules.py
+  downward/translate/timers.py
+  downward/translate/tools.py
+  downward/translate/translate.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
