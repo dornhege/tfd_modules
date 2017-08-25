@@ -217,20 +217,15 @@ protected:
 
 	// The only possible parameters for the following predicates should be those in the _typedObjects list.
 	// matched strings in _objectFluents should also only be from _typedObjects and of the correct type
-	map<Predicate, bool> _booleanPredicates;
-	map<Predicate, double> _numericalFluents;
-	map<Predicate, string> _objectFluents;
+	PredicateBooleanMap _booleanPredicates;
+	PredicateDoubleMap _numericalFluents;
+	PredicateStringMap _objectFluents;
 	// foreach statements
 	typedef multimap<string, pair<string, bool> > ForEachGoalStatements;
 	ForEachGoalStatements _forEachGoalStatements;
 	string _directGoalStatement;
 
 	set<ExpectedFutureEvent::ConstPtr> _expectedFutureEvents;
-
-	typedef map<Predicate, bool>::value_type BooleanPredicateEntry;
-	typedef map<Predicate, double>::value_type NumericalFluentEntry;
-	typedef map<Predicate, string>::value_type ObjectFluentEntry;
-
 };
 
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);

@@ -336,7 +336,7 @@ void SymbolicState::setBooleanPredicate(const Predicate& p, bool value)
 
 void SymbolicState::setAllBooleanPredicates(string name, bool value)
 {
-    forEach(SymbolicState::BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(SymbolicState::BooleanFluentEntry & bp, _booleanPredicates) {
         if(bp.first.name == name)
             bp.second = value;
     }
@@ -447,7 +447,7 @@ bool SymbolicState::hasObjectFluent(const Predicate & p, string* value) const
 
 bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
 {
-    forEach(const BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, _booleanPredicates) {
         bool value;
         // state needs to have every goal predicate
         if(!state.hasBooleanPredicate(bp.first, &value))
@@ -503,7 +503,7 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
 {
     // better: collect merged list (should be same) and then only check truth
     // all our predicates are the same in other
-    forEach(const BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, _booleanPredicates) {
         bool value;
         // state needs to have every predicate
         if(!other.hasBooleanPredicate(bp.first, &value))
@@ -513,7 +513,7 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
             return false;
     }
     // all other's predicates are the same in ours
-    forEach(const BooleanPredicateEntry & bp, other._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, other._booleanPredicates) {
         bool value;
         // state needs to have every predicate
         if(!hasBooleanPredicate(bp.first, &value))
@@ -597,7 +597,7 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
         os << "- " << lastType;
     os << std::endl << "  )" << std::endl;
     os << "  (:init" << std::endl;
-    forEach(const BooleanPredicateEntry & p, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & p, _booleanPredicates) {
         if(p.second)
             os << "    " << p.first << std::endl;
     }
@@ -609,6 +609,10 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
             ROS_ERROR_STREAM(__func__ << ": ObjectFluentEntry for " << of.first << " is empty.");
         }
         os << "    (= " << of.first << " " << of.second << ")" << std::endl;
+    }
+    forEach(const ExpectedFutureEvent::ConstPtr& event, _expectedFutureEvents)
+    {
+    	event->toPDDL(os);
     }
     os << "  )" << std::endl;
 }
@@ -630,7 +634,7 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     }
 
     os << "  (:goal (and" << std::endl;
-    forEach(const BooleanPredicateEntry & p, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & p, _booleanPredicates) {
         if(p.second)
             os << "    " << p.first << std::endl;
         else
@@ -706,7 +710,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << std::endl;
     if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
     os << "True Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
+    forEach(const SymbolicState::BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
@@ -714,7 +718,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     }
     os << std::endl;
     os << "False Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
+    forEach(const SymbolicState::BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(!bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;

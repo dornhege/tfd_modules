@@ -7,6 +7,12 @@
 
 #ifndef SRC_EXPECTEDFUTUREEFFECTS_H_
 #define SRC_EXPECTEDFUTUREEFFECTS_H_
+#include <boost/foreach.hpp>
+#ifdef __CDT_PARSER__
+#define forEach(a, b) for(a : b)
+#else
+#define forEach BOOST_FOREACH
+#endif
 
 #include <boost/shared_ptr.hpp>
 #include <continual_planning_executive/predicate.h>
@@ -33,11 +39,14 @@ public:
 	void setTime(double time);
 	double getTime() const;
 
+	void toPDDL(std::ostream & os) const;
+
 private:
+	void formatFluents(std::ostream & os, const string& indent, bool break_lines) const;
 	double time;
-	map<Predicate, bool> boolean_fluents;
-	map<Predicate, double> numerical_fluents;
-	map<Predicate, string> object_fluents;
+	PredicateBooleanMap boolean_fluents;
+	PredicateDoubleMap numerical_fluents;
+	PredicateStringMap object_fluents;
 };
 
 #endif /* SRC_EXPECTEDFUTUREEFFECTS_H_ */

@@ -48,3 +48,38 @@ double ExpectedFutureEvent::getTime() const
 	return time;
 }
 
+void ExpectedFutureEvent::toPDDL(std::ostream & os) const
+{
+	size_t count = boolean_fluents.size()+numerical_fluents.size()+object_fluents.size();
+	if (count == 0)
+	{
+		return;
+	}
+
+	os << "    (at "<<time<<" ";
+	if (count > 1)
+	{
+		os << "(and ";
+	}
+	formatFluents(os, "        ", string(std::endl));
+	os << ")"<<std::endl;
+}
+
+void ExpectedFutureEvent::formatFluents(std::ostream & os, const string& indent, const string& linebreak) const
+{
+	forEach (const PredicateBooleanMap::value_type& fluent, boolean_fluents)
+	{
+		if(fluent.second)
+		{
+			os << indent << "("<<fluent.first << ")" << linebreak;
+		}
+	}
+	forEach (const PredicateDoubleMap::value_type& fluent, numerical_fluents)
+	{
+		os << indent << "(= "<<fluent.first << " " << fluent.second << ")" << linebreak;
+	}
+	forEach (const PredicateStringMap::value_type& fluent, object_fluents)
+	{
+		os << indent << "(= "<<fluent.first << " " << fluent.second << ")" << linebreak;
+	}
+}
