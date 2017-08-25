@@ -226,93 +226,112 @@ void SymbolicState::printSuperTypes() const
 
 void SymbolicState::removeObject(string obj, bool removePredicates)
 {
-    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); ) {
-        multimap<string, string>::iterator current = it;    // remember current for deletion
-        it++;       // but forward it now, before deleting that
-        if(current->second == obj) {
-            _typedObjects.erase(current);    // it invalid now
-        }
-    }
+	for (multimap<string, string>::iterator it = _typedObjects.begin(); it != _typedObjects.end();)
+	{
+		multimap<string, string>::iterator current = it;    // remember current for deletion
+		it++;       // but forward it now, before deleting that
+		if (current->second == obj)
+		{
+			_typedObjects.erase(current);    // it invalid now
+		}
+	}
 
-    if(!removePredicates)
-        return;
+	if (!removePredicates)
+		return;
 
-    bool removedSomething = true;   // true, to get in loop
-    // unfortunately the erase function returning an iterator is only C++11
-    // so for now we do the ugly (loop until match, erase once), until nothing changed - approach
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, bool>::iterator it = _booleanPredicates.begin(); it != _booleanPredicates.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-                _booleanPredicates.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
-        }
-    }
-    // the same for numerical fluents
-    removedSomething = true;
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, double>::iterator it = _numericalFluents.begin(); it != _numericalFluents.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-                _numericalFluents.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
-        }
-    }
-    // the same for object fluents
-    removedSomething = true;
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, string>::iterator it = _objectFluents.begin(); it != _objectFluents.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-            	_objectFluents.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
-        }
-    }
+	bool removedSomething = true;   // true, to get in loop
+	// unfortunately the erase function returning an iterator is only C++11
+	// so for now we do the ugly (loop until match, erase once), until nothing changed - approach
+	while (removedSomething)
+	{
+		removedSomething = false;
+		for (map<Predicate, bool>::iterator it = _booleanPredicates.begin(); it != _booleanPredicates.end(); it++)
+		{
+			bool foundObj = false;
+			for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+					paramIt++)
+			{
+				if (obj == *paramIt)
+				{
+					foundObj = true;
+					break;
+				}
+			}
+			if (foundObj)
+			{
+				_booleanPredicates.erase(it);    // it invalid
+				removedSomething = true;
+				break;
+			}
+		}
+	}
+	// the same for numerical fluents
+	removedSomething = true;
+	while (removedSomething)
+	{
+		removedSomething = false;
+		for (map<Predicate, double>::iterator it = _numericalFluents.begin(); it != _numericalFluents.end(); it++)
+		{
+			bool foundObj = false;
+			for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+					paramIt++)
+			{
+				if (obj == *paramIt)
+				{
+					foundObj = true;
+					break;
+				}
+			}
+			if (foundObj)
+			{
+				_numericalFluents.erase(it);    // it invalid
+				removedSomething = true;
+				break;
+			}
+		}
+	}
+	// the same for object fluents
+	removedSomething = true;
+	while (removedSomething)
+	{
+		removedSomething = false;
+		for (map<Predicate, string>::iterator it = _objectFluents.begin(); it != _objectFluents.end(); it++)
+		{
+			bool foundObj = false;
+			for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+					paramIt++)
+			{
+				if (obj == *paramIt)
+				{
+					foundObj = true;
+					break;
+				}
+			}
+			if (foundObj)
+			{
+				_objectFluents.erase(it);    // it invalid
+				removedSomething = true;
+				break;
+			}
+		}
+	}
 }
 
 void SymbolicState::setBooleanPredicate(string name, vector<string> parameters, bool value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _booleanPredicates[bp] = value;
+	Predicate bp(name, parameters);
+	_booleanPredicates[bp] = value;
 }
 
 void SymbolicState::setBooleanPredicate(string name, string parameters, bool value)
 {
-    vector<string> params = buildParameterList(parameters);
-    setBooleanPredicate(name, params, value);
+	Predicate bp(name, parameters);
+	_booleanPredicates[bp] = value;
+}
+
+void SymbolicState::setBooleanPredicate(const Predicate& p, bool value)
+{
+	_booleanPredicates[p] = value;
 }
 
 void SymbolicState::setAllBooleanPredicates(string name, bool value)
@@ -325,17 +344,19 @@ void SymbolicState::setAllBooleanPredicates(string name, bool value)
 
 void SymbolicState::setNumericalFluent(string name, vector<string> parameters, double value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _numericalFluents[bp] = value;
+	Predicate bp(name, parameters);
+	_numericalFluents[bp] = value;
 }
 
 void SymbolicState::setNumericalFluent(string name, string parameters, double value)
 {
-    vector<string> params = buildParameterList(parameters);
-    setNumericalFluent(name, params, value);
+	Predicate bp(name, parameters);
+	_numericalFluents[bp] = value;
+}
+
+void SymbolicState::setNumericalFluent(const Predicate& p, double value)
+{
+	_numericalFluents[p] = value;
 }
 
 void SymbolicState::setAllNumericalFluents(string name, double value)
@@ -348,17 +369,19 @@ void SymbolicState::setAllNumericalFluents(string name, double value)
 
 void SymbolicState::setObjectFluent(string name, vector<string> parameters, string value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _objectFluents[bp] = value;
+	Predicate bp(name, parameters);
+	_objectFluents[bp] = value;
 }
 
 void SymbolicState::setObjectFluent(string name, string parameters, string value)
 {
-    vector<string> params = buildParameterList(parameters);
+    vector<string> params = splitOnWhitespace(parameters);
     setObjectFluent(name, params, value);
+}
+
+void SymbolicState::setObjectFluent(const Predicate& p, const string& value)
+{
+	_objectFluents[p] = value;
 }
 
 void SymbolicState::setAllObjectFluents(string name, string value)
@@ -379,6 +402,16 @@ void SymbolicState::setStringGoalStatement(string goalStatement)
 {
     _forEachGoalStatements.clear();
     _directGoalStatement = goalStatement;
+}
+
+void SymbolicState::addFutureEvent(const ExpectedFutureEvent::ConstPtr& event)
+{
+	_expectedFutureEvents.insert(event);
+}
+
+void SymbolicState::removeFutureEvent(const ExpectedFutureEvent::ConstPtr& event)
+{
+	_expectedFutureEvents.erase(event);
 }
 
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
@@ -452,9 +485,7 @@ bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
         ret = _typedObjects.equal_range(objectType);
         for(multimap<string,string>::const_iterator objectIt = ret.first; objectIt != ret.second; objectIt++)
         {
-            Predicate bp;
-            bp.name = fobp.second.first;
-            bp.parameters = buildParameterList(objectIt->second);
+            Predicate bp(fobp.second.first, objectIt->second);
             bool value;
             // state needs to have every goal predicate
             if(!state.hasBooleanPredicate(bp, &value))
@@ -628,30 +659,6 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     os << "  ))" << std::endl;
 }
 
-
-vector<string> SymbolicState::buildParameterList(string params) const
-{
-    vector<string> ret;
-
-    while(params.size() > 0) {
-        // strip leading whitespace
-        while(params.size() > 0 && params[0] == ' ') {
-            params = params.substr(1);
-        }
-        // something left
-        if(params.size() > 0) {
-            size_t ind = params.find_first_of(" ");
-            ret.push_back(params.substr(0, ind));     // insert next word
-            if(ind == string::npos) {  // nothing left
-                params = "";
-            } else {
-                params = params.substr(ind);              // and remove that from string
-            }
-        }
-    }
-
-    return ret;
-}
 
 unsigned int getShellWidth()
 {
