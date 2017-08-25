@@ -55,31 +55,43 @@ void ExpectedFutureEvent::toPDDL(std::ostream & os) const
 	{
 		return;
 	}
-
-	os << "    (at "<<time<<" ";
+	string indent = "    ";
+	bool break_lines = count > 1;
+	os << indent << "(at "<<time<<" ";
 	if (count > 1)
 	{
 		os << "(and ";
 	}
-	formatFluents(os, "        ", string(std::endl));
-	os << ")"<<std::endl;
-}
-
-void ExpectedFutureEvent::formatFluents(std::ostream & os, const string& indent, const string& linebreak) const
-{
 	forEach (const PredicateBooleanMap::value_type& fluent, boolean_fluents)
 	{
 		if(fluent.second)
 		{
-			os << indent << "("<<fluent.first << ")" << linebreak;
+			os << indent << indent << "("<<fluent.first << ")";
+			if (break_lines)
+			{
+				os << std::endl;
+			}
 		}
 	}
 	forEach (const PredicateDoubleMap::value_type& fluent, numerical_fluents)
 	{
-		os << indent << "(= "<<fluent.first << " " << fluent.second << ")" << linebreak;
+		os << indent << indent << "(= "<<fluent.first << " " << fluent.second << ")";
+		if (break_lines)
+		{
+			os << std::endl;
+		}
 	}
 	forEach (const PredicateStringMap::value_type& fluent, object_fluents)
 	{
-		os << indent << "(= "<<fluent.first << " " << fluent.second << ")" << linebreak;
+		os << indent << indent << "(= "<<fluent.first << " " << fluent.second << ")";
+		if (break_lines)
+		{
+			os << std::endl;
+		}
 	}
+	if (count > 1)
+	{
+		os << indent << ")";
+	}
+	os << ")"<<std::endl;
 }

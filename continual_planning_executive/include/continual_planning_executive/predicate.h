@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 using std::string;
 using std::vector;
 
@@ -30,11 +31,11 @@ public:
 };
 std::ostream & operator<<(std::ostream & os, const Predicate & p);
 
-typedef map<Predicate, bool> PredicateBooleanMap;
-typedef map<Predicate, bool>::value_type BooleanFluentEntry;
-typedef map<Predicate, double> PredicateDoubleMap;
-typedef map<Predicate, double>::value_type NumericalFluentEntry;
-typedef map<Predicate, string> PredicateStringMap;
-typedef map<Predicate, string>::value_type ObjectFluentEntry;
+typedef std::map<Predicate, bool> PredicateBooleanMap;
+typedef std::map<Predicate, bool>::value_type BooleanFluentEntry;
+typedef std::map<Predicate, double> PredicateDoubleMap;
+typedef std::map<Predicate, double>::value_type NumericalFluentEntry;
+typedef std::map<Predicate, std::string> PredicateStringMap;
+typedef std::map<Predicate, std::string>::value_type ObjectFluentEntry;
 
 #endif /* INCLUDE_CONTINUAL_PLANNING_EXECUTIVE_PREDICATE_H_ */

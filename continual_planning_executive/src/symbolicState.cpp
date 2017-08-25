@@ -336,7 +336,7 @@ void SymbolicState::setBooleanPredicate(const Predicate& p, bool value)
 
 void SymbolicState::setAllBooleanPredicates(string name, bool value)
 {
-    forEach(SymbolicState::BooleanFluentEntry & bp, _booleanPredicates) {
+    forEach(BooleanFluentEntry & bp, _booleanPredicates) {
         if(bp.first.name == name)
             bp.second = value;
     }
@@ -361,7 +361,7 @@ void SymbolicState::setNumericalFluent(const Predicate& p, double value)
 
 void SymbolicState::setAllNumericalFluents(string name, double value)
 {
-    forEach(SymbolicState::NumericalFluentEntry & nf, _numericalFluents) {
+    forEach(NumericalFluentEntry & nf, _numericalFluents) {
         if(nf.first.name == name)
             nf.second = value;
     }
@@ -386,7 +386,7 @@ void SymbolicState::setObjectFluent(const Predicate& p, const string& value)
 
 void SymbolicState::setAllObjectFluents(string name, string value)
 {
-    forEach(SymbolicState::ObjectFluentEntry & of, _objectFluents) {
+    forEach(ObjectFluentEntry & of, _objectFluents) {
         if(of.first.name == name)
             of.second = value;
     }
@@ -710,7 +710,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << std::endl;
     if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
     os << "True Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanFluentEntry & bp, ss._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
@@ -718,7 +718,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     }
     os << std::endl;
     os << "False Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanFluentEntry & bp, ss._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(!bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
@@ -733,7 +733,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << "Numerical Fluents:" << std::endl;
     int count = 0;
     std::stringstream ssLine;
-    forEach(const SymbolicState::NumericalFluentEntry & nf, ss._numericalFluents) {
+    forEach(const NumericalFluentEntry & nf, ss._numericalFluents) {
         std::stringstream ssBuf;
         ssBuf << nf.first << " = " << nf.second << " "; // this is what we want to add to the output line
 
@@ -760,7 +760,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << "Object Fluents:" << std::endl;
     count = 0;
     ssLine.str("");
-    forEach(const SymbolicState::ObjectFluentEntry & nf, ss._objectFluents) {
+    forEach(const ObjectFluentEntry & nf, ss._objectFluents) {
         std::stringstream ssBuf;
         ssBuf << nf.first << " = " << nf.second << " ";
 

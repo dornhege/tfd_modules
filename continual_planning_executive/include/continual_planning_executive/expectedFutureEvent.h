@@ -42,7 +42,6 @@ public:
 	void toPDDL(std::ostream & os) const;
 
 private:
-	void formatFluents(std::ostream & os, const string& indent, bool break_lines) const;
 	double time;
 	PredicateBooleanMap boolean_fluents;
 	PredicateDoubleMap numerical_fluents;
