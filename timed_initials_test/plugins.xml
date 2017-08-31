@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library path="lib/libtimed_initials_test">
+  <class name="goal_script" type="GoalScript" base_class_type="continual_planning_executive::GoalCreator">
+    <description>sets goals for testing timed initials</description>
+  </class>
+  <class name="state_script" type="StateScript" base_class_type="continual_planning_executive::StateCreator">
+    <description>sets current state for testing timed initials</description>
+  </class>
+  <class name="prepare_product_action" type="PrepareProductAction" base_class_type="continual_planning_executive::ActionExecutorInterface">
+    <description>action for testing timed initials</description>
+  </class>
+  <class name="assemble_product_action" type="AssembleProductAction" base_class_type="continual_planning_executive::ActionExecutorInterface">
+    <description>action for testing timed initials</description>
+  </class>
+  <class name="deliver_product_action" type="DeliverProductAction" base_class_type="continual_planning_executive::ActionExecutorInterface">
+    <description>action for testing timed initials</description>
+  </class>
+</library>

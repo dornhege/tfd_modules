@@ -1,0 +1,8 @@
+state_creators:
+    - state_script
+goal_creators:
+    - goal_script
+action_executors:
+    - prepare_product_action
+    - assemble_product_action
+    - deliver_product_action
