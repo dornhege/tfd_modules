@@ -14,6 +14,7 @@
 #define forEach BOOST_FOREACH
 #endif
 
+#include <ros/ros.h>
 #include <boost/shared_ptr.hpp>
 #include <continual_planning_executive/predicate.h>
 #include <map>
@@ -21,13 +22,13 @@
 using std::map;
 using std::string;
 
-class ExpectedFutureEvent
+class FutureEvent
 {
 public:
-	typedef boost::shared_ptr<ExpectedFutureEvent> Ptr;
-	typedef boost::shared_ptr<ExpectedFutureEvent const> ConstPtr;
-	ExpectedFutureEvent(double time);
-	virtual ~ExpectedFutureEvent();
+	typedef boost::shared_ptr<FutureEvent> Ptr;
+	typedef boost::shared_ptr<FutureEvent const> ConstPtr;
+	FutureEvent(double time);
+	virtual ~FutureEvent();
 
 	void clear();
 	void setBooleanFluent(const Predicate& p, bool value);
@@ -36,13 +37,20 @@ public:
 	/**
 	 * @param time in seconds from now
 	 */
-	void setTime(double time);
-	double getTime() const;
-
+	void setTriggerTime(double time)
+	{
+		this->time = ros::Time::now() + ros::Duration(time);
+	}
+	double getTriggerTime() const;
+	bool triggered() const;
+	
 	void toPDDL(std::ostream & os) const;
+	const PredicateBooleanMap& getBooleanFluents() const;
+	const PredicateDoubleMap& getNumericalFluents() const;
+	const PredicateStringMap& getObjectFluents() const;
 
 private:
-	double time;
+	ros::Time time;
 	PredicateBooleanMap boolean_fluents;
 	PredicateDoubleMap numerical_fluents;
 	PredicateStringMap object_fluents;

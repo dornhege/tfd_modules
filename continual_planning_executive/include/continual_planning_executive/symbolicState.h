@@ -27,7 +27,8 @@ using std::make_pair;
 #include <ostream>
 
 #include <continual_planning_executive/predicate.h>
-#include "expectedFutureEvent.h"
+#include <continual_planning_executive/futureEvent.h>
+#include <continual_planning_executive/symbolicState.h>
 
 inline bool double_equals(double d1, double d2)
 {
@@ -153,8 +154,10 @@ public:
 	/// mutually exclusive with forall goals.
 	void setStringGoalStatement(string goalStatement);
 
-	void addFutureEvent(const ExpectedFutureEvent::ConstPtr& event);
-	void removeFutureEvent(const ExpectedFutureEvent::ConstPtr& event);
+	void addFutureEvent(const FutureEvent::ConstPtr& event);
+	void removeFutureEvent(const FutureEvent::ConstPtr& event);
+	void applyTriggeredEvent(const FutureEvent::ConstPtr& event);
+	void updateFutureEvents();
 
 	/// Determine if this state has the given predicate.
 	/**
@@ -225,7 +228,7 @@ protected:
 	ForEachGoalStatements _forEachGoalStatements;
 	string _directGoalStatement;
 
-	set<ExpectedFutureEvent::ConstPtr> _expectedFutureEvents;
+	set<FutureEvent::ConstPtr> _expectedFutureEvents;
 };
 
 std::ostream & operator<<(std::ostream & os, const SymbolicState & ss);

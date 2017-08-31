@@ -38,7 +38,7 @@ set(planner_executive_SRCS
     src/continualPlanning.cpp
     src/predicate.cpp
     src/symbolicState.cpp
-    src/expectedFutureEvent.cpp
+    src/futureEvent.cpp
     src/plan.cpp
     src/planExecutor.cpp
     src/load_plugins.cpp 

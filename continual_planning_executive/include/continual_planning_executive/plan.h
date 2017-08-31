@@ -6,7 +6,7 @@
 using std::string;
 using std::vector;
 #include <iostream>
-#include "continual_planning_msgs/TemporalAction.h"
+#include <continual_planning_msgs/TemporalAction.h>
 
 class DurativeAction
 {

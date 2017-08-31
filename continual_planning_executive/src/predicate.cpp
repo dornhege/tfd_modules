@@ -23,14 +23,16 @@ vector<string> splitOnWhitespace(string params)
 	size_t word_start = 0;
 	size_t word_end = 0;
 	const string whitespace = " \t";
-	word_start = params.find_first_not_of(whitespace, word_end);
-	word_end = params.find_first_of(whitespace, word_start);
-	while (word_start < params.size() && word_end < params.size())
+	do
 	{
-		word_list.push_back(params.substr(word_start, word_end - word_start));
 		word_start = params.find_first_not_of(whitespace, word_end);
 		word_end = params.find_first_of(whitespace, word_start);
-	}
+		if (word_end == string::npos)
+		{
+			word_end = params.size();
+		}
+		word_list.push_back(params.substr(word_start, word_end - word_start));
+	} while (word_start < params.size() && word_end < params.size());
 
 	return word_list;
 }

@@ -5,50 +5,50 @@
  *      Author: andreas
  */
 
-#include <continual_planning_executive/expectedFutureEvent.h>
+#include <continual_planning_executive/futureEvent.h>
 
-ExpectedFutureEvent::ExpectedFutureEvent(double time): time(time)
+FutureEvent::FutureEvent(double time)
 {
-
+	setTriggerTime(time);
 }
 
-ExpectedFutureEvent::~ExpectedFutureEvent()
+FutureEvent::~FutureEvent()
 {
 }
 
-void ExpectedFutureEvent::clear()
+void FutureEvent::clear()
 {
 	object_fluents.clear();
 	boolean_fluents.clear();
 	numerical_fluents.clear();
 }
 
-void ExpectedFutureEvent::setBooleanFluent(const Predicate& p, bool value)
+void FutureEvent::setBooleanFluent(const Predicate& p, bool value)
 {
 	boolean_fluents[p] = value;
 }
 
-void ExpectedFutureEvent::setObjectFluent(const Predicate& p, const string& value)
+void FutureEvent::setObjectFluent(const Predicate& p, const string& value)
 {
 	object_fluents[p] = value;
 }
 
-void ExpectedFutureEvent::setNumericalFluent(const Predicate& p, double value)
+void FutureEvent::setNumericalFluent(const Predicate& p, double value)
 {
 	numerical_fluents[p] = value;
 }
 
-void ExpectedFutureEvent::setTime(double time)
+bool FutureEvent::triggered() const
 {
-	this->time = time;
+	return time < ros::Time::now();
 }
 
-double ExpectedFutureEvent::getTime() const
+double FutureEvent::getTriggerTime() const
 {
-	return time;
+	return (time - ros::Time::now()).toSec();
 }
 
-void ExpectedFutureEvent::toPDDL(std::ostream & os) const
+void FutureEvent::toPDDL(std::ostream & os) const
 {
 	size_t count = boolean_fluents.size()+numerical_fluents.size()+object_fluents.size();
 	if (count == 0)
@@ -57,7 +57,7 @@ void ExpectedFutureEvent::toPDDL(std::ostream & os) const
 	}
 	string indent = "    ";
 	bool break_lines = count > 1;
-	os << indent << "(at "<<time<<" ";
+	os << indent << "(at "<<getTriggerTime()<<" ";
 	if (count > 1)
 	{
 		os << "(and ";
@@ -66,7 +66,11 @@ void ExpectedFutureEvent::toPDDL(std::ostream & os) const
 	{
 		if(fluent.second)
 		{
-			os << indent << indent << "("<<fluent.first << ")";
+			if (break_lines)
+			{
+				os << indent << indent;
+			}
+			os << fluent.first;
 			if (break_lines)
 			{
 				os << std::endl;
@@ -95,3 +99,19 @@ void ExpectedFutureEvent::toPDDL(std::ostream & os) const
 	}
 	os << ")"<<std::endl;
 }
+
+const PredicateBooleanMap& FutureEvent::getBooleanFluents() const
+{
+	return boolean_fluents;
+}
+
+const PredicateDoubleMap& FutureEvent::getNumericalFluents() const
+{
+	return numerical_fluents;
+}
+
+const PredicateStringMap& FutureEvent::getObjectFluents() const
+{
+	return object_fluents;
+}
+

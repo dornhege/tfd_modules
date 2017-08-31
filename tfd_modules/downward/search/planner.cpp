@@ -389,22 +389,41 @@ double save_plan(BestFirstSearchEngine& engine, double best_makespan, int &plan_
         if(makespan >= best_makespan)
             return best_makespan;
     }
-
+    std::string timed_initial_key = "timed_initial_";
     cout << endl << "Found new plan:" << endl;
     for(int i = 0; i < plan.size(); i++) {
         const PlanStep& step = plan[i];
-        printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
+        if (step.op->get_name().find(timed_initial_key) == std::string::npos)
+        {
+            printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
+        }
     }
     if(g_parameters.reschedule_plans) {
         cout << "Rescheduled Plan:" << endl;
         for (int i = 0; i < rescheduled_plan.size(); i++) {
             const PlanStep& step = rescheduled_plan[i];
-            printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
+            if (step.op->get_name().find(timed_initial_key) == std::string::npos)
+            {
+                printf("%.8f: (%s) [%.8f]\n", step.start_time, step.op->get_name().c_str(), step.duration);
+            }
         }
     }
     cout << "Solution with original makespan " << original_makespan
         << " found (ignoring no-moving-targets-rule)." << endl;
 
+    // erase timed initial operators.
+    // timed initials are compiled away during translate into hidden operators that do not exist in the domain.
+    // we remove them here from the plan after possible rescheduling.
+    Plan timed_initials_free_plan;
+    for (size_t i = 0; i < rescheduled_plan.size(); i++)
+    {
+        const PlanStep& step = rescheduled_plan[i];
+        if (step.op->get_name().find(timed_initial_key) == std::string::npos)
+        {
+            timed_initials_free_plan.push_back(step);
+        }
+    }
+    rescheduled_plan = timed_initials_free_plan;
     record_raw_plan(rescheduled_plan, plan_number);
 
     // Determine filenames to write to
