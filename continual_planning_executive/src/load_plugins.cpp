@@ -147,13 +147,6 @@ bool loadGoalCreators(ros::NodeHandle & nh)
             boost::shared_ptr<continual_planning_executive::GoalCreator> gc = s_GoalCreatorLoader->createInstance(goal_creator_name);
             continualPlanning->addGoalCreator(gc);
             gc->initialize(goal_creator_entry);
-            // FIXME: move to continual planning
-//            if (!gc->fillStateAndGoal(s_ContinualPlanning->_currentState, s_ContinualPlanning->_goal))
-//            {
-//                ROS_ERROR("Filling state and goal failed for goal_creator %s.", goal_creator_name.c_str());
-//                return false;
-//            }
-//            ROS_INFO_STREAM("Goal initialized to:\n" << s_ContinualPlanning->_goal);
         } catch (pluginlib::PluginlibException & ex)
         {
             ROS_ERROR("Failed to load GoalCreator instance for: %s. Error: %s.", goal_creator_name.c_str(), ex.what());

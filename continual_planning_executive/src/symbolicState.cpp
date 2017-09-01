@@ -226,98 +226,117 @@ void SymbolicState::printSuperTypes() const
 
 void SymbolicState::removeObject(string obj, bool removePredicates)
 {
-    for(multimap<string,string>::iterator it = _typedObjects.begin(); it != _typedObjects.end(); ) {
-        multimap<string, string>::iterator current = it;    // remember current for deletion
-        it++;       // but forward it now, before deleting that
-        if(current->second == obj) {
-            _typedObjects.erase(current);    // it invalid now
-        }
+  for (multimap<string, string>::iterator it = _typedObjects.begin(); it != _typedObjects.end();)
+  {
+    multimap<string, string>::iterator current = it;    // remember current for deletion
+    it++;       // but forward it now, before deleting that
+    if (current->second == obj)
+    {
+      _typedObjects.erase(current);    // it invalid now
     }
+  }
 
-    if(!removePredicates)
-        return;
+  if (!removePredicates)
+    return;
 
-    bool removedSomething = true;   // true, to get in loop
-    // unfortunately the erase function returning an iterator is only C++11
-    // so for now we do the ugly (loop until match, erase once), until nothing changed - approach
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, bool>::iterator it = _booleanPredicates.begin(); it != _booleanPredicates.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-                _booleanPredicates.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
+  bool removedSomething = true;   // true, to get in loop
+  // unfortunately the erase function returning an iterator is only C++11
+  // so for now we do the ugly (loop until match, erase once), until nothing changed - approach
+  while (removedSomething)
+  {
+    removedSomething = false;
+    for (map<Predicate, bool>::iterator it = _booleanPredicates.begin(); it != _booleanPredicates.end(); it++)
+    {
+      bool foundObj = false;
+      for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+          paramIt++)
+      {
+        if (obj == *paramIt)
+        {
+          foundObj = true;
+          break;
         }
+      }
+      if (foundObj)
+      {
+        _booleanPredicates.erase(it);    // it invalid
+        removedSomething = true;
+        break;
+      }
     }
-    // the same for numerical fluents
-    removedSomething = true;
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, double>::iterator it = _numericalFluents.begin(); it != _numericalFluents.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-                _numericalFluents.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
+  }
+  // the same for numerical fluents
+  removedSomething = true;
+  while (removedSomething)
+  {
+    removedSomething = false;
+    for (map<Predicate, double>::iterator it = _numericalFluents.begin(); it != _numericalFluents.end(); it++)
+    {
+      bool foundObj = false;
+      for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+          paramIt++)
+      {
+        if (obj == *paramIt)
+        {
+          foundObj = true;
+          break;
         }
+      }
+      if (foundObj)
+      {
+        _numericalFluents.erase(it);    // it invalid
+        removedSomething = true;
+        break;
+      }
     }
-    // the same for object fluents
-    removedSomething = true;
-    while(removedSomething) {
-        removedSomething = false;
-        for(map<Predicate, string>::iterator it = _objectFluents.begin(); it != _objectFluents.end(); it++) {
-            bool foundObj = false;
-            for(vector<string>::const_iterator paramIt = it->first.parameters.begin();
-                    paramIt != it->first.parameters.end(); paramIt++) {
-                if(obj == *paramIt) {
-                    foundObj = true;
-                    break;
-                }
-            }
-            if(foundObj) {
-            	_objectFluents.erase(it);    // it invalid
-                removedSomething = true;
-                break;
-            }
+  }
+  // the same for object fluents
+  removedSomething = true;
+  while (removedSomething)
+  {
+    removedSomething = false;
+    for (map<Predicate, string>::iterator it = _objectFluents.begin(); it != _objectFluents.end(); it++)
+    {
+      bool foundObj = false;
+      for (vector<string>::const_iterator paramIt = it->first.parameters.begin(); paramIt != it->first.parameters.end();
+          paramIt++)
+      {
+        if (obj == *paramIt)
+        {
+          foundObj = true;
+          break;
         }
+      }
+      if (foundObj)
+      {
+        _objectFluents.erase(it);    // it invalid
+        removedSomething = true;
+        break;
+      }
     }
+  }
 }
 
 void SymbolicState::setBooleanPredicate(string name, vector<string> parameters, bool value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _booleanPredicates[bp] = value;
+  Predicate bp(name, parameters);
+  _booleanPredicates[bp] = value;
 }
 
 void SymbolicState::setBooleanPredicate(string name, string parameters, bool value)
 {
-    vector<string> params = buildParameterList(parameters);
-    setBooleanPredicate(name, params, value);
+  Predicate bp(name, parameters);
+  _booleanPredicates[bp] = value;
+}
+
+void SymbolicState::setBooleanPredicate(const Predicate& p, bool value)
+{
+  _booleanPredicates[p] = value;
 }
 
 void SymbolicState::setAllBooleanPredicates(string name, bool value)
 {
-    forEach(SymbolicState::BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(BooleanFluentEntry & bp, _booleanPredicates) {
         if(bp.first.name == name)
             bp.second = value;
     }
@@ -325,22 +344,24 @@ void SymbolicState::setAllBooleanPredicates(string name, bool value)
 
 void SymbolicState::setNumericalFluent(string name, vector<string> parameters, double value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _numericalFluents[bp] = value;
+  Predicate bp(name, parameters);
+  _numericalFluents[bp] = value;
 }
 
 void SymbolicState::setNumericalFluent(string name, string parameters, double value)
 {
-    vector<string> params = buildParameterList(parameters);
-    setNumericalFluent(name, params, value);
+  Predicate bp(name, parameters);
+  _numericalFluents[bp] = value;
+}
+
+void SymbolicState::setNumericalFluent(const Predicate& p, double value)
+{
+  _numericalFluents[p] = value;
 }
 
 void SymbolicState::setAllNumericalFluents(string name, double value)
 {
-    forEach(SymbolicState::NumericalFluentEntry & nf, _numericalFluents) {
+    forEach(NumericalFluentEntry & nf, _numericalFluents) {
         if(nf.first.name == name)
             nf.second = value;
     }
@@ -348,22 +369,24 @@ void SymbolicState::setAllNumericalFluents(string name, double value)
 
 void SymbolicState::setObjectFluent(string name, vector<string> parameters, string value)
 {
-    Predicate bp;
-    bp.name = name;
-    bp.parameters = parameters;
-
-    _objectFluents[bp] = value;
+  Predicate bp(name, parameters);
+  _objectFluents[bp] = value;
 }
 
 void SymbolicState::setObjectFluent(string name, string parameters, string value)
 {
-    vector<string> params = buildParameterList(parameters);
+    vector<string> params = splitOnWhitespace(parameters);
     setObjectFluent(name, params, value);
+}
+
+void SymbolicState::setObjectFluent(const Predicate& p, const string& value)
+{
+  _objectFluents[p] = value;
 }
 
 void SymbolicState::setAllObjectFluents(string name, string value)
 {
-    forEach(SymbolicState::ObjectFluentEntry & of, _objectFluents) {
+    forEach(ObjectFluentEntry & of, _objectFluents) {
         if(of.first.name == name)
             of.second = value;
     }
@@ -379,6 +402,49 @@ void SymbolicState::setStringGoalStatement(string goalStatement)
 {
     _forEachGoalStatements.clear();
     _directGoalStatement = goalStatement;
+}
+
+void SymbolicState::addFutureEvent(const FutureEvent::ConstPtr& event)
+{
+  _expectedFutureEvents.insert(event);
+}
+
+void SymbolicState::removeFutureEvent(const FutureEvent::ConstPtr& event)
+{
+  _expectedFutureEvents.erase(event);
+}
+
+void SymbolicState::applyTriggeredEvent(const FutureEvent::ConstPtr& event)
+{
+  forEach (const PredicateBooleanMap::value_type& fluent, event->getBooleanFluents())
+  {
+    setBooleanPredicate(fluent.first, fluent.second);
+  }
+  forEach (const PredicateDoubleMap::value_type& fluent, event->getNumericalFluents())
+  {
+    setNumericalFluent(fluent.first, fluent.second);
+  }
+  forEach (const PredicateStringMap::value_type& fluent, event->getObjectFluents())
+  {
+    setObjectFluent(fluent.first, fluent.second);
+  }
+}
+
+void SymbolicState::updateFutureEvents()
+{
+  set<FutureEvent::ConstPtr> expired_events;
+  forEach (const FutureEvent::ConstPtr& event, _expectedFutureEvents)
+  {
+    if (event->triggered())
+    {
+      applyTriggeredEvent(event);
+      expired_events.insert(event);
+    }
+  }
+  forEach (const FutureEvent::ConstPtr& event, expired_events)
+  {
+    removeFutureEvent(event);
+  }
 }
 
 bool SymbolicState::hasBooleanPredicate(const Predicate & p, bool* value) const
@@ -414,7 +480,7 @@ bool SymbolicState::hasObjectFluent(const Predicate & p, string* value) const
 
 bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
 {
-    forEach(const BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, _booleanPredicates) {
         bool value;
         // state needs to have every goal predicate
         if(!state.hasBooleanPredicate(bp.first, &value))
@@ -452,9 +518,7 @@ bool SymbolicState::isFulfilledBy(const SymbolicState & state) const
         ret = _typedObjects.equal_range(objectType);
         for(multimap<string,string>::const_iterator objectIt = ret.first; objectIt != ret.second; objectIt++)
         {
-            Predicate bp;
-            bp.name = fobp.second.first;
-            bp.parameters = buildParameterList(objectIt->second);
+            Predicate bp(fobp.second.first, objectIt->second);
             bool value;
             // state needs to have every goal predicate
             if(!state.hasBooleanPredicate(bp, &value))
@@ -472,7 +536,7 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
 {
     // better: collect merged list (should be same) and then only check truth
     // all our predicates are the same in other
-    forEach(const BooleanPredicateEntry & bp, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, _booleanPredicates) {
         bool value;
         // state needs to have every predicate
         if(!other.hasBooleanPredicate(bp.first, &value))
@@ -482,7 +546,7 @@ bool SymbolicState::booleanEquals(const SymbolicState & other) const
             return false;
     }
     // all other's predicates are the same in ours
-    forEach(const BooleanPredicateEntry & bp, other._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, other._booleanPredicates) {
         bool value;
         // state needs to have every predicate
         if(!hasBooleanPredicate(bp.first, &value))
@@ -566,7 +630,7 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
         os << "- " << lastType;
     os << std::endl << "  )" << std::endl;
     os << "  (:init" << std::endl;
-    forEach(const BooleanPredicateEntry & p, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & p, _booleanPredicates) {
         if(p.second)
             os << "    " << p.first << std::endl;
     }
@@ -578,6 +642,10 @@ void SymbolicState::toPDDLProblem(std::ostream & os) const
             ROS_ERROR_STREAM(__func__ << ": ObjectFluentEntry for " << of.first << " is empty.");
         }
         os << "    (= " << of.first << " " << of.second << ")" << std::endl;
+    }
+    forEach(const FutureEvent::ConstPtr& event, _expectedFutureEvents)
+    {
+        event->toPDDL(os);
     }
     os << "  )" << std::endl;
 }
@@ -599,7 +667,7 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     }
 
     os << "  (:goal (and" << std::endl;
-    forEach(const BooleanPredicateEntry & p, _booleanPredicates) {
+    forEach(const BooleanFluentEntry & p, _booleanPredicates) {
         if(p.second)
             os << "    " << p.first << std::endl;
         else
@@ -628,30 +696,6 @@ void SymbolicState::toPDDLGoal(std::ostream & os) const
     os << "  ))" << std::endl;
 }
 
-
-vector<string> SymbolicState::buildParameterList(string params) const
-{
-    vector<string> ret;
-
-    while(params.size() > 0) {
-        // strip leading whitespace
-        while(params.size() > 0 && params[0] == ' ') {
-            params = params.substr(1);
-        }
-        // something left
-        if(params.size() > 0) {
-            size_t ind = params.find_first_of(" ");
-            ret.push_back(params.substr(0, ind));     // insert next word
-            if(ind == string::npos) {  // nothing left
-                params = "";
-            } else {
-                params = params.substr(ind);              // and remove that from string
-            }
-        }
-    }
-
-    return ret;
-}
 
 unsigned int getShellWidth()
 {
@@ -699,7 +743,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     os << std::endl;
     if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
     os << "True Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
@@ -707,7 +751,7 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     }
     os << std::endl;
     os << "False Predicates:" << std::endl;
-    forEach(const SymbolicState::BooleanPredicateEntry & bp, ss._booleanPredicates) {
+    forEach(const BooleanFluentEntry & bp, ss._booleanPredicates) {
         if(!bp.second) {
             os << bp.first << " ";
             if(SymbolicState::OStreamMode::forceNewlines) os << std::endl;
@@ -719,60 +763,72 @@ std::ostream & operator<<(std::ostream & os, const SymbolicState & ss) {
     int maxEntriesPerLine = 0;
     if(SymbolicState::OStreamMode::forceNewlines)
         maxEntriesPerLine = 1;
-    os << "Numerical Fluents:" << std::endl;
-    int count = 0;
     std::stringstream ssLine;
-    forEach(const SymbolicState::NumericalFluentEntry & nf, ss._numericalFluents) {
-        std::stringstream ssBuf;
-        ssBuf << nf.first << " = " << nf.second << " "; // this is what we want to add to the output line
+    int count = 0;
+    if (! ss._numericalFluents.empty()){
+      os << "Numerical Fluents:" << std::endl;
+      forEach(const NumericalFluentEntry & nf, ss._numericalFluents) {
+          std::stringstream ssBuf;
+          ssBuf << nf.first << " = " << nf.second << " "; // this is what we want to add to the output line
 
-        if(maxEntriesPerLine > 0) {
-            os << ssBuf.str();
-        } else {    // maxEntriesPerLine == 0, use shell width
-            if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
-                os << ssLine.str() << std::endl;
-                ssLine.str("");         // next line starts empty
-            }
-            ssLine << ssBuf.str();
-        }
+          if(maxEntriesPerLine > 0) {
+              os << ssBuf.str();
+          } else {    // maxEntriesPerLine == 0, use shell width
+              if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+                  os << ssLine.str() << std::endl;
+                  ssLine.str("");         // next line starts empty
+              }
+              ssLine << ssBuf.str();
+          }
 
-        // print newline every maxEntriesPerLine outputs
-        count++;
-        if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
-            count = 0;
-            os << std::endl;
+          // print newline every maxEntriesPerLine outputs
+          count++;
+          if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
+              count = 0;
+              os << std::endl;
+          }
+      }
+      if(!ssLine.str().empty())
+          os << ssLine.str() << std::endl; // output last line
+      os << std::endl;
+    }
+    if (! ss._objectFluents.empty()){
+      os << "Object Fluents:" << std::endl;
+      count = 0;
+      ssLine.str("");
+      forEach(const ObjectFluentEntry & nf, ss._objectFluents) {
+          std::stringstream ssBuf;
+          ssBuf << nf.first << " = " << nf.second << " ";
+
+          if(maxEntriesPerLine > 0) {
+              os << ssBuf.str();
+          } else {
+              if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
+                  os << ssLine.str() << std::endl;
+                  ssLine.str("");         // next line starts empty
+              }
+              ssLine << ssBuf.str();
+          }
+
+          // print newline every maxEntriesPerLine outputs
+          count++;
+          if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
+              count = 0;
+              os << std::endl;
+          }
+      }
+      if(!ssLine.str().empty())
+          os << ssLine.str() << std::endl; // output last line
+      os << std::endl;
+    }
+    if(! ss._expectedFutureEvents.empty())
+    {
+        os << "Future Events:" << std::endl;
+        forEach(const FutureEvent::ConstPtr& event, ss._expectedFutureEvents)
+        {
+            event->toPDDL(os);
         }
     }
-    if(!ssLine.str().empty())
-        os << ssLine.str() << std::endl; // output last line
-    os << std::endl;
-    os << "Object Fluents:" << std::endl;
-    count = 0;
-    ssLine.str("");
-    forEach(const SymbolicState::ObjectFluentEntry & nf, ss._objectFluents) {
-        std::stringstream ssBuf;
-        ssBuf << nf.first << " = " << nf.second << " ";
-
-        if(maxEntriesPerLine > 0) {
-            os << ssBuf.str();
-        } else {
-            if(ssLine.str().length() + ssBuf.str().length() > sw) { // added cur output would be too long, so newline
-                os << ssLine.str() << std::endl;
-                ssLine.str("");         // next line starts empty
-            }
-            ssLine << ssBuf.str();
-        }
-
-        // print newline every maxEntriesPerLine outputs
-        count++;
-        if(maxEntriesPerLine > 0 && count >= maxEntriesPerLine) {
-            count = 0;
-            os << std::endl;
-        }
-    }
-    if(!ssLine.str().empty())
-        os << ssLine.str() << std::endl; // output last line
-    os << std::endl;
 
     if(!ss._forEachGoalStatements.empty()) {
         os << "ForEachGoalStatements:" << std::endl;

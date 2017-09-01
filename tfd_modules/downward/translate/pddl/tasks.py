@@ -9,7 +9,7 @@ import functions
 import modules
 import predicates
 import pddl_types
-
+import timed_initials
 
 class Task(object):
   FUNCTION_SYMBOLS = dict()
@@ -48,10 +48,14 @@ class Task(object):
   def parse(domain_pddl, task_pddl):
     domain_name, requirements, oplinit, constants, predicates, types, functions, actions, durative_actions, axioms, modules, subplan_generators \
                  = parse_domain(domain_pddl)
-    task_name, task_domain_name, module_inits, module_exits, objects, init, goal = parse_task(task_pddl)
+    task_name, task_domain_name, module_inits, module_exits, objects, init, timed_init, goal = parse_task(task_pddl)
 
     assert domain_name == task_domain_name
     objects = constants + objects
+
+    if timed_init:
+      timed_initials.compile_away(predicates, durative_actions, init, goal, timed_init)
+
     init += [conditions.Atom("=", (conditions.parse_term(obj.name), conditions.parse_term(obj.name))) 
              for obj in objects]
     return Task(domain_name, task_name, requirements, oplinit, types, objects, modules,
@@ -326,19 +330,14 @@ def parse_task(task_pddl):
 
   assert init[0] == ":init"
   initial = []
+  timed_initial = []
   for fact in init[1:]:
-    if fact[0] == "=":
-        if conditions.is_function_comparison(fact): # numeric function
-            initial.append(f_expression.parse_assignment(fact))
-        else: # object function
-            function = conditions.parse_term(fact[1])
-            terms = function.args
-            terms.append(conditions.parse_term(fact[2]))
-            atomname = conditions.function_predicate_name(function.name)
-            initial.append(conditions.Atom(atomname, terms))
+    if fact[0] == "at" and len(fact) == 3 and f_expression.isFloat(fact[1]):
+        timed_initial.append(timed_initials.TimedInitial(float(fact[1]),fact[2]))
     else:
-        initial.append(conditions.Atom(fact[0], [conditions.parse_term(term) for term in fact[1:]]))
+        initial.append(parse_init_fact(fact))
   yield initial
+  yield timed_initial
 
   goal = iterator.next()
   assert goal[0] == ":goal" and len(goal) == 2
@@ -349,3 +348,16 @@ def parse_task(task_pddl):
         if entry[2][0] in ["total-time", "total-cost"] :
             continue
     assert False, "Can only minimize total-time or total-cost, got: " + str(entry)
+
+def parse_init_fact(fact):
+    if fact[0] == "=":
+        if conditions.is_function_comparison(fact): # numeric function
+            return f_expression.parse_assignment(fact)
+        else: # object function
+            function = conditions.parse_term(fact[1])
+            terms = function.args
+            terms.append(conditions.parse_term(fact[2]))
+            atomname = conditions.function_predicate_name(function.name)
+            return conditions.Atom(atomname, terms)
+    else:
+        return conditions.Atom(fact[0], [conditions.parse_term(term) for term in fact[1:]])

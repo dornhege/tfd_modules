@@ -47,10 +47,13 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
     checkActionTimesFile();
 
     int actionsExectued = 0;
+    double nextEventTime = 99999;
     forEach(const DurativeAction & da, p.actions) {
         if(_onlyExecuteActionAtZeroTime && da.startTime > 0.01)
+        {
+            nextEventTime = fmin(nextEventTime, da.startTime);
             continue;
-
+        }
         bool count = 0;
         forEach(boost::shared_ptr<continual_planning_executive::ActionExecutorInterface> ai, _actionExecutors) {
             if(ai->canExecute(da, currentState))
@@ -93,6 +96,15 @@ bool PlanExecutor::executeBlocking(const Plan & p, SymbolicState & currentState,
 
     if(actionsExectued > 1)
         ROS_WARN("Executed %d actions in one step.", actionsExectued);
+
+    if(nextEventTime > 0.01 && actionsExectued == 0 && _onlyExecuteActionAtZeroTime)
+    {
+        nextEventTime +=0.01;
+        // wait until next action can start
+        ROS_INFO_STREAM("waiting for "<<nextEventTime<<" seconds until next action can be started...");
+        sleep(nextEventTime);
+        return true;
+    }
 
     return actionsExectued > 0;
 }

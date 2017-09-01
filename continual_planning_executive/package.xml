@@ -23,7 +23,6 @@
   <run_depend>continual_planning_msgs</run_depend>
   
   <export>
-    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -lcontinual_planning"/>
   </export>
 
 </package>

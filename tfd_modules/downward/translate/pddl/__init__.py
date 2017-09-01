@@ -42,3 +42,5 @@ from f_expression import PrimitiveNumericExpression
 from effects import Effect
 
 from modules import Module
+
+from timed_initials import TimedInitial

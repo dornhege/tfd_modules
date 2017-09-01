@@ -1,0 +1,23 @@
+<launch>
+
+	<arg name="gui" default="false" />
+	<arg name="start_paused" default="true" />
+
+	<rosparam command="load" ns="tfd_modules"
+		file="$(find timed_initials_test)/config/tfd_config.yaml" />
+
+	<node pkg="continual_planning_executive" type="continual_planning_executive"
+		args="" respawn="false" name="continual_planning_executive" output="screen"
+		required="false">
+		<param name="start_paused" value="$(arg start_paused)" />
+		<rosparam command="load"
+			file="$(find tfd_modules)/config/tfdm_interface.yaml" />
+
+		<param name="domain_file" value="$(find timed_initials_test)/pddl/domain.pddl" />
+		<rosparam command="load" file="$(find timed_initials_test)/config/actions.yaml" />
+	</node>
+
+	<node if="$(arg gui)" pkg="continual_planning_monitor" type="continual_planning_monitor"
+		name="continual_planning_monitor" />
+
+</launch>
